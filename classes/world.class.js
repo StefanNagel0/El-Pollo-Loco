@@ -1,4 +1,4 @@
-class World{
+class World {
     character = new Character();
     enemies = [
         new Chicken(),
@@ -16,18 +16,25 @@ class World{
     ];
     canvas;
     ctx;
+    keyboard;
 
-constructor(canvas){
-    this.ctx = canvas.getContext('2d');
-    this.canvas = canvas;
-    this.draw();
-}
+    constructor(canvas, keyboard) {
+        this.ctx = canvas.getContext('2d');
+        this.canvas = canvas;
+        this.keyboard = keyboard;
+        this.draw();
+        this.setWorld();
+    }
 
-    draw(){
-        this.ctx.clearRect(0,0, this.canvas.width, this.canvas.height);
+    setWorld(){
+        this.character.world = this;
+    }
+
+    draw() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.addObjectsToMap(this.backgroundObjects);
-        this.addObjectsToMap(this.clouds);        
+        this.addObjectsToMap(this.clouds);
         this.addToMap(this.character);
         this.addObjectsToMap(this.enemies);
 
@@ -35,13 +42,13 @@ constructor(canvas){
 
         //Draw() wird immer wieder aufgerufen
         let self = this;
-        requestAnimationFrame(function(){
+        requestAnimationFrame(function () {
             self.draw();
         });
     }
 
-    addObjectsToMap(objects){
-        objects.forEach((o)=>{
+    addObjectsToMap(objects) {
+        objects.forEach((o) => {
             this.addToMap(o);
         })
     }

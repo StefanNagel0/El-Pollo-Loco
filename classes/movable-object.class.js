@@ -8,7 +8,26 @@ class MovableObject{
     currentImage = 0;
     speed = 0.15;
     otherDirection = false;
+    speedY = 0;
+    acceleration = 2.5;
+    isJumping = false;
 
+    applyGravity(){
+        setInterval(() =>{
+            if(this.isAboveGround() || this.speedY > 0 ){
+            this.y -= this.speedY;
+            this.speedY -= this.acceleration;
+            }else {
+                this.y = 150;
+                this.speedY = 0; // Geschwindigkeit zurücksetzen
+                this.isJumping = false; // Erlaubt wieder einen neuen Sprung
+            }
+        },1000/60);
+    }
+
+    isAboveGround(){
+        return this.y < 150;
+    }
 
     loadImage(path){
         this.img = new Image();

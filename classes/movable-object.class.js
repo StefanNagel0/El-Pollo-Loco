@@ -17,10 +17,6 @@ class MovableObject{
             if(this.isAboveGround() || this.speedY > 0 ){
             this.y -= this.speedY;
             this.speedY -= this.acceleration;
-            }else {
-                this.y = 150;
-                this.speedY = 0; // Geschwindigkeit zurücksetzen
-                this.isJumping = false; // Erlaubt wieder einen neuen Sprung
             }
         },1000/60);
     }
@@ -49,12 +45,14 @@ class MovableObject{
     }
 
     moveRight(){
-        console.log('Moving right');
+        this.x += this.speed;
     }
 
     moveLeft(){
-        setInterval(() =>{
-            this.x -= this.speed;            
-            },1000 / 60); 
+        this.x -= this.speed;
+    }
+
+    jump(){
+        this.speedY = 30;
     }
 }

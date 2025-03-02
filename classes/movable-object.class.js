@@ -1,4 +1,4 @@
-class MovableObject{
+class MovableObject {
     x = 120;
     y = 280;
     img;
@@ -11,48 +11,98 @@ class MovableObject{
     speedY = 0;
     acceleration = 2.5;
     isJumping = false;
+    offset = {
+        top: 0,
+        left: 0,
+        right:0,
+        bottom:0,
+    };
 
-    applyGravity(){
-        setInterval(() =>{
-            if(this.isAboveGround() || this.speedY > 0 ){
-            this.y -= this.speedY;
-            this.speedY -= this.acceleration;
+    applyGravity() {
+        setInterval(() => {
+            if (this.isAboveGround() || this.speedY > 0) {
+                this.y -= this.speedY;
+                this.speedY -= this.acceleration;
             }
-        },1000/60);
+        }, 1000 / 60);
     }
 
-    isAboveGround(){
+    isAboveGround() {
         return this.y < 150;
     }
 
-    loadImage(path){
+    loadImage(path) {
         this.img = new Image();
         this.img.src = path;
     }
-    loadImages(arr){
-        arr.forEach((path)=>{
-        let img = new Image();
-        img.src = path;
-        this.imageCache[path] = img;            
+    loadImages(arr) {
+        arr.forEach((path) => {
+            let img = new Image();
+            img.src = path;
+            this.imageCache[path] = img;
         })
     }
 
-    playAnimation(images){
+    draw(ctx) {
+        ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+    }
+
+    // drawFrame(ctx) {
+    //     if (this instanceof Character || this instanceof Chicken || this instanceof smallChicken) {
+    //         ctx.beginPath();
+    //         ctx.lineWidth = '4';
+    //         ctx.strokeStyle = 'blue';
+    //         ctx.rect(this.x, this.y, this.width, this.height);
+    //         ctx.stroke();
+    //     }
+    // }
+
+    drawFrame(ctx) {
+        if (this instanceof Character || this instanceof Chicken || this instanceof smallChicken) {
+            // Blauer Rahmen (originale Bounding Box)
+            ctx.beginPath();
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = 'blue';
+            ctx.rect(this.x, this.y, this.width, this.height);
+            ctx.stroke();
+    
+            // Roter Rahmen (mit Offset angepasst)
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'red';
+            ctx.rect(
+                this.x + this.offset.left,
+                this.y + this.offset.top,
+                this.width - this.offset.left - this.offset.right,
+                this.height - this.offset.top - this.offset.bottom
+            );
+            ctx.stroke();
+        }
+    }
+    
+    isColiding(mo) {
+        return this.x + this.width - this.offset.right > mo.x + mo.offset.left &&
+            this.y + this.height - this.offset.bottom > mo.y + mo.offset.top &&
+            this.x + this.offset.left < mo.x + mo.width - mo.offset.right &&
+            this.y + this.offset.top < mo.y + mo.height - mo.offset.bottom;
+    }
+
+    playAnimation(images) {
         let i = this.currentImage % this.IMAGES_WALKING.length; // let i = 0 % 6
         let path = images[i];
         this.img = this.imageCache[path];
-        this.currentImage++;    
+        this.currentImage++;
     }
 
-    moveRight(){
+    moveRight() {
         this.x += this.speed;
     }
 
-    moveLeft(){
+    moveLeft() {
         this.x -= this.speed;
     }
 
-    jump(){
+    jump() {
         this.speedY = 30;
     }
 }

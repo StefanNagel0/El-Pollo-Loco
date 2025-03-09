@@ -43,12 +43,13 @@ class World {
             if(this.character.isColiding(enemy)){
                 this.character.hit();
                 this.statusBar.setPercentage(this.character.energy);
+                this.statusBar.setCoinsPercentage(this.character.coins); 
                 console.log('Collision with Character, energy = ' , this.character.energy);
             }
         });
     }
     
-    draw() {
+    draw(ctx) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.ctx.translate(this.camera_x, 0);
@@ -58,7 +59,7 @@ class World {
         this.addObjectsToMap(this.level.enemies);
         this.ctx.translate(-this.camera_x, 0);
 
-        this.addToMap(this.statusBar); 
+        this.statusBar.draw(this.ctx);  
         this.addObjectsToMap(this.throwableObjects);
         //Draw() wird immer wieder aufgerufen
         let self = this;

@@ -45,7 +45,6 @@ class StatusBar extends DrawableObject {
         this.x_bottles = 20;
         this.y_bottles = 85;
 
-        // **Direkt nach Konstruktion aktualisieren**
         this.img_energy = new Image();
         this.img_coins = new Image();
         this.img_bottles = new Image();
@@ -60,7 +59,7 @@ class StatusBar extends DrawableObject {
 
     setCoinsPercentage(percentage) {
         this.percentage_coins = percentage;
-        this.updateStatusBars();
+        this.updateStatusBars(); 
     }
 
     setBottlesPercentage(percentage) {
@@ -73,7 +72,6 @@ class StatusBar extends DrawableObject {
         let path_coins = this.IMAGES_COINS[this.resolveImageIndex(this.percentage_coins)];
         let path_bottles = this.IMAGES_BOTTLES[this.resolveImageIndex(this.percentage_bottles)];
 
-        // **Überprüfen, ob Bild geladen wurde**
         if (this.imageCache[path_energy]) {
             this.img_energy = this.imageCache[path_energy];
         }
@@ -90,13 +88,13 @@ class StatusBar extends DrawableObject {
     resolveImageIndex(percentage) {
         if (percentage == 100) {
             return 5;
-        } else if (percentage > 80) {
+        } else if (percentage >= 80) {
             return 4;
-        } else if (percentage > 60) {
+        } else if (percentage >= 60) {
             return 3;
-        } else if (percentage > 40) {
+        } else if (percentage >= 40) {
             return 2;
-        } else if (percentage > 20) {
+        } else if (percentage >= 20) {
             return 1;
         } else {
             return 0;

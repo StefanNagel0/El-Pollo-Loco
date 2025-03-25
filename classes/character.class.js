@@ -55,6 +55,12 @@ class Character extends MovableObject {
         this.animate();
     }
 
+    collectCoin() {
+        this.coins = (this.coins || 0) + 1;
+        const percentage = Math.min(this.coins * 20, 100);
+        this.world.statusBar.setCoinsPercentage(percentage);
+    }
+
     animate() {
         setInterval(() => {
             if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x) {

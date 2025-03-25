@@ -38,17 +38,37 @@ class World {
     }
 
 
-    checkCollisions(){
-        this.level.enemies.forEach((enemy) => {
-            if(this.character.isColiding(enemy)){
-                this.character.hit();
-                this.statusBar.setPercentage(this.character.energy);
-                this.statusBar.setCoinsPercentage(this.character.coins); 
-                console.log('Collision with Character, energy = ' , this.character.energy);
-            }
-        });
+    checkCollisions() {
+        if (this.level.enemies) {
+            this.level.enemies.forEach((enemy) => {
+                if (this.character.isColiding(enemy)) {
+                    if (enemy instanceof Chicken || enemy instanceof smallChicken) {
+                        console.log('Collision with Enemy:', enemy);
+                        this.character.hit(); // Schaden zufügen
+                        this.statusBar.setEnergyPercentage(this.character.energy);
+                        console.log('Collision with Enemy, energy = ', this.character.energy);
+                    }
+                }
+            });
+        }
+        if (this.level.coins) {
+            this.level.coins.forEach((coin) => {
+                if (this.character.isColiding(coin)) {
+                    console.log('Collision with Coin:', coin);
+                    this.character.collectCoin();
+                    console.log('Coin collected, total coins = ', this.character.coins);
+                    const coinIndex = this.level.coins.indexOf(coin);
+                    if (coinIndex > -1) {
+                        this.level.coins.splice(coinIndex, 1);
+                        console.log('Coin removed:', coin);
+                        console.log('Remaining coins:', this.level.coins);
+                    }
+                }
+            });
+        }
     }
-    
+
+
     draw(ctx) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -57,6 +77,7 @@ class World {
         this.addToMap(this.character);
         this.addObjectsToMap(this.level.clouds);
         this.addObjectsToMap(this.level.enemies);
+        this.addObjectsToMap(this.level.coins); 
         this.ctx.translate(-this.camera_x, 0);
 
         this.statusBar.draw(this.ctx);  
@@ -69,9 +90,10 @@ class World {
     }
 
     addObjectsToMap(objects) {
+        if (!objects || !Array.isArray(objects)) return; // Sicherheitsprüfung
         objects.forEach((o) => {
             this.addToMap(o);
-        })
+        });
     }
 
     addToMap(mo) {
@@ -96,4 +118,3 @@ class World {
         this.ctx.restore();
     }
 }
-

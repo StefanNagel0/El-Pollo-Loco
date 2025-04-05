@@ -59,6 +59,8 @@ class Character extends MovableObject {
         this.coins = (this.coins || 0) + 1;
         const percentage = Math.min(this.coins * 20, 100);
         this.world.statusBar.setCoinsPercentage(percentage);
+        const coinSound = new Audio('../assets/audio/collect_coins.mp3');
+        coinSound.play();
     }
 
     animate() {
@@ -82,17 +84,23 @@ class Character extends MovableObject {
         }, 1000 / 60)
 
         setInterval(() => {
-
-            if(this.isDead()){
+            if (this.isDead()) {
                 this.playAnimation(this.IMAGES_DEAD);
-            }else if(this.isHurt()){
+            } else if (this.isHurt()) {
+                if (!this.hurtSoundPlayed) {
+                    const hurtSound = new Audio('../assets/audio/hurt.mp3');
+                    hurtSound.play();
+                    this.hurtSoundPlayed = true;
+                }
                 this.playAnimation(this.IMAGES_HURT);
-            }
-            else if (this.isAboveGround()) {
-                this.playAnimation(this.IMAGES_JUMPING);
             } else {
-                if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT) {
-                    this.playAnimation(this.IMAGES_WALKING);
+                this.hurtSoundPlayed = false;
+                if (this.isAboveGround()) {
+                    this.playAnimation(this.IMAGES_JUMPING);
+                } else {
+                    if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT) {
+                        this.playAnimation(this.IMAGES_WALKING);
+                    }
                 }
             }
         }, 50);

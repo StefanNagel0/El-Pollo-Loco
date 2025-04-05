@@ -31,6 +31,7 @@ class World {
 
             this.checkThrowObjects();
             this.checkCollisions();
+            this.checkEnemyDistances();
         }, 1000 / 60);
     }
 
@@ -47,9 +48,9 @@ class World {
                     // Berechnung der relevanten Seiten
                     const characterBottom = this.character.y + this.character.height - this.character.offset.bottom;
                     const enemyTop = enemy.y + (enemy.offset?.top || 0);
-                    const stompHeight = enemy.stompableAreaHeight || 100; // Bereich, der als "stompbar" gilt
+                    const stompHeight = enemy.stompableAreaHeight || 40; // Bereich, der als "stompbar" gilt
                     const enemyStompBottom = enemyTop + stompHeight;
-                       
+                    
                     // Prüfen, ob der Charakter den Gegner von oben trifft
                     const isStomp =
                         this.character.isColiding(enemy) && // Prüfen, ob eine tatsächliche Kollision besteht
@@ -98,8 +99,33 @@ class World {
                     }
                 });
             }
+
+            
         }
         
+    checkEnemyDistances() {
+        const minDistance = 50; // Mindestabstand zwischen Gegnern
+    
+        this.level.enemies.forEach((enemy1, index1) => {
+            this.level.enemies.forEach((enemy2, index2) => {
+                if (index1 !== index2) { // Vermeide Vergleich mit sich selbst
+                    const distanceX = Math.abs(enemy1.x - enemy2.x);
+                    const distanceY = Math.abs(enemy1.y - enemy2.y);
+    
+                    if (distanceX < minDistance && distanceY < enemy1.height) {
+                        // Gegner sind zu nah beieinander, bewege sie auseinander
+                        if (enemy1.x < enemy2.x) {
+                            enemy1.x -= (minDistance - distanceX) / 2;
+                            enemy2.x += (minDistance - distanceX) / 2;
+                        } else {
+                            enemy1.x += (minDistance - distanceX) / 2;
+                            enemy2.x -= (minDistance - distanceX) / 2;
+                        }
+                    }
+                }
+            });
+        });
+    }
 
 
     draw(ctx) {

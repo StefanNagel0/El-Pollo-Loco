@@ -1,4 +1,6 @@
 class MovableObject extends DrawableObject {
+    static placedEnemies = []; // Gemeinsame Liste für alle Gegner
+    static minDistance = 150; // Mindestabstand zwischen Gegnern
     speed = 0.15;
     otherDirection = false;
     speedY = 0;

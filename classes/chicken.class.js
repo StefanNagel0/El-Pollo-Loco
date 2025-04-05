@@ -2,9 +2,8 @@ class Chicken extends MovableObject {
     y = 330;
     height = 100;
     width = 85;
-    isDead = false; // Status, ob der Gegner tot ist
-    // Neuer Wert: definiert den stompbaren Bereich (z.B. der Kopf des Gegners)
-    stompableAreaHeight = 20; 
+    isDead = false;
+    stompableAreaHeight = 20;
 
     IMAGES_WALKING = [
         '../assets/img/3_enemies_chicken/chicken_normal/1_walk/1_w.png',
@@ -15,31 +14,44 @@ class Chicken extends MovableObject {
 
     constructor() {
         super().loadImage(this.IMAGES_WALKING[0]);
-        this.x = 700 + Math.random() * 500;
+        this.x = this.getValidXPosition(); // Berechne eine gültige X-Position
+        MovableObject.placedEnemies.push(this.x); // Speichere die X-Position in der gemeinsamen Liste
         this.loadImages(this.IMAGES_WALKING);
         this.speed = 0.15 + Math.random() * 0.25;
         this.animate();
     }
 
+    getValidXPosition() {
+        let x;
+        let isTooClose;
+        do {
+            x = 700 + Math.random() * 1500; // Generiere eine zufällige X-Position
+            isTooClose = MovableObject.placedEnemies.some(existingX => 
+                Math.abs(existingX - x) < MovableObject.minDistance
+            );
+        } while (isTooClose); // Wiederhole, falls der Abstand zu gering ist
+        return x;
+    }
+
     animate() {
         setInterval(() => {
-            if (!this.isDead) { // Bewege den Gegner nur, wenn er nicht tot ist
+            if (!this.isDead) {
                 this.moveLeft();
             }
         }, 1000 / 60);
 
         setInterval(() => {
-            if (!this.isDead) { // Animation nur, wenn der Gegner aktiv ist
+            if (!this.isDead) {
                 this.playAnimation(this.IMAGES_WALKING);
             }
         }, 200);
     }
 
     die() {
-        if (!this.isDead) { // Stelle sicher, dass der Gegner nicht mehrfach getötet wird
+        if (!this.isDead) {
             this.isDead = true;
             this.loadImage(this.IMAGE_DEAD);
-            this.speed = 0; // Stoppe die Bewegung
+            this.speed = 0;
         }
     }
 }

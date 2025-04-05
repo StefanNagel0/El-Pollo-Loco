@@ -4,6 +4,7 @@ class Character extends MovableObject {
     height = 280;
     width = 130;
     speed = 10;
+    previousY = 80;
     offset = {
         top: 112,
         left: 30,
@@ -97,6 +98,8 @@ class Character extends MovableObject {
 
     animate() {
         setInterval(() => {
+            this.previousY = this.y;
+
             if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x) {
                 this.moveRight();
                 this.otherDirection = false;
@@ -183,10 +186,10 @@ class Character extends MovableObject {
                                     this.world.userInterface.registerAudio(sleepSound);
                                     sleepSound.loop = true;
                                     if (!this.world.userInterface.isMuted) {
-                                        sleepSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
+                                        sleepSound.play();
                                     }
                                 } else {
-                                    console.error('Failed to create sleepSound instance'); // Debugging
+                                    console.error('Failed to create sleepSound instance');
                                 }
                             }
                             sleepAnimationInterval = 0;

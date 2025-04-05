@@ -38,11 +38,13 @@ class MovableObject extends DrawableObject {
     }
 
     hit() {
-        this.energy -= 5;
-        if (this.energy < 0) {
-            this.energy = 0;
-        } else {
-            this.lastHit = new Date().getTime();
+        const now = new Date().getTime();
+        if (now - this.lastHit > 800) { // Cooldown von 1 Sekunde
+            this.energy -= 5;
+            if (this.energy < 0) {
+                this.energy = 0;
+            }
+            this.lastHit = now; // Zeit des letzten Treffers aktualisieren
         }
     }
 

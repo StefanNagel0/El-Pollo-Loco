@@ -107,11 +107,17 @@ class Character extends MovableObject {
 
         let idleAnimationInterval = 0;
         let idleTime = 0;
-        let sleepAnimationInterval = 0; 
+        let sleepAnimationInterval = 0;
+        let yawnPlayed = false;
+        let sleepSound = null;
 
         setInterval(() => {
             if (this.isDead()) {
                 this.playAnimation(this.IMAGES_DEAD);
+                if (sleepSound) {
+                    sleepSound.pause();
+                    sleepSound = null;
+                }
             } else if (this.isHurt()) {
                 if (!this.hurtSoundPlayed) {
                     const hurtSound = new Audio('../assets/audio/hurt.mp3');
@@ -119,26 +125,60 @@ class Character extends MovableObject {
                     this.hurtSoundPlayed = true;
                 }
                 this.playAnimation(this.IMAGES_HURT);
+                if (sleepSound) {
+                    sleepSound.pause();
+                    sleepSound = null;
+                }
             } else {
                 this.hurtSoundPlayed = false;
                 if (this.isAboveGround()) {
                     this.playAnimation(this.IMAGES_JUMPING);
                     idleTime = 0;
+                    yawnPlayed = false;
+                    if (sleepSound) {
+                        sleepSound.pause();
+                        sleepSound = null;
+                    }
                 } else if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT) {
                     this.playAnimation(this.IMAGES_WALKING);
                     idleTime = 0;
+                    yawnPlayed = false;
+                    if (sleepSound) {
+                        sleepSound.pause();
+                        sleepSound = null;
+                    }
                 } else {
                     idleAnimationInterval++;
                     idleTime += 50;
+
+                    if (idleTime >= 6500 && !yawnPlayed) {
+                        const yawnSound = new Audio('../assets/audio/yawn.mp3');
+                        yawnSound.play();
+                        yawnPlayed = true;
+                    }
+
                     if (idleTime >= 15000) {
                         sleepAnimationInterval++;
                         if (sleepAnimationInterval >= 7.5) {
                             this.playAnimation(this.IMAGES_SLEEPING);
+
+                            // Sleep-Sound abspielen
+                            if (!sleepSound) {
+                                sleepSound = new Audio('../assets/audio/sleep.mp3');
+                                sleepSound.loop = true;
+                                sleepSound.play();
+                            }
                             sleepAnimationInterval = 0;
                         }
-                    } else if (idleAnimationInterval >= 30) {
-                        this.playAnimation(this.IMAGES_IDLE);
-                        idleAnimationInterval = 0;
+                    } else {
+                        if (sleepSound) {
+                            sleepSound.pause();
+                            sleepSound = null;
+                        }
+                        if (idleAnimationInterval >= 30) {
+                            this.playAnimation(this.IMAGES_IDLE);
+                            idleAnimationInterval = 0;
+                        }
                     }
                 }
             }

@@ -1,4 +1,5 @@
 class Character extends MovableObject {
+    bottles = 0;
     x = 120;
     y = 80;
     height = 280;
@@ -93,6 +94,20 @@ class Character extends MovableObject {
 
         if (!this.world.userInterface.isMuted) {
             coinSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
+        }
+    }
+
+    collectBottle() {
+        this.bottles = (this.bottles || 0) + 1; // Erhöhe die Anzahl der gesammelten Bottles
+        const percentage = Math.min(this.bottles * 20, 100); // Maximal 100%
+        this.world.statusBar.setBottlesPercentage(percentage); // Aktualisiere die Statusbar
+
+        // Bottle-Sound abspielen
+        const bottleSound = new Audio('../assets/audio/collect_bottle.mp3');
+        this.world.userInterface.registerAudio(bottleSound); // Sound bei der UserInterface registrieren
+
+        if (!this.world.userInterface.isMuted) {
+            bottleSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
         }
     }
 

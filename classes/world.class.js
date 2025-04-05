@@ -42,66 +42,78 @@ class World {
         }
     }
 
-        checkCollisions() {
-            if (this.level.enemies) {
-                this.level.enemies.forEach((enemy) => {
-                    // Berechnung der relevanten Seiten
-                    const characterBottom = this.character.y + this.character.height - this.character.offset.bottom;
-                    const enemyTop = enemy.y + (enemy.offset?.top || 0);
-                    const stompHeight = enemy.stompableAreaHeight || 40; // Bereich, der als "stompbar" gilt
-                    const enemyStompBottom = enemyTop + stompHeight;
-                    
-                    // Prüfen, ob der Charakter den Gegner von oben trifft
-                    const isStomp =
-                        this.character.isColiding(enemy) && // Prüfen, ob eine tatsächliche Kollision besteht
-                        characterBottom >= enemyTop && // Untere Seite des Charakters berührt obere Seite des Gegners
-                        characterBottom <= enemyStompBottom && // Innerhalb des stompbaren Bereichs
-                        this.character.speedY < 0; // Charakter bewegt sich nach unten
-        
-                    const isCollision = this.character.isColiding(enemy);
-        
-                    if (isStomp) {
-                        console.log('✅ Stomp erkannt!');
-                        if (!enemy.isDead) {
-                            enemy.die();
-                            this.character.speedY = +30; // Bounce-Effekt
-        
-                            setTimeout(() => {
-                                const enemyIndex = this.level.enemies.indexOf(enemy);
-                                if (enemyIndex > -1) {
-                                    this.level.enemies.splice(enemyIndex, 1); // Gegner aus dem Spiel entfernen
-                                }
-                            }, 500);
-                        }
-                    } else if (isCollision) {
-                        console.log('❌ Kollision mit Gegner erkannt!');
-                        if (!enemy.isDead && (enemy instanceof Chicken || enemy instanceof smallChicken)) {
-                            this.character.hit();
-                            this.statusBar.setEnergyPercentage(this.character.energy);
-                            console.log('❌ Kollision mit Gegner, Energie = ', this.character.energy);
-                        }
+    checkCollisions() {
+        if (this.level.enemies) {
+            this.level.enemies.forEach((enemy) => {
+                const characterBottom = this.character.y + this.character.height - this.character.offset.bottom;
+                const enemyTop = enemy.y + (enemy.offset?.top || 0);
+                const stompHeight = enemy.stompableAreaHeight || 40;
+                const enemyStompBottom = enemyTop + stompHeight;
+    
+                const isStomp =
+                    this.character.isColiding(enemy) &&
+                    characterBottom >= enemyTop &&
+                    characterBottom <= enemyStompBottom &&
+                    this.character.speedY < 0;
+    
+                const isCollision = this.character.isColiding(enemy);
+    
+                if (isStomp) {
+                    console.log('✅ Stomp erkannt!');
+                    if (!enemy.isDead) {
+                        enemy.die();
+                        this.character.speedY = +30;
+    
+                        setTimeout(() => {
+                            const enemyIndex = this.level.enemies.indexOf(enemy);
+                            if (enemyIndex > -1) {
+                                this.level.enemies.splice(enemyIndex, 1);
+                            }
+                        }, 500);
                     }
-                });
-            }
-        
-            if (this.level.coins) {
-                this.level.coins.forEach((coin) => {
-                    if (this.character.isColiding(coin)) {
-                        console.log('🪙 Collision with Coin:', coin);
-                        this.character.collectCoin();
-                        console.log('Coin collected, total coins = ', this.character.coins);
-                        const coinIndex = this.level.coins.indexOf(coin);
-                        if (coinIndex > -1) {
-                            this.level.coins.splice(coinIndex, 1);
-                            console.log('Coin removed:', coin);
-                            console.log('Remaining coins:', this.level.coins);
-                        }
+                } else if (isCollision) {
+                    console.log('❌ Kollision mit Gegner erkannt!');
+                    if (!enemy.isDead && (enemy instanceof Chicken || enemy instanceof smallChicken)) {
+                        this.character.hit();
+                        this.statusBar.setEnergyPercentage(this.character.energy);
+                        console.log('❌ Kollision mit Gegner, Energie = ', this.character.energy);
                     }
-                });
-            }
-
-            
+                }
+            });
         }
+    
+        if (this.level.coins) {
+            this.level.coins.forEach((coin) => {
+                if (this.character.isColiding(coin)) {
+                    console.log('🪙 Collision with Coin:', coin);
+                    this.character.collectCoin();
+                    console.log('Coin collected, total coins = ', this.character.coins);
+                    const coinIndex = this.level.coins.indexOf(coin);
+                    if (coinIndex > -1) {
+                        this.level.coins.splice(coinIndex, 1);
+                        console.log('Coin removed:', coin);
+                        console.log('Remaining coins:', this.level.coins);
+                    }
+                }
+            });
+        }
+    
+        if (this.level.bottles) {
+            this.level.bottles.forEach((bottle) => {
+                if (this.character.isColiding(bottle)) {
+                    console.log('🍾 Collision with Bottle:', bottle);
+                    this.character.collectBottle(); // Methode zum Sammeln der Bottle
+                    console.log('Bottle collected!');
+                    const bottleIndex = this.level.bottles.indexOf(bottle);
+                    if (bottleIndex > -1) {
+                        this.level.bottles.splice(bottleIndex, 1);
+                        console.log('Bottle removed:', bottle);
+                        console.log('Remaining bottles:', this.level.bottles);
+                    }
+                }
+            });
+        }
+    }
         
     checkEnemyDistances() {
         const minDistance = 50; // Mindestabstand zwischen Gegnern
@@ -137,6 +149,7 @@ class World {
         this.addObjectsToMap(this.level.clouds);
         this.addObjectsToMap(this.level.enemies);
         this.addObjectsToMap(this.level.coins); 
+        this.addObjectsToMap(this.level.bottles);
         this.ctx.translate(-this.camera_x, 0);
 
         this.statusBar.draw(this.ctx);  

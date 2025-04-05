@@ -12,6 +12,7 @@ class World {
         this.ctx = canvas.getContext('2d');
         this.canvas = canvas;
         this.keyboard = keyboard;
+        this.userInterface = new UserInterface(canvas);
         this.draw();
         this.setWorld();
         this.run();
@@ -82,6 +83,9 @@ class World {
 
         this.statusBar.draw(this.ctx);  
         this.addObjectsToMap(this.throwableObjects);
+
+        this.userInterface.drawSoundIcon();
+        
         //Draw() wird immer wieder aufgerufen
         let self = this;
         requestAnimationFrame(function () {

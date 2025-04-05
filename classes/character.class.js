@@ -85,8 +85,14 @@ class Character extends MovableObject {
         this.coins = (this.coins || 0) + 1;
         const percentage = Math.min(this.coins * 20, 100);
         this.world.statusBar.setCoinsPercentage(percentage);
+
+        // Coin-Sound abspielen und registrieren
         const coinSound = new Audio('../assets/audio/collect_coins.mp3');
-        coinSound.play();
+        this.world.userInterface.registerAudio(coinSound); // Sound bei der UserInterface registrieren
+
+        if (!this.world.userInterface.isMuted) {
+            coinSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
+        }
     }
 
     animate() {
@@ -121,7 +127,11 @@ class Character extends MovableObject {
             } else if (this.isHurt()) {
                 if (!this.hurtSoundPlayed) {
                     const hurtSound = new Audio('../assets/audio/hurt.mp3');
-                    hurtSound.play();
+                    this.world.userInterface.registerAudio(hurtSound); // Sound registrieren
+
+                    if (!this.world.userInterface.isMuted) {
+                        hurtSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
+                    }
                     this.hurtSoundPlayed = true;
                 }
                 this.playAnimation(this.IMAGES_HURT);
@@ -153,7 +163,11 @@ class Character extends MovableObject {
 
                     if (idleTime >= 6500 && !yawnPlayed) {
                         const yawnSound = new Audio('../assets/audio/yawn.mp3');
-                        yawnSound.play();
+                        this.world.userInterface.registerAudio(yawnSound);
+
+                        if (!this.world.userInterface.isMuted) {
+                            yawnSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
+                        }
                         yawnPlayed = true;
                     }
 
@@ -165,8 +179,15 @@ class Character extends MovableObject {
                             // Sleep-Sound abspielen
                             if (!sleepSound) {
                                 sleepSound = new Audio('../assets/audio/sleep.mp3');
-                                sleepSound.loop = true;
-                                sleepSound.play();
+                                if (sleepSound) {
+                                    this.world.userInterface.registerAudio(sleepSound);
+                                    sleepSound.loop = true;
+                                    if (!this.world.userInterface.isMuted) {
+                                        sleepSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
+                                    }
+                                } else {
+                                    console.error('Failed to create sleepSound instance'); // Debugging
+                                }
                             }
                             sleepAnimationInterval = 0;
                         }

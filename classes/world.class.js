@@ -65,7 +65,7 @@ class World {
         // Warte, bis die Taste losgelassen wird, bevor erneut geworfen werden kann
         setTimeout(() => {
             this.canThrow = true;
-        }, 1000); // Cooldown von 1 Sekunde (anpassbar)
+        }, 500); // Cooldown von 1 Sekunde (anpassbar)
     }
 
     checkCollisions() {
@@ -89,6 +89,14 @@ class World {
                     if (!enemy.isDead) {
                         enemy.die();
                         this.character.speedY = +30;
+                        
+                        // Stomp-Sound abspielen
+                        const stompSound = new Audio('../assets/audio/stomp_enemie.mp3');
+                        this.userInterface.registerAudio(stompSound); // Sound bei der UserInterface registrieren
+                        
+                        if (!this.userInterface.isMuted) {
+                            stompSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
+                        }
     
                         setTimeout(() => {
                             const enemyIndex = this.level.enemies.indexOf(enemy);
@@ -176,12 +184,13 @@ class World {
         this.addObjectsToMap(this.level.enemies);
         this.addObjectsToMap(this.level.coins); 
         this.addObjectsToMap(this.level.bottles);
-        this.addObjectsToMap(this.throwableObjects); // Flaschen VOR dem Zurücksetzen der Translation rendern
+        this.addObjectsToMap(this.throwableObjects); 
         this.ctx.translate(-this.camera_x, 0);
 
         this.statusBar.draw(this.ctx);  
 
-        this.userInterface.drawSoundIcon();
+        // Ändere dies von drawSoundIcon zu drawIcons
+        this.userInterface.drawIcons();
         
         //Draw() wird immer wieder aufgerufen
         let self = this;

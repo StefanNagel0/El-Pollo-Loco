@@ -6,6 +6,7 @@ class Character extends MovableObject {
     width = 130;
     speed = 10;
     previousY = 80;
+    runSound = null; // Variable für den Laufsound
     offset = {
         top: 112,
         left: 30,
@@ -80,6 +81,11 @@ class Character extends MovableObject {
         this.loadImages(this.IMAGES_DEAD);
         this.loadImages(this.IMAGES_HURT);
         this.applyGravity();
+        
+        // Sound für das Laufen initialisieren
+        this.runSound = new Audio('../assets/audio/character_run.mp3');
+        this.runSound.loop = true; // Loop aktivieren
+        
         this.animate();
     }
 
@@ -111,22 +117,61 @@ class Character extends MovableObject {
         }
     }
 
+    jump() {
+        super.jump(); // Ruft die Original-Methode aus MovableObject auf
+        
+        // Sprung-Sound abspielen
+        const jumpSound = new Audio('../assets/audio/character_jump.mp3');
+        this.world.userInterface.registerAudio(jumpSound); // Sound bei der UserInterface registrieren
+        
+        if (!this.world.userInterface.isMuted) {
+            jumpSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
+        }
+    }
+
     animate() {
         setInterval(() => {
             this.previousY = this.y;
 
-            if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x) {
-                this.moveRight();
-                this.otherDirection = false;
+            // Bewegungslogik und Sound-Steuerung
+            let isRunning = false;
+            
+            if (this.world && this.world.keyboard) {
+                if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x) {
+                    this.moveRight();
+                    this.otherDirection = false;
+                    isRunning = true;
+                }
+                if (this.world.keyboard.LEFT && this.x > 0) {
+                    this.moveLeft();
+                    this.otherDirection = true;
+                    isRunning = true;
+                }
+                if (this.world.keyboard.SPACE && !this.isAboveGround()) {
+                    this.jump();
+                }
+                
+                // Sound-Steuerung: Abspielen oder Stoppen des Laufsounds
+                if (isRunning && !this.isAboveGround() && !this.isDead()) {
+                    if (this.world.userInterface && !this.runSound.playing) {
+                        this.world.userInterface.registerAudio(this.runSound);
+                        if (!this.world.userInterface.isMuted) {
+                            this.runSound.play();
+                            this.runSound.playing = true;
+                        }
+                    }
+                } else {
+                    if (this.runSound.playing) {
+                        this.runSound.pause();
+                        this.runSound.currentTime = 0;
+                        this.runSound.playing = false;
+                    }
+                }
             }
-            if (this.world.keyboard.LEFT && this.x > 0) {
-                this.moveLeft();
-                this.otherDirection = true;
+            
+            if (this.world) {
+                this.world.camera_x = 0 - this.x + 100;
             }
-            if (this.world.keyboard.SPACE && !this.isAboveGround()) {
-                this.jump();
-            }
-            this.world.camera_x = 0 - this.x + 100;
         }, 1000 / 60);
 
         let idleAnimationInterval = 0;

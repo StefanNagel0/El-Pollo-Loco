@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>El Polo Loco</title>
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/standard.css">
+    <link rel="stylesheet" href="../css/overlay.css">
+    <link rel="stylesheet" href="../css/standard.css">           
     <link rel="logo" href="#">
+
     <script src="../classes/world.class.js"></script>
     <script src="../classes/keyboard.class.js"></script>
     <script src="../classes/level.class.js"></script>
@@ -35,5 +37,20 @@
 
     </canvas>
     
+    <div id="settings-overlay" class="d-none">
+        <div class="settings-container">
+            <h2>Einstellungen</h2>
+            
+            <div class="setting">
+                <label for="volume-slider">Lautstärke: <span id="volume-value">5</span></label>
+                <input type="range" id="volume-slider" min="0" max="10" value="5">
+            </div>
+            
+            <div class="setting-buttons">
+                <button id="exit-game">Spiel beenden</button>
+                <button id="close-settings">Schließen</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

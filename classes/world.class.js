@@ -7,7 +7,7 @@ class World {
     camera_x = 0;
     statusBar = new StatusBar();
     throwableObjects = [];
-    
+    canThrow = true; // Neue Variable, um das Werfen zu steuern
 
     constructor(canvas, keyboard) {
         this.ctx = canvas.getContext('2d');
@@ -35,11 +35,25 @@ class World {
         }, 1000 / 60);
     }
 
-    checkThrowObjects(){
-        if (this.keyboard.D) {
-            let bottle = new ThrowableObject(this.character.x + 100 , this.character.y + 100);
-            this.throwableObjects.push(bottle)
+    checkThrowObjects() {
+        if (this.keyboard.D && this.character.bottles > 0 && this.canThrow) { // Überprüfen, ob Bottles verfügbar sind und ob geworfen werden darf
+            this.throwBottle();
         }
+    }
+
+    throwBottle() {
+        let bottle = new ThrowableObject(this.character.x + 100, this.character.y + 100);
+        this.throwableObjects.push(bottle);
+        this.character.bottles--; // Reduziere die Anzahl der verfügbaren Bottles
+        const percentage = Math.min(this.character.bottles * 20, 100); // Maximal 100%
+        this.statusBar.setBottlesPercentage(percentage); // Aktualisiere die Statusbar
+
+        this.canThrow = false; // Setze canThrow auf false, um mehrfaches Werfen zu verhindern
+
+        // Warte, bis die Taste losgelassen wird, bevor erneut geworfen werden kann
+        setTimeout(() => {
+            this.canThrow = true;
+        }, 1000); // Cooldown von 200ms (anpassbar)
     }
 
     checkCollisions() {

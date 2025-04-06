@@ -1,0 +1,16 @@
+body.fullscreen canvas {
+    width: 100vw;
+    height: 100vh;
+    object-fit: contain;
+    background-color: black;
+}
+
+body.fullscreen {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body.fullscreen h1 {
+    display: none;
+}

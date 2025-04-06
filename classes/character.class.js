@@ -7,6 +7,8 @@ class Character extends MovableObject {
     speed = 10;
     previousY = 80;
     runSound = null; // Variable für den Laufsound
+    deathAnimationPlayed = false;
+    deathAnimationFrame = 0;
     offset = {
         top: 112,
         left: 30,
@@ -182,10 +184,37 @@ class Character extends MovableObject {
 
         setInterval(() => {
             if (this.isDead()) {
-                this.playAnimation(this.IMAGES_DEAD);
+                // Immer fallen lassen, sobald der Charakter tot ist
+                this.y += 10; // Fallgeschwindigkeit
+
+                if (!this.deathAnimationPlayed) {
+                    // Tod-Animation nur bis zum vorletzten Bild (D-56.png) abspielen
+                    if (this.deathAnimationFrame < 6) { // D-56.png ist das 6. Bild (Index 5)
+                        let path = this.IMAGES_DEAD[this.deathAnimationFrame];
+                        this.img = this.imageCache[path];
+                        this.deathAnimationFrame++;
+                    } else {
+                        // Bei D-56.png (Index 5) stehen bleiben
+                        this.img = this.imageCache[this.IMAGES_DEAD[5]];
+                        this.deathAnimationPlayed = true;
+                    }
+                }
+                
+                // Sound stoppen
                 if (sleepSound) {
                     sleepSound.pause();
                     sleepSound = null;
+                }
+                
+                // Optionaler Todesgeräusch
+                if (!this.deathSoundPlayed) {
+                    const deathSound = new Audio('../assets/audio/death.mp3');
+                    this.world.userInterface.registerAudio(deathSound);
+                    
+                    if (!this.world.userInterface.isMuted) {
+                        deathSound.play();
+                    }
+                    this.deathSoundPlayed = true;
                 }
             } else if (this.isHurt()) {
                 if (!this.hurtSoundPlayed) {

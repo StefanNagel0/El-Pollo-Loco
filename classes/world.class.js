@@ -31,6 +31,7 @@ class World {
 
             this.checkThrowObjects();
             this.checkCollisions();
+            this.checkCollisionsWithBottles(); // Neue Methode aufrufen
             this.checkEnemyDistances();
         }, 1000 / 60);
     }
@@ -173,6 +174,46 @@ class World {
         });
     }
 
+    // Neue Methode zur Überprüfung von Kollisionen zwischen Flaschen und Gegnern
+    checkCollisionsWithBottles() {
+        if (this.throwableObjects.length > 0 && this.level.enemies) {
+            this.throwableObjects.forEach((bottle, bottleIndex) => {
+                this.level.enemies.forEach((enemy, enemyIndex) => {
+                    if (bottle.isColiding(enemy) && !enemy.isDead && !bottle.isBroken) {
+                        // Flasche zerbrechen lassen statt sofort zu entfernen
+                        bottle.break();
+                        
+                        // Gegner sterben lassen
+                        enemy.die();
+                        
+                        // Optional: Zerbrech-Sound abspielen
+                        const breakSound = new Audio('../assets/audio/bottle_break.mp3');
+                        this.userInterface.registerAudio(breakSound);
+                        
+                        if (!this.userInterface.isMuted) {
+                            breakSound.play();
+                        }
+                        
+                        // Flasche nach Animation entfernen
+                        setTimeout(() => {
+                            const bottleIndex = this.throwableObjects.indexOf(bottle);
+                            if (bottleIndex > -1) {
+                                this.throwableObjects.splice(bottleIndex, 1);
+                            }
+                        }, 300); // Zeit für die Zerbrech-Animation
+                        
+                        // Gegner nach Animation entfernen
+                        setTimeout(() => {
+                            const enemyIndex = this.level.enemies.indexOf(enemy);
+                            if (enemyIndex > -1) {
+                                this.level.enemies.splice(enemyIndex, 1);
+                            }
+                        }, 500);
+                    }
+                });
+            });
+        }
+    }
 
     draw(ctx) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);

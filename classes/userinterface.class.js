@@ -18,7 +18,12 @@ class UserInterface extends DrawableObject {
         this.settingsIcon = new Image();
         this.settingsIcon.src = '../assets/img/ui_images/settings.svg';
         
-        // Positionen anpassen: Sound-Icon links, Settings-Icon rechts
+        // Fullscreen-Icon initialisieren
+        this.fullscreenIcon = new Image();
+        this.fullscreenIcon.src = '../assets/img/ui_images/fullscreen.svg';
+        this.isFullscreen = false;
+        
+        // Positionen anpassen
         this.soundIconX = canvas.width - 100;
         this.soundIconY = 10;
         this.soundIconWidth = 40;
@@ -28,6 +33,12 @@ class UserInterface extends DrawableObject {
         this.settingsIconY = 10;
         this.settingsIconWidth = 40;
         this.settingsIconHeight = 40;
+        
+        // Fullscreen-Icon in der unteren rechten Ecke positionieren
+        this.fullscreenIconX = canvas.width - 50;
+        this.fullscreenIconY = canvas.height - 50;
+        this.fullscreenIconWidth = 40;
+        this.fullscreenIconHeight = 40;
         
         this.audioInstances = [];
 
@@ -48,9 +59,42 @@ class UserInterface extends DrawableObject {
         if (this.isMuted) {
             this.muteAllSounds();
         }
+        
+        // Überwachen des Fullscreen-Status für Änderungen außerhalb unserer Kontrolle
+        document.addEventListener('fullscreenchange', () => {
+            this.isFullscreen = !!document.fullscreenElement;
+            
+            if (this.isFullscreen) {
+                document.body.classList.add('fullscreen');
+            } else {
+                document.body.classList.remove('fullscreen');
+            }
+            
+            this.updateFullscreenIcon();
+        });
+    }
+
+    // Neue Methode zum Aktualisieren der Icon-Positionen
+    updateIconPositions() {
+        // Aktuelle Canvas-Dimensionen abrufen
+        const currentWidth = this.canvas.clientWidth;
+        const currentHeight = this.canvas.clientHeight;
+        
+        // Positionen relativ zur aktuellen Canvas-Größe anpassen
+        this.soundIconX = currentWidth - 100;
+        this.soundIconY = 10;
+        
+        this.settingsIconX = currentWidth - 50;
+        this.settingsIconY = 10;
+        
+        this.fullscreenIconX = currentWidth - 50;
+        this.fullscreenIconY = currentHeight - 50;
     }
 
     drawIcons() {
+        // Positionen aktualisieren, bevor die Icons gezeichnet werden
+        this.updateIconPositions();
+        
         // Sound-Icon zeichnen
         this.ctx.drawImage(
             this.soundIcon,
@@ -67,6 +111,15 @@ class UserInterface extends DrawableObject {
             this.settingsIconY,
             this.settingsIconWidth,
             this.settingsIconHeight
+        );
+        
+        // Fullscreen-Icon zeichnen
+        this.ctx.drawImage(
+            this.fullscreenIcon,
+            this.fullscreenIconX,
+            this.fullscreenIconY,
+            this.fullscreenIconWidth,
+            this.fullscreenIconHeight
         );
     }
 
@@ -95,7 +148,62 @@ class UserInterface extends DrawableObject {
             ) {
                 this.openSettings();
             }
+            
+            // Überprüfen, ob auf das Fullscreen-Icon geklickt wurde
+            if (
+                clickX >= this.fullscreenIconX &&
+                clickX <= this.fullscreenIconX + this.fullscreenIconWidth &&
+                clickY >= this.fullscreenIconY &&
+                clickY <= this.fullscreenIconY + this.fullscreenIconHeight
+            ) {
+                this.toggleFullscreen();
+            }
         });
+    }
+    
+    // Neue Methode zum Umschalten des Vollbildmodus
+    toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            // Vollbildmodus aktivieren
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) { // Firefox
+                document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) { // Chrome, Safari
+                document.documentElement.webkitRequestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) { // IE/Edge
+                document.documentElement.msRequestFullscreen();
+            }
+            this.isFullscreen = true;
+            document.body.classList.add('fullscreen'); // CSS-Klasse zum body-Element hinzufügen
+        } else {
+            // Vollbildmodus beenden
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+            this.isFullscreen = false;
+            document.body.classList.remove('fullscreen'); // CSS-Klasse vom body-Element entfernen
+        }
+        
+        this.updateFullscreenIcon();
+
+        // Positionen nach Änderung des Vollbildstatus aktualisieren
+        setTimeout(() => {
+            this.updateIconPositions();
+        }, 100); // Kurze Verzögerung für die Anpassung des Browserfensters
+    }
+    
+    // Icon basierend auf dem aktuellen Fullscreen-Status aktualisieren
+    updateFullscreenIcon() {
+        this.fullscreenIcon.src = this.isFullscreen 
+            ? '../assets/img/ui_images/fullscreen_exit.svg'
+            : '../assets/img/ui_images/fullscreen.svg';
     }
 
     initSettingsOverlay() {

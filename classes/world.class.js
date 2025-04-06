@@ -42,7 +42,11 @@ class World {
     }
 
     throwBottle() {
-        let bottle = new ThrowableObject(this.character.x + 100, this.character.y + 100);
+        let bottle = new ThrowableObject(
+            this.character.x + (this.character.otherDirection ? -50 : 100), // Startposition der Flasche
+            this.character.y + 100, // Vertikale Position der Flasche
+            this.character.otherDirection // Richtung des Charakters
+        );
         this.throwableObjects.push(bottle);
         this.character.bottles--; // Reduziere die Anzahl der verfügbaren Bottles
         const percentage = Math.min(this.character.bottles * 20, 100); // Maximal 100%
@@ -53,7 +57,7 @@ class World {
         // Warte, bis die Taste losgelassen wird, bevor erneut geworfen werden kann
         setTimeout(() => {
             this.canThrow = true;
-        }, 1000); // Cooldown von 200ms (anpassbar)
+        }, 1000); // Cooldown von 1 Sekunde (anpassbar)
     }
 
     checkCollisions() {
@@ -164,10 +168,10 @@ class World {
         this.addObjectsToMap(this.level.enemies);
         this.addObjectsToMap(this.level.coins); 
         this.addObjectsToMap(this.level.bottles);
+        this.addObjectsToMap(this.throwableObjects); // Flaschen VOR dem Zurücksetzen der Translation rendern
         this.ctx.translate(-this.camera_x, 0);
 
         this.statusBar.draw(this.ctx);  
-        this.addObjectsToMap(this.throwableObjects);
 
         this.userInterface.drawSoundIcon();
         
@@ -186,16 +190,16 @@ class World {
     }
 
     addToMap(mo) {
-        if (mo.otherDirection) {
+        if (mo.otherDirection && !(mo instanceof ThrowableObject)) {
             this.flipImage(mo);
         }
         mo.draw(this.ctx);
         mo.drawFrame(this.ctx);
-
-        if (mo.otherDirection) {
+        if (mo.otherDirection && !(mo instanceof ThrowableObject)) {
             this.flipImageBack(mo);
         }
     }
+
     flipImage(mo){
         this.ctx.save();
         this.ctx.translate(mo.width, 0);

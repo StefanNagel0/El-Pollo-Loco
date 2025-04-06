@@ -3,25 +3,22 @@ class Coin extends MovableObject {
     height = 140;
     width = 140;
 
-    static placedCoins = [];
-    static minDistance = 200;
-
     constructor() {
         super();
         this.loadImage('../assets/img/8_coin/coin_1.png');
         this.x = this.getValidXPosition();
-        Coin.placedCoins.push(this.x);
+        MovableObject.placedObjects.push(this.x); // Speichere die X-Position in der gemeinsamen Liste
     }
 
     getValidXPosition() {
         let x;
         let isTooClose;
         do {
-            x = 300 + Math.random() * 1500;
-            isTooClose = Coin.placedCoins.some(existingX => 
-                Math.abs(existingX - x) < Coin.minDistance
+            x = 300 + Math.random() * 4500; // Generiere eine zufällige X-Position
+            isTooClose = MovableObject.placedObjects.some(existingX => 
+                Math.abs(existingX - x) < MovableObject.minDistanceObjects
             );
-        } while (isTooClose);
+        } while (isTooClose); // Wiederhole, falls der Abstand zu gering ist
         return x;
     }
 }

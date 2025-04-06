@@ -3,25 +3,22 @@ class Bottles extends MovableObject {
     height = 120;
     width = 120;
 
-    static placedBottles = [];
-    static minDistance = 100;
-
     constructor() {
         super();
         this.loadImage('../assets/img/6_salsa_bottle/salsa_bottle.png');
         this.x = this.getValidXPosition();
-        Bottles.placedBottles.push(this.x);
+        MovableObject.placedObjects.push(this.x); // Speichere die X-Position in der gemeinsamen Liste
     }
 
     getValidXPosition() {
         let x;
         let isTooClose;
         do {
-            x = 300 + Math.random() * 1500;
-            isTooClose = Bottles.placedBottles.some(existingX => 
-                Math.abs(existingX - x) < Bottles.minDistance
+            x = 300 + Math.random() * 4500; // Generiere eine zufällige X-Position
+            isTooClose = MovableObject.placedObjects.some(existingX => 
+                Math.abs(existingX - x) < MovableObject.minDistanceObjects
             );
-        } while (isTooClose);
+        } while (isTooClose); // Wiederhole, falls der Abstand zu gering ist
         return x;
     }
 }

@@ -1,6 +1,8 @@
 class MovableObject extends DrawableObject {
+    static placedObjects = []; // Gemeinsame Liste für Coins und Bottles
     static placedEnemies = []; // Gemeinsame Liste für alle Gegner
-    static minDistance = 150; // Mindestabstand zwischen Gegnern
+    static minDistanceObjects = 300; // Mindestabstand für Coins und Bottles
+    static minDistanceEnemies = 200; // Mindestabstand für Gegner
     speed = 0.15;
     otherDirection = false;
     speedY = 0;
@@ -13,7 +15,7 @@ class MovableObject extends DrawableObject {
         bottom: 0,
     };
     energy = 100;
-    lastHit = 0;
+    lastHit = 0;    
 
     applyGravity() {
         setInterval(() => {

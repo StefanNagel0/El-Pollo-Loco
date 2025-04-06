@@ -25,9 +25,9 @@ class Chicken extends MovableObject {
         let x;
         let isTooClose;
         do {
-            x = 700 + Math.random() * 1500; // Generiere eine zufällige X-Position
+            x = 700 + Math.random() * 4500; // Generiere eine zufällige X-Position
             isTooClose = MovableObject.placedEnemies.some(existingX => 
-                Math.abs(existingX - x) < MovableObject.minDistance
+                Math.abs(existingX - x) < MovableObject.minDistanceEnemies
             );
         } while (isTooClose); // Wiederhole, falls der Abstand zu gering ist
         return x;

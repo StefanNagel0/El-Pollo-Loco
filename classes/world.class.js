@@ -116,7 +116,7 @@ class World {
     }
         
     checkEnemyDistances() {
-        const minDistance = 50; // Mindestabstand zwischen Gegnern
+        const minDistance = MovableObject.minDistanceEnemies; // Dynamischer Mindestabstand für Gegner
     
         this.level.enemies.forEach((enemy1, index1) => {
             this.level.enemies.forEach((enemy2, index2) => {

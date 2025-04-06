@@ -72,6 +72,19 @@ class UserInterface extends DrawableObject {
             
             this.updateFullscreenIcon();
         });
+
+        // Hintergrundmusik initialisieren
+        this.backgroundMusic = new Audio('../assets/audio/background.mp3');
+        this.backgroundMusic.loop = true; // Im Loop abspielen
+        this.registerAudio(this.backgroundMusic); // Bei der Audio-Verwaltung registrieren
+        
+        // Starte die Musik nach einer kurzen Verzögerung (um sicherzustellen, dass alles geladen ist)
+        setTimeout(() => {
+            if (!this.isMuted) {
+                this.backgroundMusic.play()
+                    .catch(error => console.log('Autoplay prevented by browser:', error));
+            }
+        }, 500);
     }
 
     // Neue Methode zum Aktualisieren der Icon-Positionen
@@ -270,9 +283,11 @@ class UserInterface extends DrawableObject {
         if (this.isMuted) {
             this.soundIcon.src = '../assets/img/ui_images/sound_off.svg';
             this.muteAllSounds();
+            this.backgroundMusic.pause(); // Hintergrundmusik pausieren
         } else {
             this.soundIcon.src = '../assets/img/ui_images/sound_on.svg';
             this.unmuteAllSounds();
+            this.backgroundMusic.play(); // Hintergrundmusik fortsetzen
         }
     }
 

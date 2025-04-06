@@ -1,6 +1,7 @@
 class ThrowableObject extends MovableObject {
     isBroken = false;
     moveInterval = null; // Speichern der Intervall-ID
+    groundPosition = 400; // Y-Position des Bodens für die Flasche
     
     IMAGES_BREAK = [
         '../assets/img/6_salsa_bottle/bottle_rotation/bottle_splash/1_bottle_splash.png',
@@ -31,10 +32,17 @@ class ThrowableObject extends MovableObject {
         this.moveInterval = setInterval(() => {
             // Bewege die Flasche nach rechts oder links basierend auf der Richtung des Charakters
             this.x += this.otherDirection ? -25 : 25;
+            
+            // Überprüfen, ob die Flasche den Boden erreicht hat
+            if (this.y + this.height >= this.groundPosition && !this.isBroken) {
+                this.break();
+            }
         }, 25);
     }
 
     break() {
+        if (this.isBroken) return; // Verhindere mehrfaches Zerbrechen
+        
         this.isBroken = true;
         this.speedY = 0; // Stoppe die Y-Bewegung
         
@@ -54,5 +62,15 @@ class ThrowableObject extends MovableObject {
                 clearInterval(breakInterval);
             }
         }, 50);
+        
+        // Zerbrech-Sound abspielen
+        if (this.world && this.world.userInterface) {
+            const breakSound = new Audio('../assets/audio/bottle_break.mp3');
+            this.world.userInterface.registerAudio(breakSound);
+            
+            if (!this.world.userInterface.isMuted) {
+                breakSound.play();
+            }
+        }
     }
 }

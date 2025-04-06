@@ -48,6 +48,7 @@ class World {
             this.character.y + 100, // Vertikale Position der Flasche
             this.character.otherDirection // Richtung des Charakters
         );
+        bottle.world = this; // Füge eine Referenz zur World hinzu
         this.throwableObjects.push(bottle);
         this.character.bottles--; // Reduziere die Anzahl der verfügbaren Bottles
         const percentage = Math.min(this.character.bottles * 20, 100); // Maximal 100%

@@ -3,7 +3,7 @@ class UserInterface extends DrawableObject {
         super();
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
-        this.isMuted = true; // Standardmäßig ist der Sound an
+        this.isMuted = false; // Standardmäßig ist der Sound an
         this.soundIcon = new Image();
         this.soundIcon.src = '../assets/img/ui_images/sound_on.svg'; // Standardbild
         this.soundIconX = canvas.width - 50; // Position oben rechts

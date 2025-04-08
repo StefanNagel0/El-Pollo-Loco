@@ -202,13 +202,19 @@ class World {
         if (this.throwableObjects.length > 0 && this.level.enemies) {
             this.throwableObjects.forEach((bottle, bottleIndex) => {
                 this.level.enemies.forEach((enemy, enemyIndex) => {
-                    if (bottle.isColiding(enemy) && !enemy.isDead && !bottle.isBroken) {
+                    // Korrigierte Bedingung, um beide isDead-Varianten zu berücksichtigen
+                    const enemyIsDead = enemy instanceof Endboss ? enemy.isDead() : enemy.isDead;
+                    
+                    if (bottle.isColiding(enemy) && !enemyIsDead && !bottle.isBroken) {
+                        console.log('Flasche kollidiert mit:', enemy instanceof Endboss ? 'Endboss' : 'Chicken');
+                        
                         // Flasche zerbrechen lassen
                         bottle.break();
                         
                         // Spezialbehandlung für den Endboss
                         if (enemy instanceof Endboss) {
                             enemy.hitWithBottle(); // Spezielle Methode für den Endboss
+                            console.log('Endboss getroffen, Energie:', enemy.energy);
                         } else {
                             // Normale Gegner sterben sofort
                             enemy.die(true); // true für "fromBottle"
@@ -230,10 +236,10 @@ class World {
                             }
                         }, 300); // Zeit für die Zerbrech-Animation
                         
-                        // Gegner nach Animation entfernen
+                        // Gegner nach Animation entfernen, ABER NUR wenn kein Endboss oder der Endboss tot ist
                         setTimeout(() => {
                             const enemyIndex = this.level.enemies.indexOf(enemy);
-                            if (enemyIndex > -1) {
+                            if (enemyIndex > -1 && (!(enemy instanceof Endboss) || enemy.isDead())) {
                                 this.level.enemies.splice(enemyIndex, 1);
                             }
                         }, 500);
@@ -292,7 +298,7 @@ class World {
     addToMap(mo) {
         // Spiegellogik für verschiedene Objekttypen
         if ((mo instanceof Character && mo.otherDirection) || 
-            ((mo instanceof Chicken || mo instanceof smallChicken) && !mo.otherDirection)) {
+            ((mo instanceof Chicken || mo instanceof smallChicken || mo instanceof Endboss) && !mo.otherDirection)) {
             this.flipImage(mo);
         }
         
@@ -309,7 +315,7 @@ class World {
         
         // Stelle den ursprünglichen Zustand wieder her
         if ((mo instanceof Character && mo.otherDirection) || 
-            ((mo instanceof Chicken || mo instanceof smallChicken) && !mo.otherDirection)) {
+            ((mo instanceof Chicken || mo instanceof smallChicken || mo instanceof Endboss) && !mo.otherDirection)) {
             this.flipImageBack(mo);
         }
     }

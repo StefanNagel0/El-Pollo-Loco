@@ -135,47 +135,45 @@ class Character extends MovableObject {
         setInterval(() => {
             this.previousY = this.y;
 
-            // Bewegungslogik und Sound-Steuerung
-            let isRunning = false;
-            
             if (this.world && this.world.keyboard) {
-                if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x) {
+                // Bewegungslogik
+                if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x - this.width) {
                     this.moveRight();
                     this.otherDirection = false;
-                    isRunning = true;
                 }
+                
                 if (this.world.keyboard.LEFT && this.x > 0) {
                     this.moveLeft();
                     this.otherDirection = true;
-                    isRunning = true;
                 }
+                
                 if (this.world.keyboard.SPACE && !this.isAboveGround()) {
                     this.jump();
                 }
                 
-                // Sound-Steuerung: Abspielen oder Stoppen des Laufsounds
-                if (isRunning && !this.isAboveGround() && !this.isDead()) {
-                    if (this.world.userInterface && !this.runSound.playing) {
-                        this.world.userInterface.registerAudio(this.runSound);
-                        if (!this.world.userInterface.isMuted) {
-                            this.runSound.play();
-                            this.runSound.playing = true;
-                        }
-                    }
-                } else {
-                    if (this.runSound.playing) {
-                        this.runSound.pause();
-                        this.runSound.currentTime = 0;
-                        this.runSound.playing = false;
-                    }
-                }
+                // Weitere Code...
             }
             
+            // Kamera-Bewegung
             if (this.world) {
-                this.world.camera_x = 0 - this.x + 100;
+                let newCameraX = -this.x + 100;
+                
+                // Kamera nicht über den Levelanfang hinaus bewegen (links)
+                if (newCameraX > 0) {
+                    newCameraX = 0;
+                }
+                
+                // Kamera nicht über das Levelende hinaus bewegen (rechts)
+                const levelEnd = -this.world.level.level_end_x + this.world.canvas.width;
+                if (newCameraX < levelEnd) {
+                    newCameraX = levelEnd;
+                }
+                
+                this.world.camera_x = newCameraX;
             }
         }, 1000 / 60);
-
+        
+        // Rest des animate()-Codes...
         let idleAnimationInterval = 0;
         let idleTime = 0;
         let sleepAnimationInterval = 0;

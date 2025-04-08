@@ -63,8 +63,9 @@ class World {
         bottle.world = this; // Füge eine Referenz zur World hinzu
         this.throwableObjects.push(bottle);
         this.character.bottles--; // Reduziere die Anzahl der verfügbaren Bottles
-        const percentage = Math.min(this.character.bottles * 20, 100); // Maximal 100%
-        this.statusBar.setBottlesPercentage(percentage); // Aktualisiere die Statusbar
+        
+        // Direkt die Flaschenanzahl aktualisieren statt Prozentsatz
+        this.statusBar.setBottlesCount(this.character.bottles);
 
         // Sound beim Werfen der Flasche abspielen
         const throwSound = new Audio('../assets/audio/bottle_throw.mp3');
@@ -79,7 +80,7 @@ class World {
         // Warte, bis die Taste losgelassen wird, bevor erneut geworfen werden kann
         setTimeout(() => {
             this.canThrow = true;
-        }, 500); // Cooldown von 1 Sekunde (anpassbar)
+        }, 2250); // Cooldown von 1 Sekunde (anpassbar)
     }
 
     checkCollisions() {

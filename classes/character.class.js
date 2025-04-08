@@ -93,29 +93,29 @@ class Character extends MovableObject {
 
     collectCoin() {
         this.coins = (this.coins || 0) + 1;
-        const percentage = Math.min(this.coins * 20, 100);
-        this.world.statusBar.setCoinsPercentage(percentage);
+        // Statt Prozentsatz direkt die Anzahl setzen
+        this.world.statusBar.setCoinsCount(this.coins);
 
         // Coin-Sound abspielen und registrieren
         const coinSound = new Audio('../assets/audio/collect_coins.mp3');
-        this.world.userInterface.registerAudio(coinSound); // Sound bei der UserInterface registrieren
+        this.world.userInterface.registerAudio(coinSound);
 
         if (!this.world.userInterface.isMuted) {
-            coinSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
+            coinSound.play();
         }
     }
 
     collectBottle() {
-        this.bottles = (this.bottles || 0) + 1; // Erhöhe die Anzahl der gesammelten Bottles
-        const percentage = Math.min(this.bottles * 20, 100); // Maximal 100%
-        this.world.statusBar.setBottlesPercentage(percentage); // Aktualisiere die Statusbar
+        this.bottles = (this.bottles || 0) + 1;
+        // Statt Prozentsatz direkt die Anzahl setzen
+        this.world.statusBar.setBottlesCount(this.bottles);
 
         // Bottle-Sound abspielen
         const bottleSound = new Audio('../assets/audio/collect_bottle.mp3');
-        this.world.userInterface.registerAudio(bottleSound); // Sound bei der UserInterface registrieren
+        this.world.userInterface.registerAudio(bottleSound);
 
         if (!this.world.userInterface.isMuted) {
-            bottleSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
+            bottleSound.play();
         }
     }
 

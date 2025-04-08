@@ -24,9 +24,18 @@ class StatusBar extends DrawableObject {
         '../assets/img/7_statusbars/1_statusbar/3_statusbar_bottle/blue/100.png',
     ]
 
+    // Prozentwerte
     percentage_energy = 100;
     percentage_coins = 0;
     percentage_bottles = 0;
+
+    // Aktuelle und maximale Werte
+    current_energy = 100;
+    max_energy = 100;
+    current_coins = 0;
+    max_coins = 5;
+    current_bottles = 0;
+    max_bottles = 10;
 
     constructor() {
         super();
@@ -54,16 +63,32 @@ class StatusBar extends DrawableObject {
 
     setEnergyPercentage(percentage) {
         this.percentage_energy = percentage;
+        this.current_energy = percentage; // Aktuelle Energie in Prozent
         this.updateStatusBars();
     }
 
     setCoinsPercentage(percentage) {
         this.percentage_coins = percentage;
+        this.current_coins = Math.min(Math.ceil(percentage / 20), this.max_coins); // 5 Münzen maximal
         this.updateStatusBars(); 
     }
 
     setBottlesPercentage(percentage) {
         this.percentage_bottles = percentage;
+        this.current_bottles = Math.min(Math.ceil(percentage / 10), this.max_bottles); // 10 Flaschen maximal
+        this.updateStatusBars();
+    }
+
+    // Alternative Methode, um direkt die Anzahl zu setzen
+    setCoinsCount(count) {
+        this.current_coins = count;
+        this.percentage_coins = Math.min(count * 20, 100);
+        this.updateStatusBars();
+    }
+
+    setBottlesCount(count) {
+        this.current_bottles = count;
+        this.percentage_bottles = Math.min(count * 10, 100);
         this.updateStatusBars();
     }
 
@@ -104,14 +129,26 @@ class StatusBar extends DrawableObject {
     draw(ctx) {
         if (this.img_energy && this.img_energy.complete) {
             ctx.drawImage(this.img_energy, this.x_energy, this.y_energy, this.width, this.height);
+            // Energie-Wert anzeigen
+            this.drawStatusText(ctx, `${this.current_energy} / ${this.max_energy}`, this.x_energy + this.width - 80, this.y_energy + 46);
         }
 
         if (this.img_coins && this.img_coins.complete) {
             ctx.drawImage(this.img_coins, this.x_coins, this.y_coins, this.width, this.height);
+            // Münzen-Wert anzeigen
+            this.drawStatusText(ctx, `${this.current_coins} / ${this.max_coins}`, this.x_coins + this.width - 50, this.y_coins + 46);
         }
 
         if (this.img_bottles && this.img_bottles.complete) {
             ctx.drawImage(this.img_bottles, this.x_bottles, this.y_bottles, this.width, this.height);
+            // Flaschen-Wert anzeigen
+            this.drawStatusText(ctx, `${this.current_bottles} / ${this.max_bottles}`, this.x_bottles + this.width - 55, this.y_bottles + 46);
         }
+    }
+
+    drawStatusText(ctx, text, x, y) {
+        ctx.font = '16px Arial';
+        ctx.fillStyle = 'black';
+        ctx.fillText(text, x, y);
     }
 }

@@ -3,6 +3,8 @@ class smallChicken extends MovableObject {
     height = 80;
     width = 55;
     isDead = false;
+    changeDirectionTime = 0;
+    worldLimits = { min: 0, max: 5800 }; // Standardwerte, werden aktualisiert
 
     IMAGES_WALKING = [
         '../assets/img/3_enemies_chicken/chicken_small/1_walk/1_w.png',
@@ -13,11 +15,23 @@ class smallChicken extends MovableObject {
 
     constructor() {
         super().loadImage(this.IMAGES_WALKING[0]);
-        this.x = this.getValidXPosition(); // Berechne eine gültige X-Position
-        MovableObject.placedEnemies.push(this.x); // Speichere die X-Position in der gemeinsamen Liste
+        this.x = this.getValidXPosition();
+        MovableObject.placedEnemies.push(this.x);
         this.loadImages(this.IMAGES_WALKING);
-        this.speed = 0.15 + Math.random() * 0.25;
+        this.speed = 0.45 + Math.random() * 0.4; // Kleine Hühner sind noch schneller
+        
+        // Zufällig entscheiden, ob nach links oder rechts gelaufen wird
+        this.otherDirection = Math.random() < 0.5;
+        
+        // Zeitraum setzen, nach dem die Richtung gewechselt werden kann
+        this.setRandomDirectionChangeTime();
+        
         this.animate();
+    }
+    
+    // Zufälligen Zeitpunkt für Richtungswechsel setzen
+    setRandomDirectionChangeTime() {
+        this.changeDirectionTime = new Date().getTime() + Math.random() * 4000 + 1000; // 1-5 Sekunden
     }
 
     getValidXPosition() {
@@ -34,13 +48,35 @@ class smallChicken extends MovableObject {
 
     animate() {
         setInterval(() => {
-            if (!this.isDead) { // Bewegung nur, wenn der Gegner nicht tot ist
-                this.moveLeft();
+            if (!this.isDead) {
+                const now = new Date().getTime();
+                
+                // Überprüfen, ob die Welt-Grenzen erreicht wurden
+                if (this.x <= this.worldLimits.min) {
+                    this.otherDirection = false; // Nach rechts laufen
+                    this.setRandomDirectionChangeTime(); // Neuen Zeitpunkt setzen
+                } else if (this.x >= this.worldLimits.max - this.width) {
+                    this.otherDirection = true; // Nach links laufen
+                    this.setRandomDirectionChangeTime(); // Neuen Zeitpunkt setzen
+                }
+                
+                // Zufälliger Richtungswechsel nach Ablauf der Zeit
+                if (now >= this.changeDirectionTime) {
+                    this.otherDirection = Math.random() < 0.5;
+                    this.setRandomDirectionChangeTime();
+                }
+                
+                // Bewegung in die aktuelle Richtung
+                if (this.otherDirection) {
+                    this.moveLeft();
+                } else {
+                    this.moveRight();
+                }
             }
         }, 1000 / 60);
 
         setInterval(() => {
-            if (!this.isDead) { // Animation nur, wenn der Gegner nicht tot ist
+            if (!this.isDead) {
                 this.playAnimation(this.IMAGES_WALKING);
             }
         }, 200);

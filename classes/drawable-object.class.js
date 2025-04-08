@@ -60,6 +60,11 @@ class DrawableObject {
                 );
                 ctx.stroke();
             }
+            
+            // Zeichne Lebensbalken für Chicken
+            if (this instanceof Chicken && this.drawHealthBar) {
+                this.drawHealthBar(ctx);
+            }
         }
     }
 }

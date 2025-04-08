@@ -23,6 +23,18 @@ class World {
 
     setWorld() {
         this.character.world = this;
+        
+        // Setze die Weltgrenzen für alle Chickens und Small Chickens
+        this.level.enemies.forEach(enemy => {
+            enemy.world = this; // World-Referenz für alle Feinde
+            
+            if (enemy instanceof Chicken || enemy instanceof smallChicken) {
+                enemy.worldLimits = {
+                    min: 0,
+                    max: this.level.level_end_x
+                };
+            }
+        });
     }
 
 
@@ -86,33 +98,43 @@ class World {
     
                 const isCollision = this.character.isColiding(enemy);
     
-                if (isStomp) {
+                if (isStomp && !(enemy instanceof Endboss)) { // Kein Stomp bei Endboss möglich
                     console.log('✅ Stomp erkannt!');
-                    if (!enemy.isDead) {
+                    if (!enemy.isDead) {  // Änderung hier: isDead als Eigenschaft
                         enemy.die();
-                        this.character.speedY = +30;
+                        this.character.speedY = 25; // Bounce-Effekt
                         
                         // Stomp-Sound abspielen
                         const stompSound = new Audio('../assets/audio/stomp_enemie.mp3');
-                        this.userInterface.registerAudio(stompSound); // Sound bei der UserInterface registrieren
+                        this.userInterface.registerAudio(stompSound);
                         
                         if (!this.userInterface.isMuted) {
-                            stompSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
+                            stompSound.play();
                         }
-    
+                        
+                        // NEU: Gegner nach Animation entfernen
                         setTimeout(() => {
                             const enemyIndex = this.level.enemies.indexOf(enemy);
-                            if (enemyIndex > -1) {
+                            if (enemyIndex > -1 && enemy.isDead) {
                                 this.level.enemies.splice(enemyIndex, 1);
                             }
                         }, 500);
                     }
                 } else if (isCollision) {
                     console.log('❌ Kollision mit Gegner erkannt!');
-                    if (!enemy.isDead && (enemy instanceof Chicken || enemy instanceof smallChicken)) {
-                        this.character.hit();
-                        this.statusBar.setEnergyPercentage(this.character.energy);
-                        console.log('❌ Kollision mit Gegner, Energie = ', this.character.energy);
+                    if (!enemy.isDead) {  // Änderung hier: isDead als Eigenschaft statt als Funktion
+                        if (enemy instanceof Endboss) {
+                            // Spezielle Logik für Kollisionen mit dem Endboss
+                            this.character.hit();
+                            this.character.energy -= (enemy.damage - 5); // Größerer Schaden
+                            this.statusBar.setEnergyPercentage(this.character.energy);
+                            console.log('❌ Kollision mit Endboss, Energie = ', this.character.energy);
+                        } else if (enemy instanceof Chicken || enemy instanceof smallChicken) {
+                            // Bestehende Logik für normale Chickens
+                            this.character.hit();
+                            this.statusBar.setEnergyPercentage(this.character.energy);
+                            console.log('❌ Kollision mit Gegner, Energie = ', this.character.energy);
+                        }
                     }
                 }
             });
@@ -181,13 +203,18 @@ class World {
             this.throwableObjects.forEach((bottle, bottleIndex) => {
                 this.level.enemies.forEach((enemy, enemyIndex) => {
                     if (bottle.isColiding(enemy) && !enemy.isDead && !bottle.isBroken) {
-                        // Flasche zerbrechen lassen statt sofort zu entfernen
+                        // Flasche zerbrechen lassen
                         bottle.break();
                         
-                        // Gegner sterben lassen
-                        enemy.die();
+                        // Spezialbehandlung für den Endboss
+                        if (enemy instanceof Endboss) {
+                            enemy.hitWithBottle(); // Spezielle Methode für den Endboss
+                        } else {
+                            // Normale Gegner sterben sofort
+                            enemy.die(true); // true für "fromBottle"
+                        }
                         
-                        // Optional: Zerbrech-Sound abspielen
+                        // Zerbrech-Sound abspielen
                         const breakSound = new Audio('../assets/audio/bottle_break.mp3');
                         this.userInterface.registerAudio(breakSound);
                         
@@ -229,16 +256,30 @@ class World {
         this.addObjectsToMap(this.throwableObjects); 
         this.ctx.translate(-this.camera_x, 0);
 
+        // UI-Elemente nach der Kamera-Transformation zeichnen
         this.statusBar.draw(this.ctx);  
-
-        // Ändere dies von drawSoundIcon zu drawIcons
         this.userInterface.drawIcons();
+        
+        // Endboss-Lebensbalken als UI-Element zeichnen
+        this.drawEndbossHealthBar();
         
         //Draw() wird immer wieder aufgerufen
         let self = this;
         requestAnimationFrame(function () {
             self.draw();
         });
+    }
+
+    // Neue Methode zum Zeichnen des Endboss-Lebensbalken als UI-Element
+    drawEndbossHealthBar() {
+        // Suche nach dem Endboss
+        const endboss = this.level.enemies.find(enemy => enemy instanceof Endboss);
+        
+        // Wenn der Endboss existiert und sein Lebensbalken angezeigt werden soll,
+        // rufen wir seine drawHealthBar-Methode auf
+        if (endboss && endboss.showHealthBar) {
+            endboss.drawHealthBar(this.ctx);
+        }
     }
 
     addObjectsToMap(objects) {
@@ -249,12 +290,26 @@ class World {
     }
 
     addToMap(mo) {
-        if (mo.otherDirection && !(mo instanceof ThrowableObject)) {
+        // Spiegellogik für verschiedene Objekttypen
+        if ((mo instanceof Character && mo.otherDirection) || 
+            ((mo instanceof Chicken || mo instanceof smallChicken) && !mo.otherDirection)) {
             this.flipImage(mo);
         }
+        
         mo.draw(this.ctx);
+        
+        // Zeichne Lebensbalken für Chicken nach dem Zeichnen des Objekts
+        // Aber NICHT für den Endboss - dieser wird separat gezeichnet
+        if (mo instanceof Chicken && mo.showHealthBar) {
+            mo.drawHealthBar(this.ctx);
+        }
+        // Endboss-Lebensbalken wird jetzt in drawEndbossHealthBar() gezeichnet
+        
         mo.drawFrame(this.ctx);
-        if (mo.otherDirection && !(mo instanceof ThrowableObject)) {
+        
+        // Stelle den ursprünglichen Zustand wieder her
+        if ((mo instanceof Character && mo.otherDirection) || 
+            ((mo instanceof Chicken || mo instanceof smallChicken) && !mo.otherDirection)) {
             this.flipImageBack(mo);
         }
     }

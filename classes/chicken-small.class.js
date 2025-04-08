@@ -18,7 +18,7 @@ class smallChicken extends MovableObject {
         this.x = this.getValidXPosition();
         MovableObject.placedEnemies.push(this.x);
         this.loadImages(this.IMAGES_WALKING);
-        this.speed = 0.45 + Math.random() * 0.4; // Kleine Hühner sind noch schneller
+        this.speed = 2 + Math.random() * 4; // Kleine Hühner sind noch schneller
         
         // Zufällig entscheiden, ob nach links oder rechts gelaufen wird
         this.otherDirection = Math.random() < 0.5;

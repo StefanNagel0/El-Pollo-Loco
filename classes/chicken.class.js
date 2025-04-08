@@ -21,7 +21,7 @@ class Chicken extends MovableObject {
         this.x = this.getValidXPosition(); // Berechne eine gültige X-Position
         MovableObject.placedEnemies.push(this.x); // Speichere die X-Position in der gemeinsamen Liste
         this.loadImages(this.IMAGES_WALKING);
-        this.speed = 0.35 + Math.random() * 0.35; // Erhöhte Geschwindigkeit
+        this.speed = 1.5 + Math.random() * 3; // Erhöhte Geschwindigkeit
         
         // Zufällig entscheiden, ob nach links oder rechts gelaufen wird
         this.otherDirection = Math.random() < 0.5;

@@ -16,7 +16,7 @@ class Endboss extends MovableObject {
     hurtDuration = 1000; // Dauer der Verletzungsanimation in ms
     lastHurtTime = 0; // Zeitpunkt der letzten Verletzung
     showHealthBar = false;
-    alertDistance = 500; // Entfernung, bei der der Boss den Character erkennt
+    alertDistance = 400; // Entfernung, bei der der Boss den Character erkennt
     offset = {
         top: 70,
         left: 30,

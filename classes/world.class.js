@@ -7,13 +7,22 @@ class World {
     camera_x = 0;
     statusBar = new StatusBar();
     throwableObjects = [];
-    canThrow = true; // Neue Variable, um das Werfen zu steuern
+    canThrow = true; // Variable, um das Werfen zu steuern
+    
+    // Neue Variablen für den Cooldown
+    throwCooldown = 0; // Aktueller Cooldown in ms
+    maxThrowCooldown = 2250; // Maximaler Cooldown in ms
+    cooldownImage = new Image(); // Bild für die Flasche im Cooldown
 
     constructor(canvas, keyboard) {
         this.ctx = canvas.getContext('2d');
         this.canvas = canvas;
         this.keyboard = keyboard;
         this.userInterface = new UserInterface(canvas);
+        
+        // Flaschenbild für den Cooldown laden
+        this.cooldownImage.src = '../assets/img/6_salsa_bottle/salsa_bottle.png';
+        
         this.draw();
         this.setWorld();
         this.run();
@@ -45,6 +54,7 @@ class World {
             this.checkCollisions();
             this.checkCollisionsWithBottles(); // Neue Methode aufrufen
             this.checkEnemyDistances();
+            this.updateCooldown(); // Cooldown-Timer aktualisieren
         }, 1000 / 60);
     }
 
@@ -75,12 +85,15 @@ class World {
             throwSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
         }
 
-        this.canThrow = false; // Setze canThrow auf false, um mehrfaches Werfen zu verhindern
-
-        // Warte, bis die Taste losgelassen wird, bevor erneut geworfen werden kann
+        // Cooldown starten
+        this.canThrow = false;
+        this.throwCooldown = this.maxThrowCooldown;
+        
+        // Warte, bis der Cooldown abgelaufen ist
         setTimeout(() => {
             this.canThrow = true;
-        }, 2250); // Cooldown von 1 Sekunde (anpassbar)
+            this.throwCooldown = 0;
+        }, this.maxThrowCooldown);
     }
 
     checkCollisions() {
@@ -250,6 +263,69 @@ class World {
         }
     }
 
+    // Neue Methode zum Aktualisieren des Cooldown-Timers
+    updateCooldown() {
+        if (this.throwCooldown > 0) {
+            this.throwCooldown -= (1000 / 60); // Reduzierung pro Frame (60 FPS)
+            if (this.throwCooldown < 0) this.throwCooldown = 0;
+        }
+    }
+    
+    // Aktualisierte Methode zum Zeichnen des Cooldown-Kreises
+    drawCooldownCircle() {
+        if (this.throwCooldown <= 0) return;
+        
+        // Positioniere den Kreis unter dem Settings-Icon (feste Position)
+        const circleRadius = 25;
+        const padding = 10; // Abstand zwischen Settings-Icon und Cooldown-Kreis
+        
+        // Position basierend auf dem Settings-Icon bestimmen
+        const offsetX = this.userInterface.settingsIconX + this.userInterface.settingsIconWidth / 2;
+        const offsetY = this.userInterface.settingsIconY + this.userInterface.settingsIconHeight + padding + circleRadius;
+        
+        // Grauer Hintergrund-Kreis (voller Kreis)
+        this.ctx.beginPath();
+        this.ctx.arc(offsetX, offsetY, circleRadius, 0, 2 * Math.PI);
+        this.ctx.fillStyle = 'rgba(80, 80, 80, 0.7)';
+        this.ctx.fill();
+        
+        // Oranger fortschreitender Kreis (von oben im Uhrzeigersinn)
+        const progress = this.throwCooldown / this.maxThrowCooldown;
+        this.ctx.beginPath();
+        this.ctx.moveTo(offsetX, offsetY);
+        this.ctx.arc(
+            offsetX, 
+            offsetY, 
+            circleRadius, 
+            -Math.PI / 2, // Startwinkel (oben)
+            -Math.PI / 2 + (1 - progress) * 2 * Math.PI, // Endwinkel basierend auf Fortschritt
+            false // im Uhrzeigersinn
+        );
+        this.ctx.lineTo(offsetX, offsetY);
+        this.ctx.fillStyle = 'rgba(255, 140, 0, 0.7)';
+        this.ctx.fill();
+        
+        // Flaschenbild in der Mitte des Kreises zeichnen
+        if (this.cooldownImage.complete) {
+            const bottleSize = circleRadius * 2.4;
+            this.ctx.drawImage(
+                this.cooldownImage, 
+                offsetX - bottleSize / 2, 
+                offsetY - bottleSize / 2, 
+                bottleSize, 
+                bottleSize
+            );
+        }
+        
+        // Verbleibende Zeit anzeigen (abgerundet auf Zehntel)
+        const remainingTime = (this.throwCooldown / 1000).toFixed(1);
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillStyle = 'black';
+        this.ctx.fillText(remainingTime + 's', offsetX, offsetY + circleRadius + 15);
+    }
+
+    // Aktualisierte draw-Methode, um den Cooldown-Kreis an der richtigen Stelle zu zeichnen
     draw(ctx) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -269,6 +345,11 @@ class World {
         
         // Endboss-Lebensbalken als UI-Element zeichnen
         this.drawEndbossHealthBar();
+        
+        // Cooldown-Kreis als UI-Element zeichnen (ohne Kamera-Transformation)
+        if (this.throwCooldown > 0) {
+            this.drawCooldownCircle(); // Keine Kamera-Transformation nötig, da feste Position
+        }
         
         //Draw() wird immer wieder aufgerufen
         let self = this;

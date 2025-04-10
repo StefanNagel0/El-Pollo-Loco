@@ -16,17 +16,44 @@
 }
 
 .settings-container {
-    background-color: #fff;
+    background-color: #FFF5E6; /* Leichter Orangeton */
     padding: 20px;
     border-radius: 8px;
-    width: 400px;
+    width: 450px;
     max-width: 90%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .settings-container h2 {
     text-align: center;
     margin-bottom: 20px;
     font-size: 24px;
+    color: #FF7700; /* Orange Überschrift */
+}
+
+.settings-tabs {
+    display: flex;
+    border-bottom: 2px solid #FFD8A8;
+    margin-bottom: 20px;
+}
+
+.tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px 5px 0 0;
+    background-color: #FFE0B2;
+    margin-right: 5px;
+    transition: all 0.3s ease;
+}
+
+.tab:hover {
+    background-color: #FFB74D;
+}
+
+.tab.active {
+    background-color: #FF9800;
+    color: white;
+    font-weight: bold;
 }
 
 .setting {
@@ -37,10 +64,44 @@
     display: block;
     margin-bottom: 8px;
     font-size: 16px;
+    color: #333;
 }
 
-.setting input[type="range"] {
+.volume-slider {
     width: 100%;
+    height: 8px;
+    -webkit-appearance: none;
+    background-color: #E0E0E0; /* Grauer Hintergrund */
+    border-radius: 5px;
+    outline: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background-color: #FF7700; /* Knalliges Orange für den Slider */
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background-color: #FF7700;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+    background-color: #FF9800;
+}
+
+.volume-slider::-moz-range-thumb:hover {
+    background-color: #FF9800;
 }
 
 .setting-buttons {
@@ -50,23 +111,29 @@
 }
 
 .setting-buttons button {
-    background-color: #4CAF50;
+    background-color: #FF9800;
     color: white;
     border: none;
     padding: 10px 15px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
+    transition: background-color 0.2s;
 }
 
 .setting-buttons button:hover {
-    background-color: #45a049;
+    background-color: #F57C00;
 }
 
 #exit-game {
-    background-color: #f44336;
+    background-color: #FF5722;
 }
 
 #exit-game:hover {
-    background-color: #d32f2f;
+    background-color: #E64A19;
+}
+
+.settings-content {
+    min-height: 180px;
+    transition: all 0.3s ease;
 }

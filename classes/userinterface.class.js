@@ -8,6 +8,20 @@ class UserInterface extends DrawableObject {
         this.isMuted = localStorage.getItem('elPolloLoco_isMuted') === 'true';
         this.volumeLevel = parseInt(localStorage.getItem('elPolloLoco_volume')) || 5;
         
+        // Audio-Kategorien-Settings aus localStorage laden
+        this.characterVolume = parseInt(localStorage.getItem('elPolloLoco_characterVolume')) || 5;
+        this.enemiesVolume = parseInt(localStorage.getItem('elPolloLoco_enemiesVolume')) || 5;
+        this.objectsVolume = parseInt(localStorage.getItem('elPolloLoco_objectsVolume')) || 5; // Neue Kategorie
+        this.musicVolume = parseInt(localStorage.getItem('elPolloLoco_musicVolume')) || 5;
+        
+        // Audio-Kategorien für die Verwaltung
+        this.audioCategories = {
+            character: [],
+            enemies: [],
+            objects: [], // Neue Kategorie
+            music: []
+        };
+        
         // Sound-Icon initialisieren
         this.soundIcon = new Image();
         this.soundIcon.src = this.isMuted 
@@ -76,7 +90,7 @@ class UserInterface extends DrawableObject {
         // Hintergrundmusik initialisieren
         this.backgroundMusic = new Audio('../assets/audio/background.mp3');
         this.backgroundMusic.loop = true; // Im Loop abspielen
-        this.registerAudio(this.backgroundMusic); // Bei der Audio-Verwaltung registrieren
+        this.registerAudioWithCategory(this.backgroundMusic, 'music'); // Bei der Audio-Verwaltung registrieren
         
         // Starte die Musik nach einer kurzen Verzögerung (um sicherzustellen, dass alles geladen ist)
         setTimeout(() => {
@@ -222,23 +236,84 @@ class UserInterface extends DrawableObject {
     initSettingsOverlay() {
         // DOM-Elemente referenzieren
         this.settingsOverlay = document.getElementById('settings-overlay');
-        this.volumeSlider = document.getElementById('volume-slider');
-        this.volumeValue = document.getElementById('volume-value');
+        
+        // Volume Sliders
+        this.masterSlider = document.getElementById('master-volume');
+        this.characterSlider = document.getElementById('character-volume');
+        this.enemiesSlider = document.getElementById('enemies-volume');
+        this.objectsSlider = document.getElementById('objects-volume'); // Neuer Slider
+        this.musicSlider = document.getElementById('music-volume');
+        
+        // Value Displays
+        this.masterValue = document.getElementById('master-volume-value');
+        this.characterValue = document.getElementById('character-volume-value');
+        this.enemiesValue = document.getElementById('enemies-volume-value');
+        this.objectsValue = document.getElementById('objects-volume-value'); // Neuer Wert
+        this.musicValue = document.getElementById('music-volume-value');
+        
         this.exitGameBtn = document.getElementById('exit-game');
         this.closeSettingsBtn = document.getElementById('close-settings');
         
         // Initialen Wert setzen
-        this.volumeSlider.value = this.volumeLevel;
-        this.volumeValue.textContent = this.volumeLevel;
+        this.masterSlider.value = this.volumeLevel;
+        this.masterValue.textContent = this.volumeLevel;
         
-        // Event-Listener hinzufügen
-        this.volumeSlider.addEventListener('input', () => {
-            this.volumeLevel = parseInt(this.volumeSlider.value);
-            this.volumeValue.textContent = this.volumeLevel;
+        this.characterSlider.value = this.characterVolume;
+        this.characterValue.textContent = this.characterVolume;
+        
+        this.enemiesSlider.value = this.enemiesVolume;
+        this.enemiesValue.textContent = this.enemiesVolume;
+        
+        this.objectsSlider.value = this.objectsVolume;
+        this.objectsValue.textContent = this.objectsVolume;
+        
+        this.musicSlider.value = this.musicVolume;
+        this.musicValue.textContent = this.musicVolume;
+        
+        // Event-Listener für Slider hinzufügen
+        this.masterSlider.addEventListener('input', () => {
+            this.volumeLevel = parseInt(this.masterSlider.value);
+            this.masterValue.textContent = this.volumeLevel;
             this.updateVolume();
             
             // In localStorage speichern
             localStorage.setItem('elPolloLoco_volume', this.volumeLevel);
+        });
+        
+        this.characterSlider.addEventListener('input', () => {
+            this.characterVolume = parseInt(this.characterSlider.value);
+            this.characterValue.textContent = this.characterVolume;
+            this.updateCategoryVolume('character');
+            
+            // In localStorage speichern
+            localStorage.setItem('elPolloLoco_characterVolume', this.characterVolume);
+        });
+        
+        this.enemiesSlider.addEventListener('input', () => {
+            this.enemiesVolume = parseInt(this.enemiesSlider.value);
+            this.enemiesValue.textContent = this.enemiesVolume;
+            this.updateCategoryVolume('enemies');
+            
+            // In localStorage speichern
+            localStorage.setItem('elPolloLoco_enemiesVolume', this.enemiesVolume);
+        });
+        
+        this.objectsSlider.addEventListener('input', () => {
+            this.objectsVolume = parseInt(this.objectsSlider.value);
+            this.objectsValue.textContent = this.objectsVolume;
+            this.updateCategoryVolume('objects');
+            
+            // In localStorage speichern
+            localStorage.setItem('elPolloLoco_objectsVolume', this.objectsVolume);
+        });
+        
+        this.musicSlider.addEventListener('input', () => {
+            this.musicVolume = parseInt(this.musicSlider.value);
+            this.musicValue.textContent = this.musicVolume;
+            this.updateCategoryVolume('music');
+            
+            // In localStorage speichern
+            localStorage.setItem('elPolloLoco_musicVolume', this.musicVolume);
         });
         
         this.exitGameBtn.addEventListener('click', () => {
@@ -263,11 +338,41 @@ class UserInterface extends DrawableObject {
         this.settingsOverlay.classList.remove('show');
     }
 
-    updateVolume() {
-        // Lautstärke aller Audio-Instanzen aktualisieren
-        const volume = this.volumeLevel / 10; // Umrechnung in 0-1 Bereich für Audio API
+    // Neue Methode zum Wechseln der Tabs
+    switchTab(tabName) {
+        // Alle Tabs zurücksetzen
+        this.generalTab.classList.remove('active');
+        this.audioTab.classList.remove('active');
+        this.generalContent.classList.add('d-none');
+        this.audioContent.classList.add('d-none');
         
-        this.audioInstances.forEach((audio) => {
+        // Gewählten Tab aktivieren
+        if (tabName === 'general') {
+            this.generalTab.classList.add('active');
+            this.generalContent.classList.remove('d-none');
+        } else if (tabName === 'audio') {
+            this.audioTab.classList.add('active');
+            this.audioContent.classList.remove('d-none');
+        }
+    }
+
+    updateVolume() {
+        // Aktualisiere alle Kategorien
+        this.updateCategoryVolume('character');
+        this.updateCategoryVolume('enemies');
+        this.updateCategoryVolume('objects'); // Neue Kategorie
+        this.updateCategoryVolume('music');
+        
+        // Für nicht kategorisierte Audios
+        const volume = this.volumeLevel / 10;
+        const uncategorizedAudios = this.audioInstances.filter(audio => 
+            !this.audioCategories.character.includes(audio) &&
+            !this.audioCategories.enemies.includes(audio) &&
+            !this.audioCategories.objects.includes(audio) &&
+            !this.audioCategories.music.includes(audio)
+        );
+        
+        uncategorizedAudios.forEach((audio) => {
             if (audio && !this.isMuted) {
                 audio.volume = volume;
             }
@@ -307,6 +412,18 @@ class UserInterface extends DrawableObject {
         }
     }
 
+    // Neue Methode zur Registrierung von Audio mit Kategorie
+    registerAudioWithCategory(audio, category) {
+        this.registerAudio(audio); // Bestehende Registrierung verwenden
+        
+        // Zusätzlich zur Kategorie hinzufügen
+        if (category && this.audioCategories[category]) {
+            if (!this.audioCategories[category].includes(audio)) {
+                this.audioCategories[category].push(audio);
+            }
+        }
+    }
+
     muteAllSounds() {
         this.audioInstances.forEach((audio) => {
             if (audio) {
@@ -321,6 +438,40 @@ class UserInterface extends DrawableObject {
                 audio.muted = false;
                 // Lautstärke anwenden
                 audio.volume = this.volumeLevel / 10;
+            }
+        });
+    }
+
+    // Neue Methode zur Aktualisierung der Kategorie-Lautstärke
+    updateCategoryVolume(category) {
+        if (!this.audioCategories[category]) return;
+        
+        const masterVolume = this.volumeLevel / 10; // 0-1 Bereich
+        let categoryVolume;
+        
+        switch(category) {
+            case 'character':
+                categoryVolume = this.characterVolume / 10;
+                break;
+            case 'enemies':
+                categoryVolume = this.enemiesVolume / 10;
+                break;
+            case 'objects':
+                categoryVolume = this.objectsVolume / 10;
+                break;
+            case 'music':
+                categoryVolume = this.musicVolume / 10;
+                break;
+            default:
+                categoryVolume = 0.5;
+        }
+        
+        // Kombinierte Lautstärke (Master * Kategorie)
+        const finalVolume = masterVolume * categoryVolume;
+        
+        this.audioCategories[category].forEach((audio) => {
+            if (audio && !this.isMuted) {
+                audio.volume = finalVolume;
             }
         });
     }

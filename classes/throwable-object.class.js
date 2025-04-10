@@ -66,7 +66,7 @@ class ThrowableObject extends MovableObject {
         // Zerbrech-Sound abspielen
         if (this.world && this.world.userInterface) {
             const breakSound = new Audio('../assets/audio/bottle_break.mp3');
-            this.world.userInterface.registerAudio(breakSound);
+            this.world.userInterface.registerAudioWithCategory(breakSound, 'objects');
             
             if (!this.world.userInterface.isMuted) {
                 breakSound.play();

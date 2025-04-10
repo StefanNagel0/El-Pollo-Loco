@@ -107,15 +107,6 @@ class Endboss extends MovableObject {
                     this.isCharging = false;
                     this.isResting = false;
                     this.isHurt = false;
-                    
-                    // Tod-Sound abspielen
-                    const deathSound = new Audio('../assets/audio/boss_death.mp3');
-                    if (this.world && this.world.userInterface) {
-                        this.world.userInterface.registerAudio(deathSound);
-                        if (!this.world.userInterface.isMuted) {
-                            deathSound.play();
-                        }
-                    }
                 }
                 
                 // Todesanimation abspielen
@@ -180,7 +171,7 @@ class Endboss extends MovableObject {
                                 // Angriffssound abspielen
                                 const attackSound = new Audio('../assets/audio/boss_attack.mp3');
                                 if (this.world.userInterface) {
-                                    this.world.userInterface.registerAudio(attackSound);
+                                    this.world.userInterface.registerAudioWithCategory(attackSound, 'enemies');
                                     if (!this.world.userInterface.isMuted) {
                                         attackSound.play();
                                     }
@@ -243,29 +234,12 @@ class Endboss extends MovableObject {
         this.isAttacking = false;
         this.isResting = false;
         
-        // Sound für den Angriffsbeginn (optional)
-        if (this.world && this.world.userInterface) {
-            const attackStartSound = new Audio('../assets/audio/chicken_alert.mp3');
-            this.world.userInterface.registerAudio(attackStartSound);
-            if (!this.world.userInterface.isMuted) {
-                attackStartSound.play();
-            }
-        }
     }
 
     alert() {
         this.isAlerted = true;
         this.showHealthBar = true;
         
-        // Alert-Sound abspielen
-        if (this.world && this.world.userInterface) {
-            const alertSound = new Audio('../assets/audio/chicken_alert.mp3');
-            this.world.userInterface.registerAudio(alertSound);
-            
-            if (!this.world.userInterface.isMuted) {
-                alertSound.play();
-            }
-        }
     }
 
     startWalking() {
@@ -280,15 +254,74 @@ class Endboss extends MovableObject {
         }
     }
 
+    // Verbesserte die()-Methode mit zuverlässiger Sound-Wiedergabe
     die() {
-        if (!this.isDead()) {
-            this.energy = 0;
-            this.speed = 0;
-            this.isDying = true;
-            this.showHealthBar = false; // Optional: Lebensbalken beim Tod ausblenden
+        // Verhindern, dass die Methode mehrmals aufgerufen wird
+        if (this.isDying) return;
+        
+        console.log("Endboss stirbt! Energie:", this.energy); // Erweiterte Debug-Ausgabe
+        this.energy = 0;
+        this.speed = 0;
+        this.isDying = true;
+        this.showHealthBar = false;
+        
+        // Game Won Sound abspielen und Hintergrundmusik vorübergehend pausieren
+        setTimeout(() => {
+            console.log("Spiele Game-Won Sound ab");
             
-            // Zusätzlicher Code für die Todesanimation kann hier eingefügt werden
-        }
+            try {
+                // Hintergrundmusik pausieren
+                if (this.world && this.world.userInterface && this.world.userInterface.backgroundMusic) {
+                    // Musik-Status speichern
+                    const wasPlaying = !this.world.userInterface.backgroundMusic.paused;
+                    const wasMuted = this.world.userInterface.backgroundMusic.muted;
+                    
+                    // Hintergrundmusik pausieren
+                    this.world.userInterface.backgroundMusic.pause();
+                    
+                    // Sound erstellen und abspielen
+                    const gameWonSound = new Audio('../assets/audio/game_won.mp3');
+                    gameWonSound.volume = 1.0;
+                    
+                    if (this.world.userInterface) {
+                        this.world.userInterface.registerAudioWithCategory(gameWonSound, 'music');
+                    }
+                    
+                    // Event-Handler für das Ende des Sounds hinzufügen
+                    gameWonSound.addEventListener('ended', () => {
+                        console.log('Game-Won Sound beendet, Hintergrundmusik fortsetzen');
+                        
+                        // Hintergrundmusik wieder aktivieren (wenn sie vorher abgespielt wurde)
+                        if (wasPlaying && !this.world.userInterface.isMuted) {
+                            this.world.userInterface.backgroundMusic.muted = wasMuted;
+                            this.world.userInterface.backgroundMusic.play()
+                                .catch(error => console.error('Fehler beim Fortsetzen der Musik:', error));
+                        }
+                    });
+                    
+                    // Abspielen mit Error-Handling
+                    gameWonSound.play()
+                        .then(() => console.log('Game-Won Sound wird abgespielt!'))
+                        .catch(error => {
+                            console.error('Fehler beim Abspielen:', error);
+                            
+                            // Bei Fehler trotzdem Hintergrundmusik wieder starten
+                            if (wasPlaying && !this.world.userInterface.isMuted) {
+                                this.world.userInterface.backgroundMusic.muted = wasMuted;
+                                this.world.userInterface.backgroundMusic.play()
+                                    .catch(e => console.error('Fehler beim Fortsetzen der Musik:', e));
+                            }
+                        });
+                } else {
+                    // Fallback, falls kein Zugriff auf die Hintergrundmusik möglich ist
+                    const gameWonSound = new Audio('../assets/audio/game_won.mp3');
+                    gameWonSound.play()
+                        .catch(error => console.error('Fehler beim Abspielen (Fallback):', error));
+                }
+            } catch (error) {
+                console.error('Allgemeiner Fehler beim Sound:', error);
+            }
+        }, 300); // Längere Verzögerung für bessere Kompatibilität
     }
 
     // Aktualisierte Methode für Treffer mit Flasche
@@ -304,10 +337,10 @@ class Endboss extends MovableObject {
         this.isHurt = true;
         this.lastHurtTime = new Date().getTime();
         
-        // Verletzungssound abspielen
+        // Endboss Hurt Sound abspielen
         if (this.world && this.world.userInterface) {
-            const hurtSound = new Audio('../assets/audio/chicken_hurt.mp3');
-            this.world.userInterface.registerAudio(hurtSound);
+            const hurtSound = new Audio('../assets/audio/Endboss_hurt.mp3');
+            this.world.userInterface.registerAudioWithCategory(hurtSound, 'enemies');
             
             if (!this.world.userInterface.isMuted) {
                 hurtSound.play();

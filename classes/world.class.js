@@ -69,7 +69,7 @@ class World {
 
         // Sound beim Werfen der Flasche abspielen
         const throwSound = new Audio('../assets/audio/bottle_throw.mp3');
-        this.userInterface.registerAudio(throwSound); // Sound bei der UserInterface registrieren
+        this.userInterface.registerAudioWithCategory(throwSound, 'objects');
         
         if (!this.userInterface.isMuted) {
             throwSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
@@ -107,7 +107,7 @@ class World {
                         
                         // Stomp-Sound abspielen
                         const stompSound = new Audio('../assets/audio/stomp_enemie.mp3');
-                        this.userInterface.registerAudio(stompSound);
+                        this.userInterface.registerAudioWithCategory(stompSound, 'enemies');
                         
                         if (!this.userInterface.isMuted) {
                             stompSound.play();
@@ -223,7 +223,7 @@ class World {
                         
                         // Zerbrech-Sound abspielen
                         const breakSound = new Audio('../assets/audio/bottle_break.mp3');
-                        this.userInterface.registerAudio(breakSound);
+                        this.userInterface.registerAudioWithCategory(breakSound, 'objects');
                         
                         if (!this.userInterface.isMuted) {
                             breakSound.play();

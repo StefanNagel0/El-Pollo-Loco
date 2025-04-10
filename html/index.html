@@ -40,11 +40,33 @@
     
     <div id="settings-overlay" class="d-none">
         <div class="settings-container">
-            <h2>Einstellungen</h2>
+            <h2>Audio-Einstellungen</h2>
             
-            <div class="setting">
-                <label for="volume-slider">Lautstärke: <span id="volume-value">5</span></label>
-                <input type="range" id="volume-slider" min="0" max="10" value="5">
+            <div class="settings-content">
+                <div class="setting">
+                    <label for="master-volume">Gesamtlautstärke: <span id="master-volume-value">5</span></label>
+                    <input type="range" id="master-volume" class="volume-slider" min="0" max="10" value="5">
+                </div>
+                
+                <div class="setting">
+                    <label for="character-volume">Character: <span id="character-volume-value">5</span></label>
+                    <input type="range" id="character-volume" class="volume-slider" min="0" max="10" value="5">
+                </div>
+                
+                <div class="setting">
+                    <label for="enemies-volume">Gegner: <span id="enemies-volume-value">5</span></label>
+                    <input type="range" id="enemies-volume" class="volume-slider" min="0" max="10" value="5">
+                </div>
+                
+                <div class="setting">
+                    <label for="objects-volume">Objekte: <span id="objects-volume-value">5</span></label>
+                    <input type="range" id="objects-volume" class="volume-slider" min="0" max="10" value="5">
+                </div>
+                
+                <div class="setting">
+                    <label for="music-volume">Musik: <span id="music-volume-value">5</span></label>
+                    <input type="range" id="music-volume" class="volume-slider" min="0" max="10" value="5">
+                </div>
             </div>
             
             <div class="setting-buttons">

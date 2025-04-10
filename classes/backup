@@ -88,21 +88,17 @@ class Character extends MovableObject {
         this.runSound = new Audio('../assets/audio/character_run.mp3');
         this.runSound.loop = true; // Loop aktivieren
         
-        // Sound bei der UserInterface registrieren
-        if (this.world && this.world.userInterface) {
-            this.world.userInterface.registerAudioWithCategory(this.runSound, 'character');
-        }
-        
         this.animate();
     }
 
     collectCoin() {
         this.coins = (this.coins || 0) + 1;
+        // Statt Prozentsatz direkt die Anzahl setzen
         this.world.statusBar.setCoinsCount(this.coins);
 
-        // Coin-Sound abspielen mit "objects" Kategorie
+        // Coin-Sound abspielen und registrieren
         const coinSound = new Audio('../assets/audio/collect_coins.mp3');
-        this.world.userInterface.registerAudioWithCategory(coinSound, 'objects');
+        this.world.userInterface.registerAudio(coinSound);
 
         if (!this.world.userInterface.isMuted) {
             coinSound.play();
@@ -111,11 +107,12 @@ class Character extends MovableObject {
 
     collectBottle() {
         this.bottles = (this.bottles || 0) + 1;
+        // Statt Prozentsatz direkt die Anzahl setzen
         this.world.statusBar.setBottlesCount(this.bottles);
 
-        // Bottle-Sound mit "objects" Kategorie
+        // Bottle-Sound abspielen
         const bottleSound = new Audio('../assets/audio/collect_bottle.mp3');
-        this.world.userInterface.registerAudioWithCategory(bottleSound, 'objects');
+        this.world.userInterface.registerAudio(bottleSound);
 
         if (!this.world.userInterface.isMuted) {
             bottleSound.play();
@@ -125,9 +122,9 @@ class Character extends MovableObject {
     jump() {
         super.jump(); // Ruft die Original-Methode aus MovableObject auf
         
-        // Sprung-Sound abspielen mit Kategorie
+        // Sprung-Sound abspielen
         const jumpSound = new Audio('../assets/audio/character_jump.mp3');
-        this.world.userInterface.registerAudioWithCategory(jumpSound, 'character'); // Mit Kategorie registrieren
+        this.world.userInterface.registerAudio(jumpSound); // Sound bei der UserInterface registrieren
         
         if (!this.world.userInterface.isMuted) {
             jumpSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
@@ -211,7 +208,7 @@ class Character extends MovableObject {
                 if (!this.deathSoundPlayed) {
                     // Neuer Character Death Sound
                     const characterDeathSound = new Audio('../assets/audio/character_death.mp3');
-                    this.world.userInterface.registerAudioWithCategory(characterDeathSound, 'character'); // Mit Kategorie registrieren
+                    this.world.userInterface.registerAudio(characterDeathSound);
                     
                     if (!this.world.userInterface.isMuted) {
                         characterDeathSound.play();
@@ -221,7 +218,7 @@ class Character extends MovableObject {
                     // Game Lose Sound mit Verzögerung abspielen
                     setTimeout(() => {
                         const gameLoseSound = new Audio('../assets/audio/game_lose.mp3');
-                        this.world.userInterface.registerAudioWithCategory(gameLoseSound, 'music');
+                        this.world.userInterface.registerAudio(gameLoseSound);
                         
                         if (!this.world.userInterface.isMuted) {
                             gameLoseSound.play();
@@ -231,7 +228,7 @@ class Character extends MovableObject {
             } else if (this.isHurt()) {
                 if (!this.hurtSoundPlayed) {
                     const hurtSound = new Audio('../assets/audio/hurt.mp3');
-                    this.world.userInterface.registerAudioWithCategory(hurtSound, 'character'); // Mit Kategorie registrieren
+                    this.world.userInterface.registerAudio(hurtSound); // Sound registrieren
 
                     if (!this.world.userInterface.isMuted) {
                         hurtSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
@@ -267,7 +264,7 @@ class Character extends MovableObject {
 
                     if (idleTime >= 6500 && !yawnPlayed) {
                         const yawnSound = new Audio('../assets/audio/yawn.mp3');
-                        this.world.userInterface.registerAudioWithCategory(yawnSound, 'character'); // Mit Kategorie registrieren
+                        this.world.userInterface.registerAudio(yawnSound);
 
                         if (!this.world.userInterface.isMuted) {
                             yawnSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
@@ -284,7 +281,7 @@ class Character extends MovableObject {
                             if (!sleepSound) {
                                 sleepSound = new Audio('../assets/audio/sleep.mp3');
                                 if (sleepSound) {
-                                    this.world.userInterface.registerAudioWithCategory(sleepSound, 'character'); // Mit Kategorie registrieren
+                                    this.world.userInterface.registerAudio(sleepSound);
                                     sleepSound.loop = true;
                                     if (!this.world.userInterface.isMuted) {
                                         sleepSound.play();

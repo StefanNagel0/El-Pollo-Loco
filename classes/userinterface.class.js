@@ -266,81 +266,147 @@ class UserInterface extends DrawableObject {
         this.exitGameBtn = document.getElementById('exit-game');
         this.closeSettingsBtn = document.getElementById('close-settings');
         
-        // Initialen Wert setzen
-        this.characterSlider.value = this.characterVolume;
-        this.characterValue.textContent = this.characterVolume;
+        // Referenz für X-Button
+        this.closeXBtn = document.getElementById('close-x');
         
-        this.enemiesSlider.value = this.enemiesVolume;
-        this.enemiesValue.textContent = this.enemiesVolume;
+        // Event-Listener für X-Button hinzufügen
+        if (this.closeXBtn) {
+            this.closeXBtn.addEventListener('click', () => this.closeSettings());
+        }
         
-        this.objectsSlider.value = this.objectsVolume;
-        this.objectsValue.textContent = this.objectsVolume;
+        // Bestehenden Listener für den Close-Button beibehalten (für Kompatibilität)
+        if (this.closeSettingsBtn) {
+            this.closeSettingsBtn.addEventListener('click', () => this.closeSettings());
+        }
         
-        this.musicSlider.value = this.musicVolume;
-        this.musicValue.textContent = this.musicVolume;
-        
-        // Event-Listener für Slider hinzufügen
-        this.characterSlider.addEventListener('input', () => {
-            this.characterVolume = parseInt(this.characterSlider.value);
+        // Initialen Wert setzen (mit Null-Prüfung)
+        if (this.characterSlider && this.characterValue) {
+            this.characterSlider.value = this.characterVolume;
             this.characterValue.textContent = this.characterVolume;
-            this.updateCategoryVolume('character');
-            
-            // In localStorage speichern
-            localStorage.setItem('elPolloLoco_characterVolume', this.characterVolume);
-        });
+        }
         
-        this.enemiesSlider.addEventListener('input', () => {
-            this.enemiesVolume = parseInt(this.enemiesSlider.value);
+        if (this.enemiesSlider && this.enemiesValue) {
+            this.enemiesSlider.value = this.enemiesVolume;
             this.enemiesValue.textContent = this.enemiesVolume;
-            this.updateCategoryVolume('enemies');
-            
-            // In localStorage speichern
-            localStorage.setItem('elPolloLoco_enemiesVolume', this.enemiesVolume);
-        });
+        }
         
-        this.objectsSlider.addEventListener('input', () => {
-            this.objectsVolume = parseInt(this.objectsSlider.value);
+        if (this.objectsSlider && this.objectsValue) {
+            this.objectsSlider.value = this.objectsVolume;
             this.objectsValue.textContent = this.objectsVolume;
-            this.updateCategoryVolume('objects');
-            
-            // In localStorage speichern
-            localStorage.setItem('elPolloLoco_objectsVolume', this.objectsVolume);
-        });
+        }
         
-        this.musicSlider.addEventListener('input', () => {
-            this.musicVolume = parseInt(this.musicSlider.value);
+        if (this.musicSlider && this.musicValue) {
+            this.musicSlider.value = this.musicVolume;
             this.musicValue.textContent = this.musicVolume;
-            this.updateCategoryVolume('music');
-            
-            // In localStorage speichern
-            localStorage.setItem('elPolloLoco_musicVolume', this.musicVolume);
-        });
+        }
         
-        this.exitGameBtn.addEventListener('click', () => {
-            // Spiel-Logik stoppen und zur Startseite zurückkehren
-            if (confirm('Möchtest du das Spiel wirklich beenden?')) {
-                window.location.reload();
-            }
-        });
+        // Event-Listener für Slider hinzufügen (mit Null-Prüfung)
+        if (this.characterSlider) {
+            this.characterSlider.addEventListener('input', () => {
+                this.characterVolume = parseInt(this.characterSlider.value);
+                this.characterValue.textContent = this.characterVolume;
+                this.updateCategoryVolume('character');
+                
+                // In localStorage speichern
+                localStorage.setItem('elPolloLoco_characterVolume', this.characterVolume);
+            });
+        }
         
-        this.closeSettingsBtn.addEventListener('click', () => {
-            this.closeSettings();
-        });
+        if (this.enemiesSlider) {
+            this.enemiesSlider.addEventListener('input', () => {
+                this.enemiesVolume = parseInt(this.enemiesSlider.value);
+                this.enemiesValue.textContent = this.enemiesVolume;
+                this.updateCategoryVolume('enemies');
+                
+                // In localStorage speichern
+                localStorage.setItem('elPolloLoco_enemiesVolume', this.enemiesVolume);
+            });
+        }
+        
+        if (this.objectsSlider) {
+            this.objectsSlider.addEventListener('input', () => {
+                this.objectsVolume = parseInt(this.objectsSlider.value);
+                this.objectsValue.textContent = this.objectsVolume;
+                this.updateCategoryVolume('objects');
+                
+                // In localStorage speichern
+                localStorage.setItem('elPolloLoco_objectsVolume', this.objectsVolume);
+            });
+        }
+        
+        if (this.musicSlider) {
+            this.musicSlider.addEventListener('input', () => {
+                this.musicVolume = parseInt(this.musicSlider.value);
+                this.musicValue.textContent = this.musicVolume;
+                this.updateCategoryVolume('music');
+                
+                // In localStorage speichern
+                localStorage.setItem('elPolloLoco_musicVolume', this.musicVolume);
+            });
+        }
+        
+        if (this.exitGameBtn) {
+            this.exitGameBtn.addEventListener('click', () => {
+                // Benutzerdefinierten Dialog anzeigen statt Browser-Alert
+                this.showCustomConfirm(() => {
+                    window.location.reload();
+                });
+            });
+        }
+        
+        if (this.closeSettingsBtn) {
+            this.closeSettingsBtn.addEventListener('click', () => {
+                this.closeSettings();
+            });
+        }
     }
 
     openSettings() {
         // Spiel pausieren
         if (this.canvas && window.world) {
             window.world.isPaused = true;
+            
+            // Wenn im Spiel, den "Spiel beenden"-Button anzeigen
+            const exitGameBtn = document.getElementById('exit-game');
+            if (exitGameBtn) {
+                exitGameBtn.style.display = 'block';
+            }
+        }
+        
+        // Standard-Tab ist jetzt "Spiel"
+        if (window.mainMenu) {
+            window.mainMenu.switchTab('game');
+        } else {
+            // Fallback, falls mainMenu nicht verfügbar ist
+            const gameTab = document.getElementById('game-tab');
+            const howToPlayTab = document.getElementById('how-to-play-tab');
+            const audioTab = document.getElementById('audio-tab');
+            const gameContent = document.getElementById('game-content');
+            const howToPlayContent = document.getElementById('how-to-play-content');
+            const audioContent = document.getElementById('audio-content');
+            
+            // Alle Tabs zurücksetzen
+            if (gameTab) gameTab.classList.remove('active');
+            if (howToPlayTab) howToPlayTab.classList.remove('active');
+            if (audioTab) audioTab.classList.remove('active');
+            if (gameContent) gameContent.classList.add('d-none');
+            if (howToPlayContent) howToPlayContent.classList.add('d-none');
+            if (audioContent) audioContent.classList.add('d-none');
+            
+            // Game-Tab aktivieren
+            if (gameTab) gameTab.classList.add('active');
+            if (gameContent) gameContent.classList.remove('d-none');
         }
         
         const settingsOverlay = document.getElementById('settings-overlay');
-        const exitGameBtn = document.getElementById('exit-game');
         
-        // Zeige den "Spiel beenden"-Button, da wir uns im Spiel befinden
-        if (exitGameBtn) {
-            exitGameBtn.style.display = 'block';
-        }
+        // Canvas-Position abrufen und Overlay positionieren
+        const canvasRect = this.canvas.getBoundingClientRect();
+        settingsOverlay.style.top = `${canvasRect.top}px`;
+        settingsOverlay.style.left = `${canvasRect.left}px`;
+        settingsOverlay.style.width = `${canvasRect.width}px`;
+        settingsOverlay.style.height = `${canvasRect.height}px`;
+        settingsOverlay.style.transform = 'none';
         
         settingsOverlay.classList.add('show');
         settingsOverlay.classList.remove('d-none');
@@ -541,5 +607,54 @@ class UserInterface extends DrawableObject {
                 audio.volume = categoryVolume;
             }
         });
+    }
+
+    /**
+     * Zeigt einen benutzerdefinierten Bestätigungsdialog an
+     * @param {Function} onConfirm - Funktion, die bei Bestätigung ausgeführt wird
+     */
+    showCustomConfirm(onConfirm) {
+        const customConfirm = document.getElementById('custom-confirm');
+        const yesBtn = document.getElementById('confirm-yes');
+        const noBtn = document.getElementById('confirm-no');
+        
+        // Dialog anzeigen - jetzt mit show-Klasse statt d-none zu entfernen
+        customConfirm.classList.remove('d-none');
+        customConfirm.classList.add('show');
+        
+        // Position anpassen, damit er über dem Canvas erscheint
+        const canvasRect = this.canvas.getBoundingClientRect();
+        customConfirm.style.top = `${canvasRect.top}px`;
+        customConfirm.style.left = `${canvasRect.left}px`;
+        customConfirm.style.width = `${canvasRect.width}px`;
+        customConfirm.style.height = `${canvasRect.height}px`;
+        
+        // Event-Listener für die Buttons
+        const handleYes = () => {
+            // Dialog ausblenden
+            customConfirm.classList.remove('show');
+            customConfirm.classList.add('d-none');
+            
+            // Event-Listener entfernen
+            yesBtn.removeEventListener('click', handleYes);
+            noBtn.removeEventListener('click', handleNo);
+            
+            // Bestätigungsfunktion ausführen
+            if (onConfirm) onConfirm();
+        };
+        
+        const handleNo = () => {
+            // Dialog ausblenden
+            customConfirm.classList.remove('show');
+            customConfirm.classList.add('d-none');
+            
+            // Event-Listener entfernen
+            yesBtn.removeEventListener('click', handleYes);
+            noBtn.removeEventListener('click', handleNo);
+        };
+        
+        // Event-Listener hinzufügen
+        yesBtn.addEventListener('click', handleYes);
+        noBtn.addEventListener('click', handleNo);
     }
 }

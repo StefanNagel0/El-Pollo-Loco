@@ -38,77 +38,100 @@
 
     <canvas id="canvas" width="720" height="480"></canvas>
     
+    <!-- Hauptmenü mit nur einem Button und Settings-Icon -->
     <div id="main-menu">
         <img src="../assets/img/9_intro_outro_screens/start/startscreen_2.png" alt="El Pollo Loco" class="menu-background">
+        <div class="menu-settings-icon">
+            <img src="../assets/img/ui_images/settings.svg" alt="Einstellungen" id="menu-settings-icon">
+        </div>
         <div class="menu-buttons">
             <button id="start-game" class="menu-button">Spiel starten</button>
-            <button id="how-to-play" class="menu-button">How to Play</button>
-            <button id="menu-settings" class="menu-button settings-btn">Einstellungen</button>
         </div>
     </div>
 
-    <div id="how-to-play-overlay" class="d-none">
-        <div class="how-to-play-container">
-            <h2>How to Play</h2>
-            <div class="controls-content">
-                <div class="control-item">
-                    <div class="key">←</div>
-                    <span>Nach links bewegen</span>
-                </div>
-                <div class="control-item">
-                    <div class="key">→</div>
-                    <span>Nach rechts bewegen</span>
-                </div>
-                <div class="control-item">
-                    <div class="key">SPACE</div>
-                    <span>Springen</span>
-                </div>
-                <div class="control-item">
-                    <div class="key">D</div>
-                    <span>Flasche werfen</span>
-                </div>
-            </div>
-            <div class="how-to-play-tips">
-                <p>• Sammle Münzen und Flaschen</p>
-                <p>• Springe auf Hühner, um sie zu besiegen</p>
-                <p>• Wirf Flaschen auf den Endboss</p>
-                <p>• Vermeide es, von Gegnern getroffen zu werden</p>
-            </div>
-            <button id="close-how-to-play">Schließen</button>
-        </div>
-    </div>
-    
+    <!-- Überarbeitetes Settings-Overlay mit How-to-Play und Audio-Tabs -->
     <div id="settings-overlay" class="d-none">
         <div class="settings-container">
-            <h2>Audio-Einstellungen</h2>
+            <h2>Einstellungen</h2>
+            <button class="close-x" id="close-x">&times;</button>
             
-            <div class="settings-content">
-                <!-- Gesamtlautstärke-Regler entfernt -->
-                
-                <div class="setting">
-                    <label for="character-volume">Character: <span id="character-volume-value">5</span></label>
-                    <input type="range" id="character-volume" class="volume-slider" min="0" max="10" value="5">
-                </div>
-                
-                <div class="setting">
-                    <label for="enemies-volume">Gegner: <span id="enemies-volume-value">5</span></label>
-                    <input type="range" id="enemies-volume" class="volume-slider" min="0" max="10" value="5"> 
-                </div>
-                
-                <div class="setting">
-                    <label for="objects-volume">Objekte: <span id="objects-volume-value">5</span></label>
-                    <input type="range" id="objects-volume" class="volume-slider" min="0" max="10" value="5">
-                </div>
-                
-                <div class="setting">
-                    <label for="music-volume">Musik: <span id="music-volume-value">5</span></label>
-                    <input type="range" id="music-volume" class="volume-slider" min="0" max="10" value="5">
-                </div>
+            <div class="settings-tabs">
+                <div class="tab active" id="game-tab" data-tab="game-content">Spiel</div>
+                <div class="tab" id="how-to-play-tab" data-tab="how-to-play-content">How to Play</div>
+                <div class="tab" id="audio-tab" data-tab="audio-content">Audio</div>
             </div>
             
-            <div class="setting-buttons">
-                <button id="exit-game">Spiel beenden</button>
-                <button id="close-settings">Schließen</button>
+            <div class="settings-content">
+                <!-- Neuer "Spiel"-Tab Content -->
+                <div id="game-content" class="tab-content">
+                    <div class="game-buttons">
+                        <button id="return-to-game" class="game-button">Zurück zum Spiel</button>
+                        <button id="exit-game" class="game-button exit-button">Spiel beenden</button>
+                    </div>
+                </div>
+
+                <!-- How to Play Tab Content -->
+                <div id="how-to-play-content" class="tab-content d-none">
+                    <div class="controls-content">
+                        <div class="control-item">
+                            <div class="key">←</div>
+                            <span>Nach links bewegen</span>
+                        </div>
+                        <div class="control-item">
+                            <div class="key">→</div>
+                            <span>Nach rechts bewegen</span>
+                        </div>
+                        <div class="control-item">
+                            <div class="key">SPACE</div>
+                            <span>Springen</span>
+                        </div>
+                        <div class="control-item">
+                            <div class="key">D</div>
+                            <span>Flasche werfen</span>
+                        </div>
+                    </div>
+                    <div class="how-to-play-tips">
+                        <p>• Sammle Münzen und Flaschen</p>
+                        <p>• Springe auf Hühner, um sie zu besiegen</p>
+                        <p>• Wirf Flaschen auf den Endboss</p>
+                        <p>• Vermeide es, von Gegnern getroffen zu werden</p>
+                    </div>
+                </div>
+                
+                <!-- Audio Tab Content -->
+                <div id="audio-content" class="tab-content d-none">
+                    <div class="setting">
+                        <label for="character-volume">Character: <span id="character-volume-value">5</span></label>
+                        <input type="range" id="character-volume" class="volume-slider" min="0" max="10" value="5">
+                    </div>
+                    
+                    <div class="setting">
+                        <label for="enemies-volume">Gegner: <span id="enemies-volume-value">5</span></label>
+                        <input type="range" id="enemies-volume" class="volume-slider" min="0" max="10" value="5"> 
+                    </div>
+                    
+                    <div class="setting">
+                        <label for="objects-volume">Objekte: <span id="objects-volume-value">5</span></label>
+                        <input type="range" id="objects-volume" class="volume-slider" min="0" max="10" value="5">
+                    </div>
+                    
+                    <div class="setting">
+                        <label for="music-volume">Musik: <span id="music-volume-value">5</span></label>
+                        <input type="range" id="music-volume" class="volume-slider" min="0" max="10" value="5">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benutzerdefinierter Bestätigungsdialog - unbedingt mit d-none Klasse -->
+    <div id="custom-confirm" class="d-none">
+        <div class="custom-confirm-container">
+            <h3>Bist du sicher?</h3>
+            <p>Möchtest du das Spiel wirklich beenden?</p>
+            <div class="confirm-buttons">
+                <button id="confirm-yes" class="confirm-button yes-button">Ja</button>
+                <button id="confirm-no" class="confirm-button no-button">Nein</button>
             </div>
         </div>
     </div>

@@ -5,6 +5,13 @@ let mainMenu;
 
 function init() {
     canvas = document.getElementById("canvas");
+    
+    // Sicherstellen, dass der benutzerdefinierte Bestätigungsdialog versteckt ist
+    const customConfirm = document.getElementById('custom-confirm');
+    if (customConfirm) {
+        customConfirm.classList.add('d-none');
+    }
+    
     // Hauptmenü erstellen statt das Spiel direkt zu starten
     mainMenu = new MainMenu();
 }

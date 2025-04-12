@@ -33,18 +33,21 @@
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    /* object-fit: cover; */
     z-index: 1;
 }
 
+/* Anpassen der Button-Position */
 .menu-buttons {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 20px;
-    margin-top: 50px;
+    margin-top: 0; /* Reset von vorherigem Margin */
     z-index: 2;
-    position: relative;
+    position: absolute;
+    bottom: 360px;
+    width: 100%;
 }
 
 .menu-button {
@@ -74,28 +77,59 @@
     background-color: #388E3C;
 }
 
-/* How to Play Overlay Styles */
-#how-to-play-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    /* display: flex; <- Diese Zeile entfernen oder auskommentieren */
-    justify-content: center;
-    align-items: center;
-    z-index: 1100;
+/* Styling für Settings-Icon */
+.menu-settings-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
 }
 
-/* Neue Klasse für den sichtbaren Zustand hinzufügen */
-#how-to-play-overlay.show {
+#menu-settings-icon {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+#menu-settings-icon:hover {
+    transform: rotate(90deg);
+}
+
+/* Tab Navigation Styling */
+.settings-tabs {
     display: flex;
+    border-bottom: 2px solid #FFD8A8;
+    margin-bottom: 20px;
 }
 
-/* Sicherstellen dass d-none immer Vorrang hat */
-#how-to-play-overlay.d-none {
-    display: none !important;
+.tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px 5px 0 0;
+    background-color: #FFE0B2;
+    margin-right: 5px;
+    transition: all 0.3s ease;
+}
+
+.tab:hover {
+    background-color: #FFB74D;
+}
+
+.tab.active {
+    background-color: #FF9800;
+    color: white;
+    font-weight: bold;
+}
+
+.tab-content {
+    padding: 10px;
+    min-height: 250px;
+}
+
+/* Entfernen des alten How-to-Play Overlay Stylings, da es in die Tabs integriert wurde */
+#how-to-play-overlay {
+    display: none;
 }
 
 .how-to-play-container {
@@ -125,6 +159,8 @@
     display: flex;
     align-items: center;
     gap: 15px;
+    justify-content: space-between;
+    padding: 0 20px;
 }
 
 .key {

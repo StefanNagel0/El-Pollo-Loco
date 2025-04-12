@@ -14,3 +14,29 @@ body.fullscreen {
 body.fullscreen h1 {
     display: none;
 }
+
+canvas{
+    background-color: black;
+    /* Schatten für besseren Kontrast zum Hintergrund */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    display: block;
+    margin: 0 auto; /* Horizontale Zentrierung */
+}
+
+@media only screen and (max-width:720px) {
+    canvas {
+        width: 100%;
+    }
+    body{
+        padding: 0;
+    }
+    h1{
+        display: none;
+    }
+}
+
+@media only screen and (max-height: 480px) {
+    canvas {
+        height: 100vh;
+    }
+}

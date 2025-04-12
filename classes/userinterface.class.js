@@ -36,7 +36,7 @@ class UserInterface extends DrawableObject {
         this.fullscreenIcon.src = '../assets/img/ui_images/fullscreen.svg';
         this.isFullscreen = false;
         
-        // Positionen anpassen
+        // Größere Icons für die größere Canvas
         this.soundIconX = canvas.width - 100;
         this.soundIconY = 10;
         this.soundIconWidth = 40;
@@ -47,7 +47,7 @@ class UserInterface extends DrawableObject {
         this.settingsIconWidth = 40;
         this.settingsIconHeight = 40;
         
-        // Fullscreen-Icon in der unteren rechten Ecke positionieren
+        // Fullscreen-Icon in der unteren rechten Ecke mit größerem Abstand
         this.fullscreenIconX = canvas.width - 50;
         this.fullscreenIconY = canvas.height - 50;
         this.fullscreenIconWidth = 40;
@@ -98,23 +98,38 @@ class UserInterface extends DrawableObject {
                     .catch(error => console.log('Autoplay prevented by browser:', error));
             }
         }, 500);
+
+        this.soundIcon.onerror = () => console.error('Fehler beim Laden des Sound-Icons');
+        this.settingsIcon.onerror = () => console.error('Fehler beim Laden des Settings-Icons');
+        this.fullscreenIcon.onerror = () => console.error('Fehler beim Laden des Fullscreen-Icons');
+
+        // Test-Code zum Bestätigen, dass die Icons tatsächlich geladen werden
+        this.soundIcon.onload = () => console.log('Sound-Icon erfolgreich geladen');
+        this.settingsIcon.onload = () => console.log('Settings-Icon erfolgreich geladen');
+        this.fullscreenIcon.onload = () => console.log('Fullscreen-Icon erfolgreich geladen');
     }
 
     // Neue Methode zum Aktualisieren der Icon-Positionen
     updateIconPositions() {
-        // Aktuelle Canvas-Dimensionen abrufen
-        const currentWidth = this.canvas.clientWidth;
-        const currentHeight = this.canvas.clientHeight;
+        // Die tatsächliche Canvas-Zeichenfläche verwenden statt clientWidth/clientHeight
+        const canvasWidth = this.canvas.width;
+        const canvasHeight = this.canvas.height;
         
-        // Positionen relativ zur aktuellen Canvas-Größe anpassen
-        this.soundIconX = currentWidth - 100;
-        this.soundIconY = 10;
+        // Konstante Werte für den Abstand zum Rand
+        const marginRight = 60;
+        const marginTop = 10;
+        const marginBottom = 10; // Von 60 auf 20 reduziert
         
-        this.settingsIconX = currentWidth - 50;
-        this.settingsIconY = 10;
+        // Positionen relativ zur tatsächlichen Canvas-Größe anpassen
+        this.soundIconX = canvasWidth - this.soundIconWidth - marginRight;
+        this.soundIconY = marginTop;
         
-        this.fullscreenIconX = currentWidth - 50;
-        this.fullscreenIconY = currentHeight - 50;
+        this.settingsIconX = canvasWidth - this.settingsIconWidth - 10;
+        this.settingsIconY = marginTop;
+        
+        // Fullscreen-Icon in der unteren rechten Ecke
+        this.fullscreenIconX = canvasWidth - this.fullscreenIconWidth - 10;
+        this.fullscreenIconY = canvasHeight - this.fullscreenIconHeight - marginBottom;
     }
 
     drawIcons() {
@@ -314,13 +329,32 @@ class UserInterface extends DrawableObject {
     }
 
     openSettings() {
-        // Spiel pausieren könnte hier implementiert werden
-        this.settingsOverlay.classList.add('show');
+        // Spiel pausieren
+        if (this.canvas && window.world) {
+            window.world.isPaused = true;
+        }
+        
+        const settingsOverlay = document.getElementById('settings-overlay');
+        const exitGameBtn = document.getElementById('exit-game');
+        
+        // Zeige den "Spiel beenden"-Button, da wir uns im Spiel befinden
+        if (exitGameBtn) {
+            exitGameBtn.style.display = 'block';
+        }
+        
+        settingsOverlay.classList.add('show');
+        settingsOverlay.classList.remove('d-none');
     }
 
     closeSettings() {
-        // Spiel fortsetzen könnte hier implementiert werden
-        this.settingsOverlay.classList.remove('show');
+        // Spiel fortsetzen
+        if (this.canvas && window.world) {
+            window.world.isPaused = false;
+        }
+        
+        const settingsOverlay = document.getElementById('settings-overlay');
+        settingsOverlay.classList.remove('show');
+        settingsOverlay.classList.add('d-none');
     }
 
     // Neue Methode zum Wechseln der Tabs

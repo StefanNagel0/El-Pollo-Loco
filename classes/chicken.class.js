@@ -51,7 +51,7 @@ class Chicken extends MovableObject {
 
     animate() {
         setInterval(() => {
-            if (!this.isDead) {
+            if (!this.isDead && (!this.world || !this.world.isPaused)) {
                 const now = new Date().getTime();
                 
                 // Überprüfen, ob die Welt-Grenzen erreicht wurden
@@ -79,7 +79,7 @@ class Chicken extends MovableObject {
         }, 1000 / 60);
 
         setInterval(() => {
-            if (!this.isDead) {
+            if (!this.isDead && (!this.world || !this.world.isPaused)) {
                 this.playAnimation(this.IMAGES_WALKING);
             }
         }, 200);

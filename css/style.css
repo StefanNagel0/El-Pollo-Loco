@@ -1,7 +1,33 @@
-canvas{
-    background-color: black;
+@font-face {
+    font-family: 'Zabars';
+    src: url('../assets/fonts/zabars.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
 }
 
-h1{
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-image: url('../assets/img/background/desert.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    /* Fallback-Farbe, falls das Bild nicht geladen werden kann */
+    background-color: #FFD8A0;
+}
+
+h1 {
+    font-family: 'Zabars', cursive; /* Neue Schriftart anwenden mit Fallback */
     font-size: 52px;
+    color: rgb(255, 255, 255);
+    letter-spacing: 4px;
+    /* Textschatten für bessere Lesbarkeit auf dem Hintergrundbild */
+    text-shadow: 2px 5px 11px rgba(0, 0, 0, 0.7);
+    margin-bottom: 20px;
 }

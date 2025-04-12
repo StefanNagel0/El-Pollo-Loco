@@ -1,20 +1,19 @@
 let canvas;
 let world;
 let keyboard = new Keyboard();
+let mainMenu;
 
 function init() {
     canvas = document.getElementById("canvas");
+    // Hauptmenü erstellen statt das Spiel direkt zu starten
+    mainMenu = new MainMenu();
+}
+
+// Neue Funktion zum Initialisieren des Spiels nach dem Klick auf "Spiel starten"
+function initGame() {
     world = new World(canvas, keyboard);
-
-
-
-
-
-
-
-
+    window.world = world; // Globalen Zugriff ermöglichen
     console.log('My Character is', world.character);
-    
 }
 
 window.addEventListener('keydown', (event)=>{

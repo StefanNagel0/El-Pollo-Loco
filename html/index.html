@@ -6,11 +6,13 @@
     <title>El Polo Loco</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/overlay.css">
-    <link rel="stylesheet" href="../css/standard.css">
-    <link rel="stylesheet" href="../css/canvas.css">           
+    <link rel="stylesheet" href="../css/canvas.css">     
+    <link rel="stylesheet" href="../css/main_menu.css">
+    <link rel="stylesheet" href="../css/standard.css">       
     <link rel="logo" href="#">
 
     <script src="../classes/world.class.js"></script>
+    <script src="../classes/main_menu.class.js"></script>
     <script src="../classes/keyboard.class.js"></script>
     <script src="../classes/level.class.js"></script>
     <script src="../classes/drawable-object.class.js"></script>
@@ -32,11 +34,49 @@
 </head>
 <body onload="init()">
 
-    <h1>El pollo loco</h1>
+    <h1>El Pollo Loco</h1>
 
-    <canvas id="canvas" width="720" height="480">
+    <canvas id="canvas" width="720" height="480"></canvas>
+    
+    <div id="main-menu">
+        <img src="../assets/img/9_intro_outro_screens/start/startscreen_2.png" alt="El Pollo Loco" class="menu-background">
+        <div class="menu-buttons">
+            <button id="start-game" class="menu-button">Spiel starten</button>
+            <button id="how-to-play" class="menu-button">How to Play</button>
+            <button id="menu-settings" class="menu-button settings-btn">Einstellungen</button>
+        </div>
+    </div>
 
-    </canvas>
+    <div id="how-to-play-overlay" class="d-none">
+        <div class="how-to-play-container">
+            <h2>How to Play</h2>
+            <div class="controls-content">
+                <div class="control-item">
+                    <div class="key">←</div>
+                    <span>Nach links bewegen</span>
+                </div>
+                <div class="control-item">
+                    <div class="key">→</div>
+                    <span>Nach rechts bewegen</span>
+                </div>
+                <div class="control-item">
+                    <div class="key">SPACE</div>
+                    <span>Springen</span>
+                </div>
+                <div class="control-item">
+                    <div class="key">D</div>
+                    <span>Flasche werfen</span>
+                </div>
+            </div>
+            <div class="how-to-play-tips">
+                <p>• Sammle Münzen und Flaschen</p>
+                <p>• Springe auf Hühner, um sie zu besiegen</p>
+                <p>• Wirf Flaschen auf den Endboss</p>
+                <p>• Vermeide es, von Gegnern getroffen zu werden</p>
+            </div>
+            <button id="close-how-to-play">Schließen</button>
+        </div>
+    </div>
     
     <div id="settings-overlay" class="d-none">
         <div class="settings-container">
@@ -52,7 +92,7 @@
                 
                 <div class="setting">
                     <label for="enemies-volume">Gegner: <span id="enemies-volume-value">5</span></label>
-                    <input type="range" id="enemies-volume" class="volume-slider" min="0" max="10" value="5">
+                    <input type="range" id="enemies-volume" class="volume-slider" min="0" max="10" value="5"> 
                 </div>
                 
                 <div class="setting">

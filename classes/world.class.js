@@ -14,6 +14,9 @@ class World {
     maxThrowCooldown = 2250; // Maximaler Cooldown in ms
     cooldownImage = new Image(); // Bild für die Flasche im Cooldown
 
+    // Neue Eigenschaft für den Pause-Zustand
+    isPaused = false;
+
     constructor(canvas, keyboard) {
         this.ctx = canvas.getContext('2d');
         this.canvas = canvas;
@@ -49,12 +52,14 @@ class World {
 
     run(){
         setInterval(() => { 
-
-            this.checkThrowObjects();
-            this.checkCollisions();
-            this.checkCollisionsWithBottles(); // Neue Methode aufrufen
-            this.checkEnemyDistances();
-            this.updateCooldown(); // Cooldown-Timer aktualisieren
+            // Alle Aktionen nur ausführen, wenn das Spiel nicht pausiert ist
+            if (!this.isPaused) {
+                this.checkThrowObjects();
+                this.checkCollisions();
+                this.checkCollisionsWithBottles(); // Neue Methode aufrufen
+                this.checkEnemyDistances();
+                this.updateCooldown(); // Cooldown-Timer aktualisieren
+            }
         }, 1000 / 60);
     }
 
@@ -287,9 +292,9 @@ class World {
     drawCooldownCircle() {
         if (this.throwCooldown <= 0) return;
         
-        // Positioniere den Kreis unter dem Settings-Icon (feste Position)
-        const circleRadius = 25;
-        const padding = 10; // Abstand zwischen Settings-Icon und Cooldown-Kreis
+        // Positioniere den Kreis unter dem Settings-Icon (ursprüngliche Größe)
+        const circleRadius = 25; // Zurück zur ursprünglichen Größe
+        const padding = 10;      // Ursprünglicher Abstand
         
         // Position basierend auf dem Settings-Icon bestimmen
         const offsetX = this.userInterface.settingsIconX + this.userInterface.settingsIconWidth / 2;
@@ -319,7 +324,7 @@ class World {
         
         // Flaschenbild in der Mitte des Kreises zeichnen
         if (this.cooldownImage.complete) {
-            const bottleSize = circleRadius * 2.4;
+            const bottleSize = circleRadius * 2.4; // Proportional vergrößert
             this.ctx.drawImage(
                 this.cooldownImage, 
                 offsetX - bottleSize / 2, 
@@ -329,11 +334,11 @@ class World {
             );
         }
         
-        // Verbleibende Zeit anzeigen (abgerundet auf Zehntel)
+        // Verbleibende Zeit anzeigen - Kleinere Schrift
         const remainingTime = (this.throwCooldown / 1000).toFixed(1);
-        this.ctx.font = 'bold 16px Arial';
+        this.ctx.font = 'bold 16px Arial'; // Zurück zur ursprünglichen Schriftgröße
         this.ctx.textAlign = 'center';
-        this.ctx.fillStyle = 'black';
+        this.ctx.fillStyle = 'white';
         this.ctx.fillText(remainingTime + 's', offsetX, offsetY + circleRadius + 15);
     }
 

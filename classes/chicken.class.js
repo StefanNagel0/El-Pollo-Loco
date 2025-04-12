@@ -21,7 +21,7 @@ class Chicken extends MovableObject {
         this.x = this.getValidXPosition(); // Berechne eine gültige X-Position
         MovableObject.placedEnemies.push(this.x); // Speichere die X-Position in der gemeinsamen Liste
         this.loadImages(this.IMAGES_WALKING);
-        this.speed = 1.5 + Math.random() * 3; // Erhöhte Geschwindigkeit
+        this.speed = 2;
         
         // Zufällig entscheiden, ob nach links oder rechts gelaufen wird
         this.otherDirection = Math.random() < 0.5;
@@ -108,7 +108,7 @@ class Chicken extends MovableObject {
                 this.showHealthBar = true; // Zeige Lebensbalken
                 
                 // Bug-Fix: Chicken wird schneller nach erstem Treffer (vorher 1.7)
-                this.speed = this.speed * 1.7; // Reduziere Geschwindigkeit auf 70% nach Treffer
+                this.speed = this.speed * 3; // Reduziere Geschwindigkeit auf 70% nach Treffer
             }
         }
     }

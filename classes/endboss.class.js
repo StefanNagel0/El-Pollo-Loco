@@ -32,6 +32,8 @@ class Endboss extends MovableObject {
     restDuration = 0;       // Zeit für normale Bewegung nach Angriff (wird dynamisch gesetzt)
     lastAttackTime = 0;     // Zeitpunkt des letzten Angriffs
 
+    followDistance = 200; // Mindestabstand beim Verfolgen in Pixeln
+
     IMAGES_WALKING = [
         '../assets/img/4_enemie_boss_chicken/1_walk/G1.png',
         '../assets/img/4_enemie_boss_chicken/1_walk/G2.png',
@@ -83,7 +85,7 @@ class Endboss extends MovableObject {
         this.loadImages(this.IMAGES_HURT); // Verletzungsbilder laden
         this.loadImages(this.IMAGES_DEAD); // Todesbilder laden
         this.loadImages(this.IMAGES_ATTACK); // Neue Attacke-Bilder laden
-        this.x = 6000;
+        this.x = 5500;
         this.energy = 200; // Lebensenergie des Endbosses
         this.animate();
         this.setRandomAttackCooldown(); // Initial Cooldown für erste Attacke setzen
@@ -124,8 +126,11 @@ class Endboss extends MovableObject {
             } else if (this.isAttacking) {
                 // Attacke-Animation abspielen
                 this.playAnimation(this.IMAGES_ATTACK);
-            } else if (this.isCharging || this.isWalking || this.isResting) {
-                // Lauf-Animation für alle Bewegungszustände
+            } else if (this.isCharging || this.isResting) {
+                // Lauf-Animation nur für Charging und Resting
+                this.playAnimation(this.IMAGES_WALKING);
+            } else if (this.isWalking) {
+                // Separate Bedingung für Walking-Animation
                 this.playAnimation(this.IMAGES_WALKING);
             } else if (this.isAlerted && !this.isDead()) {
                 this.playAnimation(this.IMAGES_ALERT);
@@ -168,14 +173,6 @@ class Endboss extends MovableObject {
                                 this.world.character.energy -= this.damage;
                                 this.world.statusBar.setEnergyPercentage(this.world.character.energy);
                                 
-                                // Angriffssound abspielen
-                                const attackSound = new Audio('../assets/audio/boss_attack.mp3');
-                                if (this.world.userInterface) {
-                                    this.world.userInterface.registerAudioWithCategory(attackSound, 'enemies');
-                                    if (!this.world.userInterface.isMuted) {
-                                        attackSound.play();
-                                    }
-                                }
                             }
                         }
                     } else if (this.isAttacking) {
@@ -210,12 +207,29 @@ class Endboss extends MovableObject {
                         this.startAttack();
                     } else if (this.isWalking) {
                         // Normale Verfolgung mit normaler Geschwindigkeit
+                        const distanceToCharacter = Math.abs(this.x - characterX);
+                        let isMoving = false; // Variable zum Tracken, ob der Endboss sich bewegt
+                        
                         if (this.x > characterX) {
+                            // Nach links laufen, aber Mindestabstand einhalten
                             this.otherDirection = true; // Nach links schauen
-                            this.x -= this.speed;
+                            if (distanceToCharacter > this.followDistance) {
+                                this.x -= this.speed;
+                                isMoving = true; // Bewegt sich
+                            }
                         } else {
+                            // Nach rechts laufen, aber Mindestabstand einhalten
                             this.otherDirection = false; // Nach rechts schauen
-                            this.x += this.speed;
+                            if (distanceToCharacter > this.followDistance) {
+                                this.x += this.speed;
+                                isMoving = true; // Bewegt sich
+                            }
+                        }
+                        
+                        // Wenn der Mindestabstand erreicht wurde und der Endboss nicht mehr läuft,
+                        // wechsle wieder in den Alert-Zustand
+                        if (!isMoving && distanceToCharacter <= this.followDistance) {
+                            this.isWalking = false;
                         }
                     } else if (!this.isWalking && !this.isDead() && !this.isHurt) {
                         // Starten des Laufens nach kurzer Verzögerung

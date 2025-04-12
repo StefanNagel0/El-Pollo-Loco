@@ -59,7 +59,9 @@ class World {
     }
 
     checkThrowObjects() {
-        if (this.keyboard.D && this.character.bottles > 0 && this.canThrow) { // Überprüfen, ob Bottles verfügbar sind und ob geworfen werden darf
+        if (this.keyboard.D && this.character.bottles > 0 && this.canThrow) {
+            // Idle-Zustand zurücksetzen, wenn eine Flasche geworfen wird
+            this.character.resetIdleState();
             this.throwBottle();
         }
     }
@@ -81,8 +83,11 @@ class World {
         const throwSound = new Audio('../assets/audio/bottle_throw.mp3');
         this.userInterface.registerAudioWithCategory(throwSound, 'objects');
         
+        // Manuell die Lautstärke der objects-Kategorie anwenden
         if (!this.userInterface.isMuted) {
-            throwSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
+            const objectsVolume = this.userInterface.objectsVolume / 10;
+            throwSound.volume = objectsVolume;
+            throwSound.play();
         }
 
         // Cooldown starten
@@ -118,11 +123,15 @@ class World {
                         enemy.die();
                         this.character.speedY = 25; // Bounce-Effekt
                         
-                        // Stomp-Sound abspielen
+                        // Stomp-Sound abspielen mit korrekter Lautstärke
                         const stompSound = new Audio('../assets/audio/stomp_enemie.mp3');
                         this.userInterface.registerAudioWithCategory(stompSound, 'enemies');
                         
+                        // Manuell die Lautstärke der enemies-Kategorie anwenden
                         if (!this.userInterface.isMuted) {
+                            // Kategorie-Lautstärke direkt anwenden
+                            const enemiesVolume = this.userInterface.enemiesVolume / 10;
+                            stompSound.volume = enemiesVolume;
                             stompSound.play();
                         }
                         
@@ -238,7 +247,10 @@ class World {
                         const breakSound = new Audio('../assets/audio/bottle_break.mp3');
                         this.userInterface.registerAudioWithCategory(breakSound, 'objects');
                         
+                        // Manuell die Lautstärke der objects-Kategorie anwenden
                         if (!this.userInterface.isMuted) {
+                            const objectsVolume = this.userInterface.objectsVolume / 10;
+                            breakSound.volume = objectsVolume;
                             breakSound.play();
                         }
                         
@@ -402,14 +414,17 @@ class World {
         }
     }
 
+    // Komplett überarbeitete flipImage und flipImageBack Methoden
+
     flipImage(mo){
         this.ctx.save();
         this.ctx.translate(mo.width, 0);
         this.ctx.scale(-1, 1);
-        mo.x = mo.x * -1;
+        mo.x = mo.x * -1; // Hier wird die tatsächliche Position geändert
     }
+
     flipImageBack(mo){
-        mo.x = mo.x * -1;
+        mo.x = mo.x * -1; // Hier sollte die Position wiederhergestellt werden
         this.ctx.restore();
     }
 }

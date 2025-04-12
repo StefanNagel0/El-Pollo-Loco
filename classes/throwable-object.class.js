@@ -68,7 +68,10 @@ class ThrowableObject extends MovableObject {
             const breakSound = new Audio('../assets/audio/bottle_break.mp3');
             this.world.userInterface.registerAudioWithCategory(breakSound, 'objects');
             
+            // Manuell die Lautstärke der objects-Kategorie anwenden
             if (!this.world.userInterface.isMuted) {
+                const objectsVolume = this.world.userInterface.objectsVolume / 10;
+                breakSound.volume = objectsVolume;
                 breakSound.play();
             }
         }

@@ -1,11 +1,11 @@
 class Character extends MovableObject {
     bottles = 0;
     x = 120;
-    y = 80;
+    y = 145; // Änderung von 80 auf 145, damit der Character direkt auf dem Boden steht
     height = 280;
     width = 130;
     speed = 10;
-    previousY = 80;
+    previousY = 145; // Auch hier den Wert aktualisieren
     runSound = null; // Variable für den Laufsound
     deathAnimationPlayed = false;
     deathAnimationFrame = 0;
@@ -74,6 +74,13 @@ class Character extends MovableObject {
     ]
     world;
 
+    // Neue Eigenschaften für die Idle/Sleep-Animation
+    idleTime = 0;
+    idleAnimationInterval = 0;
+    sleepAnimationInterval = 0;
+    yawnPlayed = false;
+    sleepSound = null;
+
     constructor() {
         super().loadImage('../assets/img/2_character_pepe/1_idle/idle/I-1.png');
         this.loadImages(this.IMAGES_IDLE);        
@@ -103,8 +110,11 @@ class Character extends MovableObject {
         // Coin-Sound abspielen mit "objects" Kategorie
         const coinSound = new Audio('../assets/audio/collect_coins.mp3');
         this.world.userInterface.registerAudioWithCategory(coinSound, 'objects');
-
+        
+        // Manuell die Lautstärke der objects-Kategorie anwenden
         if (!this.world.userInterface.isMuted) {
+            const objectsVolume = this.world.userInterface.objectsVolume / 10;
+            coinSound.volume = objectsVolume;
             coinSound.play();
         }
     }
@@ -116,8 +126,11 @@ class Character extends MovableObject {
         // Bottle-Sound mit "objects" Kategorie
         const bottleSound = new Audio('../assets/audio/collect_bottle.mp3');
         this.world.userInterface.registerAudioWithCategory(bottleSound, 'objects');
-
+        
+        // Manuell die Lautstärke der objects-Kategorie anwenden
         if (!this.world.userInterface.isMuted) {
+            const objectsVolume = this.world.userInterface.objectsVolume / 10;
+            bottleSound.volume = objectsVolume;
             bottleSound.play();
         }
     }
@@ -135,10 +148,12 @@ class Character extends MovableObject {
     }
 
     animate() {
+        // Erster Interval für Bewegung und Kamera bleibt unverändert
         setInterval(() => {
             this.previousY = this.y;
 
-            if (this.world && this.world.keyboard) {
+            // Bewegungstasten nur verarbeiten, wenn der Character noch lebt
+            if (this.world && this.world.keyboard && !this.isDead()) {
                 // Bewegungslogik
                 if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x - this.width) {
                     this.moveRight();
@@ -153,8 +168,6 @@ class Character extends MovableObject {
                 if (this.world.keyboard.SPACE && !this.isAboveGround()) {
                     this.jump();
                 }
-                
-                // Weitere Code...
             }
             
             // Kamera-Bewegung
@@ -176,13 +189,7 @@ class Character extends MovableObject {
             }
         }, 1000 / 60);
         
-        // Rest des animate()-Codes...
-        let idleAnimationInterval = 0;
-        let idleTime = 0;
-        let sleepAnimationInterval = 0;
-        let yawnPlayed = false;
-        let sleepSound = null;
-
+        // Zweiter Interval für Animationen
         setInterval(() => {
             if (this.isDead()) {
                 // Immer fallen lassen, sobald der Charakter tot ist
@@ -202,9 +209,9 @@ class Character extends MovableObject {
                 }
                 
                 // Sound stoppen
-                if (sleepSound) {
-                    sleepSound.pause();
-                    sleepSound = null;
+                if (this.sleepSound) {
+                    this.sleepSound.pause();
+                    this.sleepSound = null;
                 }
                 
                 // Todes-Sound abspielen
@@ -239,74 +246,77 @@ class Character extends MovableObject {
                     this.hurtSoundPlayed = true;
                 }
                 this.playAnimation(this.IMAGES_HURT);
-                if (sleepSound) {
-                    sleepSound.pause();
-                    sleepSound = null;
-                }
+                
+                // Idle-Zustand zurücksetzen, wenn getroffen
+                this.resetIdleState();
             } else {
                 this.hurtSoundPlayed = false;
                 if (this.isAboveGround()) {
                     this.playAnimation(this.IMAGES_JUMPING);
-                    idleTime = 0;
-                    yawnPlayed = false;
-                    if (sleepSound) {
-                        sleepSound.pause();
-                        sleepSound = null;
-                    }
+                    this.resetIdleState(); // Auch beim Springen zurücksetzen
                 } else if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT) {
                     this.playAnimation(this.IMAGES_WALKING);
-                    idleTime = 0;
-                    yawnPlayed = false;
-                    if (sleepSound) {
-                        sleepSound.pause();
-                        sleepSound = null;
-                    }
+                    this.resetIdleState(); // Auch beim Laufen zurücksetzen
                 } else {
-                    idleAnimationInterval++;
-                    idleTime += 50;
+                    this.idleAnimationInterval++;
+                    this.idleTime += 50;
 
-                    if (idleTime >= 6500 && !yawnPlayed) {
+                    if (this.idleTime >= 6500 && !this.yawnPlayed) {
                         const yawnSound = new Audio('../assets/audio/yawn.mp3');
                         this.world.userInterface.registerAudioWithCategory(yawnSound, 'character'); // Mit Kategorie registrieren
 
                         if (!this.world.userInterface.isMuted) {
                             yawnSound.play(); // Nur abspielen, wenn nicht stummgeschaltet
                         }
-                        yawnPlayed = true;
+                        this.yawnPlayed = true;
                     }
 
-                    if (idleTime >= 15000) {
-                        sleepAnimationInterval++;
-                        if (sleepAnimationInterval >= 7.5) {
+                    if (this.idleTime >= 15000) {
+                        this.sleepAnimationInterval++;
+                        if (this.sleepAnimationInterval >= 7.5) {
                             this.playAnimation(this.IMAGES_SLEEPING);
 
                             // Sleep-Sound abspielen
-                            if (!sleepSound) {
-                                sleepSound = new Audio('../assets/audio/sleep.mp3');
-                                if (sleepSound) {
-                                    this.world.userInterface.registerAudioWithCategory(sleepSound, 'character'); // Mit Kategorie registrieren
-                                    sleepSound.loop = true;
+                            if (!this.sleepSound) {
+                                this.sleepSound = new Audio('../assets/audio/sleep.mp3');
+                                if (this.sleepSound) {
+                                    this.world.userInterface.registerAudioWithCategory(this.sleepSound, 'character'); // Mit Kategorie registrieren
+                                    this.sleepSound.loop = true;
                                     if (!this.world.userInterface.isMuted) {
-                                        sleepSound.play();
+                                        this.sleepSound.play();
                                     }
                                 } else {
                                     console.error('Failed to create sleepSound instance');
                                 }
                             }
-                            sleepAnimationInterval = 0;
+                            this.sleepAnimationInterval = 0;
                         }
                     } else {
-                        if (sleepSound) {
-                            sleepSound.pause();
-                            sleepSound = null;
+                        if (this.sleepSound) {
+                            this.sleepSound.pause();
+                            this.sleepSound = null;
                         }
-                        if (idleAnimationInterval >= 30) {
+                        if (this.idleAnimationInterval >= 30) {
                             this.playAnimation(this.IMAGES_IDLE);
-                            idleAnimationInterval = 0;
+                            this.idleAnimationInterval = 0;
                         }
                     }
                 }
             }
         }, 50);
+    }
+
+    // Neue Methode zum Zurücksetzen des Idle-Zustands
+    resetIdleState() {
+        this.idleTime = 0;
+        this.idleAnimationInterval = 0;
+        this.sleepAnimationInterval = 0;
+        this.yawnPlayed = false;
+        
+        // Sleep-Sound pausieren, falls vorhanden
+        if (this.sleepSound) {
+            this.sleepSound.pause();
+            this.sleepSound = null;
+        }
     }
 }

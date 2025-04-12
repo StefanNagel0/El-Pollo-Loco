@@ -59,7 +59,7 @@ class MovableObject extends DrawableObject {
     }
 
     isDead() {
-        return this.energy == 0;
+        return this.energy <= 0; // Änderung von "==" zu "<="
     }
 
     playAnimation(images) {

@@ -6,7 +6,6 @@ class UserInterface extends DrawableObject {
         
         // Aus localStorage laden, falls vorhanden
         this.isMuted = localStorage.getItem('elPolloLoco_isMuted') === 'true';
-        this.volumeLevel = parseInt(localStorage.getItem('elPolloLoco_volume')) || 5;
         
         // Audio-Kategorien-Settings aus localStorage laden
         this.characterVolume = parseInt(localStorage.getItem('elPolloLoco_characterVolume')) || 5;
@@ -238,14 +237,12 @@ class UserInterface extends DrawableObject {
         this.settingsOverlay = document.getElementById('settings-overlay');
         
         // Volume Sliders
-        this.masterSlider = document.getElementById('master-volume');
         this.characterSlider = document.getElementById('character-volume');
         this.enemiesSlider = document.getElementById('enemies-volume');
         this.objectsSlider = document.getElementById('objects-volume'); // Neuer Slider
         this.musicSlider = document.getElementById('music-volume');
         
         // Value Displays
-        this.masterValue = document.getElementById('master-volume-value');
         this.characterValue = document.getElementById('character-volume-value');
         this.enemiesValue = document.getElementById('enemies-volume-value');
         this.objectsValue = document.getElementById('objects-volume-value'); // Neuer Wert
@@ -255,9 +252,6 @@ class UserInterface extends DrawableObject {
         this.closeSettingsBtn = document.getElementById('close-settings');
         
         // Initialen Wert setzen
-        this.masterSlider.value = this.volumeLevel;
-        this.masterValue.textContent = this.volumeLevel;
-        
         this.characterSlider.value = this.characterVolume;
         this.characterValue.textContent = this.characterVolume;
         
@@ -271,15 +265,6 @@ class UserInterface extends DrawableObject {
         this.musicValue.textContent = this.musicVolume;
         
         // Event-Listener für Slider hinzufügen
-        this.masterSlider.addEventListener('input', () => {
-            this.volumeLevel = parseInt(this.masterSlider.value);
-            this.masterValue.textContent = this.volumeLevel;
-            this.updateVolume();
-            
-            // In localStorage speichern
-            localStorage.setItem('elPolloLoco_volume', this.volumeLevel);
-        });
-        
         this.characterSlider.addEventListener('input', () => {
             this.characterVolume = parseInt(this.characterSlider.value);
             this.characterValue.textContent = this.characterVolume;
@@ -362,21 +347,6 @@ class UserInterface extends DrawableObject {
         this.updateCategoryVolume('enemies');
         this.updateCategoryVolume('objects'); // Neue Kategorie
         this.updateCategoryVolume('music');
-        
-        // Für nicht kategorisierte Audios
-        const volume = this.volumeLevel / 10;
-        const uncategorizedAudios = this.audioInstances.filter(audio => 
-            !this.audioCategories.character.includes(audio) &&
-            !this.audioCategories.enemies.includes(audio) &&
-            !this.audioCategories.objects.includes(audio) &&
-            !this.audioCategories.music.includes(audio)
-        );
-        
-        uncategorizedAudios.forEach((audio) => {
-            if (audio && !this.isMuted) {
-                audio.volume = volume;
-            }
-        });
     }
 
     toggleSound() {
@@ -401,9 +371,9 @@ class UserInterface extends DrawableObject {
             if (!this.audioInstances.includes(audio)) {
                 this.audioInstances.push(audio);
                 
-                // Lautstärke und Mute-Status sofort anwenden
-                const volume = this.volumeLevel / 10;
-                audio.volume = volume;
+                // Standard-Lautstärke verwenden (statt volumeLevel)
+                const defaultVolume = 0.5;
+                audio.volume = defaultVolume;
                 
                 if (this.isMuted) {
                     audio.muted = true;
@@ -414,12 +384,45 @@ class UserInterface extends DrawableObject {
 
     // Neue Methode zur Registrierung von Audio mit Kategorie
     registerAudioWithCategory(audio, category) {
-        this.registerAudio(audio); // Bestehende Registrierung verwenden
-        
-        // Zusätzlich zur Kategorie hinzufügen
-        if (category && this.audioCategories[category]) {
-            if (!this.audioCategories[category].includes(audio)) {
-                this.audioCategories[category].push(audio);
+        // Wir überspringen registerAudio() und machen das manuell
+        if (audio instanceof Audio) {
+            if (!this.audioInstances.includes(audio)) {
+                this.audioInstances.push(audio);
+                
+                // Kategorie-spezifische Lautstärke sofort anwenden
+                let categoryVolume = 0.5; // Standardwert
+                
+                if (category && this.audioCategories[category]) {
+                    switch(category) {
+                        case 'character':
+                            categoryVolume = this.characterVolume / 10;
+                            break;
+                        case 'enemies':
+                            categoryVolume = this.enemiesVolume / 10;
+                            break;
+                        case 'objects':
+                            categoryVolume = this.objectsVolume / 10;
+                            break;
+                        case 'music':
+                            categoryVolume = this.musicVolume / 10;
+                            break;
+                    }
+                }
+                
+                // Lautstärke direkt setzen
+                audio.volume = categoryVolume;
+                
+                // Mute-Status anwenden
+                if (this.isMuted) {
+                    audio.muted = true;
+                }
+                
+                // Zur Kategorie hinzufügen
+                if (category && this.audioCategories[category]) {
+                    if (!this.audioCategories[category].includes(audio)) {
+                        this.audioCategories[category].push(audio);
+                    }
+                }
             }
         }
     }
@@ -433,11 +436,44 @@ class UserInterface extends DrawableObject {
     }
 
     unmuteAllSounds() {
+        // Für nicht kategorisierte Audios eine Standard-Lautstärke verwenden
+        const defaultVolume = 0.5; // Standard: 50% Lautstärke
+        
         this.audioInstances.forEach((audio) => {
             if (audio) {
                 audio.muted = false;
-                // Lautstärke anwenden
-                audio.volume = this.volumeLevel / 10;
+                
+                // Kategorie bestimmen und entsprechende Lautstärke setzen
+                let volumeSet = false;
+                
+                for (const category in this.audioCategories) {
+                    if (this.audioCategories[category].includes(audio)) {
+                        // Kategoriespezifische Lautstärke anwenden
+                        let volume;
+                        switch(category) {
+                            case 'character':
+                                volume = this.characterVolume / 10;
+                                break;
+                            case 'enemies':
+                                volume = this.enemiesVolume / 10;
+                                break;
+                            case 'objects':
+                                volume = this.objectsVolume / 10;
+                                break;
+                            case 'music':
+                                volume = this.musicVolume / 10;
+                                break;
+                        }
+                        audio.volume = volume;
+                        volumeSet = true;
+                        break;
+                    }
+                }
+                
+                // Für nicht kategorisierte Audios Standard-Lautstärke verwenden
+                if (!volumeSet) {
+                    audio.volume = defaultVolume;
+                }
             }
         });
     }
@@ -446,7 +482,6 @@ class UserInterface extends DrawableObject {
     updateCategoryVolume(category) {
         if (!this.audioCategories[category]) return;
         
-        const masterVolume = this.volumeLevel / 10; // 0-1 Bereich
         let categoryVolume;
         
         switch(category) {
@@ -466,12 +501,10 @@ class UserInterface extends DrawableObject {
                 categoryVolume = 0.5;
         }
         
-        // Kombinierte Lautstärke (Master * Kategorie)
-        const finalVolume = masterVolume * categoryVolume;
-        
+        // Direkte Anwendung der Kategorie-Lautstärke (ohne Multiplikation mit Master)
         this.audioCategories[category].forEach((audio) => {
             if (audio && !this.isMuted) {
-                audio.volume = finalVolume;
+                audio.volume = categoryVolume;
             }
         });
     }

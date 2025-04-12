@@ -106,16 +106,21 @@ class MainMenu {
      * Startet das Spiel und versteckt das Hauptmenü
      */
     startGame() {
-        // Mehrere Methoden verwenden, um das Hauptmenü zuverlässig zu verstecken
+        // Menü ausblenden
         this.menuContainer.classList.add('d-none');
-        this.menuContainer.style.display = 'none'; // Direkte CSS-Anweisung hinzufügen
+        this.menuContainer.style.display = 'none';
         
         // Spieltitel anzeigen
         this.gameTitle.classList.remove('d-none');
-        this.gameTitle.style.display = ''; // Zurücksetzen der display-Eigenschaft
+        this.gameTitle.style.display = '';
         
-        // Hier wird das Spiel initialisiert und gestartet
+        // Spiel initialisieren
         initGame();
+        
+        // Wichtig: Pause aufheben, damit das Spiel beginnt
+        if (window.world) {
+            window.world.isPaused = false;
+        }
         
         // Zusätzlich sicherstellen, dass die How-to-Play und Settings-Overlays geschlossen sind
         if (this.howToPlayOverlay) {

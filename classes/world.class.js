@@ -15,7 +15,7 @@ class World {
     cooldownImage = new Image(); // Bild für die Flasche im Cooldown
 
     // Neue Eigenschaft für den Pause-Zustand
-    isPaused = false;
+    isPaused = true; // Auf true setzen, damit das Spiel im pausierten Zustand startet
 
     constructor(canvas, keyboard) {
         this.ctx = canvas.getContext('2d');

@@ -8,13 +8,9 @@ class World {
     statusBar = new StatusBar();
     throwableObjects = [];
     canThrow = true; // Variable, um das Werfen zu steuern
-    
-    // Neue Variablen für den Cooldown
     throwCooldown = 0; // Aktueller Cooldown in ms
     maxThrowCooldown = 2250; // Maximaler Cooldown in ms
     cooldownImage = new Image(); // Bild für die Flasche im Cooldown
-
-    // Neue Eigenschaft für den Pause-Zustand
     isPaused = true; // Auf true setzen, damit das Spiel im pausierten Zustand startet
 
     constructor(canvas, keyboard) {
@@ -122,25 +118,21 @@ class World {
     
                 const isCollision = this.character.isColiding(enemy);
     
-                if (isStomp && !(enemy instanceof Endboss)) { // Kein Stomp bei Endboss möglich
-                    console.log('✅ Stomp erkannt!');
-                    if (!enemy.isDead) {  // Änderung hier: isDead als Eigenschaft
+                if (isStomp && !(enemy instanceof Endboss)) {
+                    if (!enemy.isDead) {
                         enemy.die();
                         this.character.speedY = 25; // Bounce-Effekt
                         
-                        // Stomp-Sound abspielen mit korrekter Lautstärke
                         const stompSound = new Audio('../assets/audio/stomp_enemie.mp3');
                         this.userInterface.registerAudioWithCategory(stompSound, 'enemies');
-                        
-                        // Manuell die Lautstärke der enemies-Kategorie anwenden
+
                         if (!this.userInterface.isMuted) {
                             // Kategorie-Lautstärke direkt anwenden
                             const enemiesVolume = this.userInterface.enemiesVolume / 10;
                             stompSound.volume = enemiesVolume;
                             stompSound.play();
                         }
-                        
-                        // NEU: Gegner nach Animation entfernen
+
                         setTimeout(() => {
                             const enemyIndex = this.level.enemies.indexOf(enemy);
                             if (enemyIndex > -1 && enemy.isDead) {
@@ -149,19 +141,16 @@ class World {
                         }, 500);
                     }
                 } else if (isCollision) {
-                    console.log('❌ Kollision mit Gegner erkannt!');
                     if (!enemy.isDead) {  // Änderung hier: isDead als Eigenschaft statt als Funktion
                         if (enemy instanceof Endboss) {
                             // Spezielle Logik für Kollisionen mit dem Endboss
                             this.character.hit();
                             this.character.energy -= (enemy.damage - 5); // Größerer Schaden
                             this.statusBar.setEnergyPercentage(this.character.energy);
-                            console.log('❌ Kollision mit Endboss, Energie = ', this.character.energy);
                         } else if (enemy instanceof Chicken || enemy instanceof smallChicken) {
                             // Bestehende Logik für normale Chickens
                             this.character.hit();
                             this.statusBar.setEnergyPercentage(this.character.energy);
-                            console.log('❌ Kollision mit Gegner, Energie = ', this.character.energy);
                         }
                     }
                 }
@@ -171,14 +160,10 @@ class World {
         if (this.level.coins) {
             this.level.coins.forEach((coin) => {
                 if (this.character.isColiding(coin)) {
-                    console.log('🪙 Collision with Coin:', coin);
                     this.character.collectCoin();
-                    console.log('Coin collected, total coins = ', this.character.coins);
                     const coinIndex = this.level.coins.indexOf(coin);
                     if (coinIndex > -1) {
                         this.level.coins.splice(coinIndex, 1);
-                        console.log('Coin removed:', coin);
-                        console.log('Remaining coins:', this.level.coins);
                     }
                 }
             });
@@ -187,14 +172,10 @@ class World {
         if (this.level.bottles) {
             this.level.bottles.forEach((bottle) => {
                 if (this.character.isColiding(bottle)) {
-                    console.log('🍾 Collision with Bottle:', bottle);
                     this.character.collectBottle(); // Methode zum Sammeln der Bottle
-                    console.log('Bottle collected!');
                     const bottleIndex = this.level.bottles.indexOf(bottle);
                     if (bottleIndex > -1) {
                         this.level.bottles.splice(bottleIndex, 1);
-                        console.log('Bottle removed:', bottle);
-                        console.log('Remaining bottles:', this.level.bottles);
                     }
                 }
             });

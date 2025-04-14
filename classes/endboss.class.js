@@ -268,12 +268,11 @@ class Endboss extends MovableObject {
         }
     }
 
-    // Verbesserte die()-Methode mit zuverlässiger Sound-Wiedergabe
+    // Verbesserte die()-Methode ohne console.log
     die() {
         // Verhindern, dass die Methode mehrmals aufgerufen wird
         if (this.isDying) return;
         
-        console.log("Endboss stirbt! Energie:", this.energy); // Erweiterte Debug-Ausgabe
         this.energy = 0;
         this.speed = 0;
         this.isDying = true;
@@ -281,8 +280,6 @@ class Endboss extends MovableObject {
         
         // Game Won Sound abspielen und Hintergrundmusik vorübergehend pausieren
         setTimeout(() => {
-            console.log("Spiele Game-Won Sound ab");
-            
             try {
                 // Hintergrundmusik pausieren
                 if (this.world && this.world.userInterface && this.world.userInterface.backgroundMusic) {
@@ -303,37 +300,29 @@ class Endboss extends MovableObject {
                     
                     // Event-Handler für das Ende des Sounds hinzufügen
                     gameWonSound.addEventListener('ended', () => {
-                        console.log('Game-Won Sound beendet, Hintergrundmusik fortsetzen');
-                        
                         // Hintergrundmusik wieder aktivieren (wenn sie vorher abgespielt wurde)
                         if (wasPlaying && !this.world.userInterface.isMuted) {
                             this.world.userInterface.backgroundMusic.muted = wasMuted;
-                            this.world.userInterface.backgroundMusic.play()
-                                .catch(error => console.error('Fehler beim Fortsetzen der Musik:', error));
+                            this.world.userInterface.backgroundMusic.play();
                         }
                     });
                     
                     // Abspielen mit Error-Handling
                     gameWonSound.play()
-                        .then(() => console.log('Game-Won Sound wird abgespielt!'))
                         .catch(error => {
-                            console.error('Fehler beim Abspielen:', error);
-                            
                             // Bei Fehler trotzdem Hintergrundmusik wieder starten
                             if (wasPlaying && !this.world.userInterface.isMuted) {
                                 this.world.userInterface.backgroundMusic.muted = wasMuted;
-                                this.world.userInterface.backgroundMusic.play()
-                                    .catch(e => console.error('Fehler beim Fortsetzen der Musik:', e));
+                                this.world.userInterface.backgroundMusic.play();
                             }
                         });
                 } else {
                     // Fallback, falls kein Zugriff auf die Hintergrundmusik möglich ist
                     const gameWonSound = new Audio('../assets/audio/game_won.mp3');
-                    gameWonSound.play()
-                        .catch(error => console.error('Fehler beim Abspielen (Fallback):', error));
+                    gameWonSound.play();
                 }
             } catch (error) {
-                console.error('Allgemeiner Fehler beim Sound:', error);
+                // Fehlerbehandlung ohne Logging
             }
         }, 300); // Längere Verzögerung für bessere Kompatibilität
     }
@@ -395,9 +384,9 @@ class Endboss extends MovableObject {
             
             // Farbe basierend auf Gesundheitszustand wählen
             let barColor;
-            if (healthPercentage > 0.75) {
+            if (healthPercentage > 75) {
                 barColor = 'green'; // Über 75% - grün
-            } else if (healthPercentage > 0.25) {
+            } else if (healthPercentage > 25) {
                 barColor = 'orange'; // Zwischen 25% und 75% - orange
             } else {
                 barColor = 'red'; // Unter 25% - rot

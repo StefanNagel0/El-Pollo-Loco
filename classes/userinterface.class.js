@@ -95,18 +95,13 @@ class UserInterface extends DrawableObject {
         setTimeout(() => {
             if (!this.isMuted) {
                 this.backgroundMusic.play()
-                    .catch(error => console.log('Autoplay prevented by browser:', error));
+                    .catch(error => {});
             }
         }, 500);
 
-        this.soundIcon.onerror = () => console.error('Fehler beim Laden des Sound-Icons');
-        this.settingsIcon.onerror = () => console.error('Fehler beim Laden des Settings-Icons');
-        this.fullscreenIcon.onerror = () => console.error('Fehler beim Laden des Fullscreen-Icons');
-
-        // Test-Code zum Bestätigen, dass die Icons tatsächlich geladen werden
-        this.soundIcon.onload = () => console.log('Sound-Icon erfolgreich geladen');
-        this.settingsIcon.onload = () => console.log('Settings-Icon erfolgreich geladen');
-        this.fullscreenIcon.onload = () => console.log('Fullscreen-Icon erfolgreich geladen');
+        this.soundIcon.onerror = () => {};
+        this.settingsIcon.onerror = () => {};
+        this.fullscreenIcon.onerror = () => {};
     }
 
     // Neue Methode zum Aktualisieren der Icon-Positionen

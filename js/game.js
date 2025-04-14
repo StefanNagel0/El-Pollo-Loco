@@ -20,7 +20,6 @@ function init() {
 function initGame() {
     world = new World(canvas, keyboard);
     window.world = world; // Globalen Zugriff ermöglichen
-    console.log('My Character is', world.character);
 }
 
 window.addEventListener('keydown', (event)=>{

@@ -290,8 +290,6 @@ class Character extends MovableObject {
                                         if (!this.world.userInterface.isMuted) {
                                             this.sleepSound.play();
                                         }
-                                    } else {
-                                        console.error('Failed to create sleepSound instance');
                                     }
                                 }
                                 this.sleepAnimationInterval = 0;

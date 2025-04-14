@@ -1,5 +1,12 @@
 class MainMenu {
     constructor() {
+        // Canvas-Referenz für UserInterface holen
+        const canvas = document.getElementById('canvas');
+        
+        // UserInterface-Instanz für das Hauptmenü erstellen
+        this.userInterface = new UserInterface(canvas);
+        
+        // DOM-Elemente referenzieren und Event-Listener hinzufügen
         this.init();
     }
 
@@ -29,6 +36,9 @@ class MainMenu {
         // Neue Button-Referenzen
         this.returnToGameBtn = document.getElementById('return-to-game');
         this.exitGameBtn = document.getElementById('exit-game');
+
+        // Sound-Icon Referenz
+        this.soundIcon = document.getElementById('menu-sound-icon');
 
         // Event-Listener mit Null-Prüfung hinzufügen
         if (this.startButton) {
@@ -80,6 +90,20 @@ class MainMenu {
             });
         }
 
+        // Sound-Icon Event-Listener
+        if (this.soundIcon) {
+            // Initialen Zustand setzen
+            this.updateSoundIcon();
+            
+            // Klick-Event-Listener
+            this.soundIcon.addEventListener('click', () => {
+                if (this.userInterface) {
+                    this.userInterface.toggleSound();
+                    this.updateSoundIcon();
+                }
+            });
+        }
+
         // Hauptmenü anzeigen
         if (this.menuContainer) {
             this.showMenu();
@@ -120,9 +144,21 @@ class MainMenu {
         // Wichtig: Pause aufheben, damit das Spiel beginnt
         if (window.world) {
             window.world.isPaused = false;
+            
+            // Hintergrundmusik und Mute-Status fortsetzen
+            if (this.userInterface) {
+                // Hintergrundmusik übernehmen
+                if (this.userInterface.backgroundMusic) {
+                    window.world.userInterface.backgroundMusic = this.userInterface.backgroundMusic;
+                }
+                
+                // Mute-Status übernehmen
+                window.world.userInterface.isMuted = this.userInterface.isMuted;
+                window.world.userInterface.updateSoundIcon();
+            }
         }
         
-        // Zusätzlich sicherstellen, dass die How-to-Play und Settings-Overlays geschlossen sind
+        // Overlays schließen
         if (this.howToPlayOverlay) {
             this.howToPlayOverlay.classList.add('d-none');
             this.howToPlayOverlay.classList.remove('show');
@@ -233,6 +269,17 @@ class MainMenu {
         } else if (tabId === 'audio') {
             this.audioTab.classList.add('active');
             this.audioContent.classList.remove('d-none');
+        }
+    }
+
+    /**
+     * Aktualisiert das Sound-Icon basierend auf dem Mute-Status
+     */
+    updateSoundIcon() {
+        if (this.soundIcon && this.userInterface) {
+            this.soundIcon.src = this.userInterface.isMuted 
+                ? '../assets/img/ui_images/sound_off.svg' 
+                : '../assets/img/ui_images/sound_on.svg';
         }
     }
 }

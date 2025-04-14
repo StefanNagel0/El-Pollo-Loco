@@ -19,6 +19,13 @@ class World {
         this.keyboard = keyboard;
         this.userInterface = new UserInterface(canvas);
         
+        // Wenn eine MainMenu-Instanz existiert, prüfen ob Musik bereits läuft
+        if (window.mainMenu && window.mainMenu.userInterface && 
+            window.mainMenu.userInterface.backgroundMusic) {
+            // Musik-Instanz übernehmen statt neu zu starten
+            this.userInterface.backgroundMusic = window.mainMenu.userInterface.backgroundMusic;
+        }
+        
         // Flaschenbild für den Cooldown laden
         this.cooldownImage.src = '../assets/img/6_salsa_bottle/salsa_bottle.png';
         
@@ -183,22 +190,38 @@ class World {
     }
         
     checkEnemyDistances() {
-        const minDistance = MovableObject.minDistanceEnemies; // Dynamischer Mindestabstand für Gegner
-    
+        // Nicht überprüfen, wenn das Spiel pausiert ist
+        if (this.isPaused) return;
+        
+        const minDistance = 100; // Festgelegter Mindestabstand für bessere Kontrolle
+        
         this.level.enemies.forEach((enemy1, index1) => {
+            // Endboss überspringen - der sollte seine eigenen Regeln haben
+            if (enemy1 instanceof Endboss) return;
+            
             this.level.enemies.forEach((enemy2, index2) => {
-                if (index1 !== index2) { // Vermeide Vergleich mit sich selbst
+                // Vergleich mit sich selbst oder mit Endboss vermeiden
+                if (index1 !== index2 && !(enemy2 instanceof Endboss)) { 
+                    // Ignorieren toter Feinde
+                    if (enemy1.isDead || enemy2.isDead) return;
+                    
                     const distanceX = Math.abs(enemy1.x - enemy2.x);
                     const distanceY = Math.abs(enemy1.y - enemy2.y);
-    
-                    if (distanceX < minDistance && distanceY < enemy1.height) {
-                        // Gegner sind zu nah beieinander, bewege sie auseinander
+                    
+                    // Nur horizontale Kollisionen prüfen, die wichtig sind
+                    if (distanceX < minDistance && distanceY < enemy1.height / 2) {
+                        // Sanftere Anpassung mit kleinerem Faktor
+                        const adjustmentFactor = 0.5; // Langsamere Anpassung
+                        const correction = (minDistance - distanceX) * adjustmentFactor;
+                        
+                        // Feinde basierend auf ihrer Bewegungsrichtung auseinander bewegen
                         if (enemy1.x < enemy2.x) {
-                            enemy1.x -= (minDistance - distanceX) / 2;
-                            enemy2.x += (minDistance - distanceX) / 2;
+                            // Nur in Richtung ihrer natürlichen Bewegung schieben
+                            if (!enemy1.otherDirection) enemy1.x -= correction * 0.3;
+                            if (enemy2.otherDirection) enemy2.x += correction * 0.3;
                         } else {
-                            enemy1.x += (minDistance - distanceX) / 2;
-                            enemy2.x -= (minDistance - distanceX) / 2;
+                            if (enemy1.otherDirection) enemy1.x += correction * 0.3;
+                            if (!enemy2.otherDirection) enemy2.x -= correction * 0.3;
                         }
                     }
                 }

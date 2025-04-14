@@ -55,7 +55,12 @@ class UserInterface extends DrawableObject {
         
         this.audioInstances = [];
 
-        this.addClickListener();
+        // Hover-Zustände für Icons
+        this.soundIconHovered = false;
+        this.settingsIconHovered = false;
+        this.fullscreenIconHovered = false;
+
+        this.addMouseListeners();
         
         // Wir initialisieren das Settings-Overlay nur, wenn das DOM vollständig geladen ist
         window.setTimeout(() => {
@@ -131,7 +136,14 @@ class UserInterface extends DrawableObject {
         // Positionen aktualisieren, bevor die Icons gezeichnet werden
         this.updateIconPositions();
         
-        // Sound-Icon zeichnen
+        // Sound-Icon mit Hover-Effekt
+        this.ctx.save();
+        if (this.soundIconHovered) {
+            // Bei Hover: Größer skalieren (wie im Menü)
+            this.ctx.translate(this.soundIconX + this.soundIconWidth/2, this.soundIconY + this.soundIconHeight/2);
+            this.ctx.scale(1.1, 1.1);
+            this.ctx.translate(-(this.soundIconX + this.soundIconWidth/2), -(this.soundIconY + this.soundIconHeight/2));
+        }
         this.ctx.drawImage(
             this.soundIcon,
             this.soundIconX,
@@ -139,8 +151,16 @@ class UserInterface extends DrawableObject {
             this.soundIconWidth,
             this.soundIconHeight
         );
+        this.ctx.restore();
         
-        // Settings-Icon zeichnen
+        // Settings-Icon mit Hover-Effekt
+        this.ctx.save();
+        if (this.settingsIconHovered) {
+            // Bei Hover: Rotieren (wie im Menü)
+            this.ctx.translate(this.settingsIconX + this.settingsIconWidth/2, this.settingsIconY + this.settingsIconHeight/2);
+            this.ctx.rotate(Math.PI/2); // 90 Grad drehen
+            this.ctx.translate(-(this.settingsIconX + this.settingsIconWidth/2), -(this.settingsIconY + this.settingsIconHeight/2));
+        }
         this.ctx.drawImage(
             this.settingsIcon,
             this.settingsIconX,
@@ -148,8 +168,16 @@ class UserInterface extends DrawableObject {
             this.settingsIconWidth,
             this.settingsIconHeight
         );
+        this.ctx.restore();
         
-        // Fullscreen-Icon zeichnen
+        // Fullscreen-Icon mit Hover-Effekt
+        this.ctx.save();
+        if (this.fullscreenIconHovered) {
+            // Bei Hover: Leicht vergrößern
+            this.ctx.translate(this.fullscreenIconX + this.fullscreenIconWidth/2, this.fullscreenIconY + this.fullscreenIconHeight/2);
+            this.ctx.scale(1.1, 1.1);
+            this.ctx.translate(-(this.fullscreenIconX + this.fullscreenIconWidth/2), -(this.fullscreenIconY + this.fullscreenIconHeight/2));
+        }
         this.ctx.drawImage(
             this.fullscreenIcon,
             this.fullscreenIconX,
@@ -157,9 +185,54 @@ class UserInterface extends DrawableObject {
             this.fullscreenIconWidth,
             this.fullscreenIconHeight
         );
+        this.ctx.restore();
     }
 
-    addClickListener() {
+    addMouseListeners() {
+        // Mausbewegung verfolgen für Hover-Effekte
+        this.canvas.addEventListener('mousemove', (event) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+            
+            // Sound-Icon Hover prüfen
+            this.soundIconHovered = 
+                mouseX >= this.soundIconX &&
+                mouseX <= this.soundIconX + this.soundIconWidth &&
+                mouseY >= this.soundIconY &&
+                mouseY <= this.soundIconY + this.soundIconHeight;
+                
+            // Settings-Icon Hover prüfen
+            this.settingsIconHovered = 
+                mouseX >= this.settingsIconX &&
+                mouseX <= this.settingsIconX + this.settingsIconWidth &&
+                mouseY >= this.settingsIconY &&
+                mouseY <= this.settingsIconY + this.settingsIconHeight;
+                
+            // Fullscreen-Icon Hover prüfen
+            this.fullscreenIconHovered = 
+                mouseX >= this.fullscreenIconX &&
+                mouseX <= this.fullscreenIconX + this.fullscreenIconWidth &&
+                mouseY >= this.fullscreenIconY &&
+                mouseY <= this.fullscreenIconY + this.fullscreenIconHeight;
+            
+            // Cursor-Stil anpassen
+            if (this.soundIconHovered || this.settingsIconHovered || this.fullscreenIconHovered) {
+                this.canvas.style.cursor = 'pointer';
+            } else {
+                this.canvas.style.cursor = 'default';
+            }
+        });
+        
+        // Maus verlässt den Canvas
+        this.canvas.addEventListener('mouseout', () => {
+            this.soundIconHovered = false;
+            this.settingsIconHovered = false;
+            this.fullscreenIconHovered = false;
+            this.canvas.style.cursor = 'default';
+        });
+        
+        // Den vorhandenen Click-Event-Listener beibehalten
         this.canvas.addEventListener('click', (event) => {
             const rect = this.canvas.getBoundingClientRect();
             const clickX = event.clientX - rect.left;
@@ -451,13 +524,26 @@ class UserInterface extends DrawableObject {
         localStorage.setItem('elPolloLoco_isMuted', this.isMuted);
 
         if (this.isMuted) {
-            this.soundIcon.src = '../assets/img/ui_images/sound_off.svg';
+            this.updateSoundIcon(); // Neue Methode aufrufen
             this.muteAllSounds();
             this.backgroundMusic.pause(); // Hintergrundmusik pausieren
         } else {
-            this.soundIcon.src = '../assets/img/ui_images/sound_on.svg';
+            this.updateSoundIcon(); // Neue Methode aufrufen
             this.unmuteAllSounds();
             this.backgroundMusic.play(); // Hintergrundmusik fortsetzen
+        }
+    }
+
+    // Methode zur Aktualisierung des Sound-Icons hinzufügen:
+
+    /**
+     * Aktualisiert das Sound-Icon basierend auf dem Mute-Status
+     */
+    updateSoundIcon() {
+        if (this.soundIcon) {
+            this.soundIcon.src = this.isMuted 
+                ? '../assets/img/ui_images/sound_off.svg' 
+                : '../assets/img/ui_images/sound_on.svg';
         }
     }
 

@@ -96,6 +96,25 @@
     transform: rotate(90deg);
 }
 
+/* Sound-Icon im Hauptmenü */
+.menu-sound-icon {
+    position: absolute;
+    top: 20px;
+    right: 80px; /* Platziert links neben dem Settings-Icon */
+    z-index: 10;
+}
+
+#menu-sound-icon {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+#menu-sound-icon:hover {
+    transform: scale(1.1);
+}
+
 /* Tab Navigation Styling */
 .settings-tabs {
     display: flex;

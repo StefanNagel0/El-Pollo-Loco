@@ -358,7 +358,7 @@ class Endboss extends MovableObject {
 
     // Methode zum Zeichnen des Lebensbalkens
     drawHealthBar(ctx) {
-        if (this.showHealthBar && this.energy > 0) {  // health durch energy ersetzt
+        if (this.showHealthBar && this.energy > 0) {
             // Position in der Mitte oben des Canvas
             let barWidth = 200;
             let barHeight = 20;
@@ -384,9 +384,9 @@ class Endboss extends MovableObject {
             
             // Farbe basierend auf Gesundheitszustand wählen
             let barColor;
-            if (healthPercentage > 75) {
+            if (healthPercentage > 0.75) {
                 barColor = 'green'; // Über 75% - grün
-            } else if (healthPercentage > 25) {
+            } else if (healthPercentage > 0.25) {
                 barColor = 'orange'; // Zwischen 25% und 75% - orange
             } else {
                 barColor = 'red'; // Unter 25% - rot

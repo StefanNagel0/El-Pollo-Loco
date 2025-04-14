@@ -197,9 +197,10 @@ class Character extends MovableObject {
             // Nur ausführen, wenn das Spiel nicht pausiert ist
             if (!this.world || !this.world.isPaused) {
                 if (this.isDead()) {
-                    // Immer fallen lassen, sobald der Charakter tot ist
+                    // Character fallen lassen, sobald er tot ist
                     this.y += 10; // Fallgeschwindigkeit
-
+                    
+                    // Spezielle Behandlung der Todesanimation
                     if (!this.deathAnimationPlayed) {
                         // Tod-Animation nur bis zum vorletzten Bild (D-56.png) abspielen
                         if (this.deathAnimationFrame < 6) { // D-56.png ist das 6. Bild (Index 5)
@@ -211,6 +212,39 @@ class Character extends MovableObject {
                             this.img = this.imageCache[this.IMAGES_DEAD[5]];
                             this.deathAnimationPlayed = true;
                         }
+                    } else {
+                        // Bild D-56.png beibehalten
+                        this.img = this.imageCache[this.IMAGES_DEAD[5]];
+                    }
+                    
+                    // Game Over Screen nach kurzer Verzögerung anzeigen (nur einmal)
+                    if (!this.gameOverScreenShown) {
+                        this.gameOverScreenShown = true;
+                        
+                        // Hintergrundmusik pausieren
+                        if (this.world && this.world.userInterface && this.world.userInterface.backgroundMusic) {
+                            this.world.userInterface.backgroundMusic.pause();
+                        }
+                        
+                        // Kurze Verzögerung für die Animation des Sterbens
+                        setTimeout(() => {
+                            // Game-Over Sound abspielen
+                            const gameOverSound = new Audio('../assets/audio/game_lose.mp3');
+                            
+                            if (this.world && this.world.userInterface) {
+                                this.world.userInterface.registerAudioWithCategory(gameOverSound, 'music');
+                                
+                                if (!this.world.userInterface.isMuted) {
+                                    gameOverSound.play();
+                                }
+                            }
+                            
+                            // Game-Over-Screen anzeigen
+                            if (!window.gameOverScreen) {
+                                window.gameOverScreen = new Endscreen();
+                            }
+                            window.gameOverScreen.show();
+                        }, 1000);
                     }
                     
                     // Sound stoppen

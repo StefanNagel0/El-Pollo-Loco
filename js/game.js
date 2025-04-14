@@ -20,6 +20,10 @@ function init() {
 function initGame() {
     world = new World(canvas, keyboard);
     window.world = world; // Globalen Zugriff ermöglichen
+    
+    // Sicherstellen, dass das Spiel zunächst pausiert ist
+    // und erst nach dem Klick auf "Spiel starten" aktiviert wird
+    window.world.isPaused = true;
 }
 
 window.addEventListener('keydown', (event)=>{

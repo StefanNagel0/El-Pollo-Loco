@@ -33,7 +33,7 @@ class StatusBar extends DrawableObject {
     current_energy = 100;
     max_energy = 100;
     current_coins = 0;
-    max_coins = 5;
+    max_coins = 45; // Von 5 auf 45 geändert - entspricht der Menge im Level
     current_bottles = 0;
     max_bottles = 10;
 
@@ -44,15 +44,15 @@ class StatusBar extends DrawableObject {
         this.loadImages(this.IMAGES_BOTTLES);
 
         this.x_energy = 20;
-        this.y_energy = 0;
-        this.width = 200;
-        this.height = 60;
+        this.y_energy = 10;
+        this.width = 170;
+        this.height = 58;
 
         this.x_coins = 20;
-        this.y_coins = 40;
+        this.y_coins = 60;
 
         this.x_bottles = 20;
-        this.y_bottles = 85;
+        this.y_bottles = 110;
 
         this.img_energy = new Image();
         this.img_coins = new Image();
@@ -69,7 +69,8 @@ class StatusBar extends DrawableObject {
 
     setCoinsPercentage(percentage) {
         this.percentage_coins = percentage;
-        this.current_coins = Math.min(Math.ceil(percentage / 20), this.max_coins); // 5 Münzen maximal
+        // Berechnung für 45 statt 5 Münzen anpassen
+        this.current_coins = Math.min(Math.ceil(percentage * 45 / 100), this.max_coins); 
         this.updateStatusBars(); 
     }
 
@@ -136,7 +137,7 @@ class StatusBar extends DrawableObject {
         if (this.img_coins && this.img_coins.complete) {
             ctx.drawImage(this.img_coins, this.x_coins, this.y_coins, this.width, this.height);
             // Münzen-Wert anzeigen
-            this.drawStatusText(ctx, `${this.current_coins} / ${this.max_coins}`, this.x_coins + this.width - 50, this.y_coins + 46);
+            this.drawStatusText(ctx, `${this.current_coins} / ${this.max_coins}`, this.x_coins + this.width - 60, this.y_coins + 46);
         }
 
         if (this.img_bottles && this.img_bottles.complete) {

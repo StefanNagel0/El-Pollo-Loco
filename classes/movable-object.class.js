@@ -1,7 +1,7 @@
 class MovableObject extends DrawableObject {
     static placedObjects = []; // Gemeinsame Liste für Coins und Bottles
     static placedEnemies = []; // Gemeinsame Liste für alle Gegner
-    static minDistanceObjects = 300; // Mindestabstand für Coins und Bottles
+    static minDistanceObjects = 65; // Mindestabstand für Coins und Bottles
     static minDistanceEnemies = 200; // Mindestabstand für Gegner
     speed = 0.15;
     otherDirection = false;

@@ -26,6 +26,8 @@ class Endscreen {
         // Spiel pausieren, damit sich die Gegner nicht mehr bewegen
         if (window.world) {
             window.world.isPaused = true;
+            // Alle Gegner unsichtbar machen
+            this.hideEnemies();
         }
         
         // Container erstellen, falls noch nicht vorhanden
@@ -33,11 +35,27 @@ class Endscreen {
             this.createGameOverScreen();
         }
         
-        // Endscreen anzeigen
+        // Endscreen anzeigen mit direktem Style
         this.container.classList.remove('d-none');
+        this.container.classList.add('show');
+        this.container.style.display = 'flex';
         
         // Position an Canvas anpassen
         this.adjustPosition();
+    }
+
+    /**
+     * Versteckt alle Gegner im Spiel
+     */
+    hideEnemies() {
+        if (window.world && window.world.level && window.world.level.enemies) {
+            window.world.level.enemies.forEach(enemy => {
+                // Originalposition speichern, falls wir sie später brauchen
+                enemy.originalY = enemy.y;
+                // Gegner außerhalb des sichtbaren Bereichs verschieben
+                enemy.y = -1000;
+            });
+        }
     }
 
     /**
@@ -105,13 +123,16 @@ class Endscreen {
         // Endscreen ausblenden
         this.hide();
         
-        // Spiel neu initialisieren
-        initGame();
-        
-        // Pause aufheben und Spiel starten
-        if (window.world) {
-            window.world.isPaused = false;
-        }
+        // Kurze Verzögerung, damit DOM-Änderungen wirksam werden
+        setTimeout(() => {
+            // Spiel neu initialisieren
+            initGame();
+            
+            // Pause aufheben und Spiel starten
+            if (window.world) {
+                window.world.isPaused = false;
+            }
+        }, 100);
     }
 
     /**
@@ -130,7 +151,12 @@ class Endscreen {
      */
     hide() {
         if (this.container) {
+            // CSS-Klassen entfernen/hinzufügen
+            this.container.classList.remove('show');
             this.container.classList.add('d-none');
+            
+            // Direktes Setzen des display-Stils (überschreibt alle CSS-Regeln)
+            this.container.style.display = 'none';
         }
     }
 }

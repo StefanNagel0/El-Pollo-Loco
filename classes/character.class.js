@@ -217,7 +217,7 @@ class Character extends MovableObject {
                         this.img = this.imageCache[this.IMAGES_DEAD[5]];
                     }
                     
-                    // Game Over Screen nach kurzer Verzögerung anzeigen (nur einmal)
+                    // Game Over Screen nach längerer Verzögerung anzeigen (nur einmal)
                     if (!this.gameOverScreenShown) {
                         this.gameOverScreenShown = true;
                         
@@ -226,7 +226,7 @@ class Character extends MovableObject {
                             this.world.userInterface.backgroundMusic.pause();
                         }
                         
-                        // Kurze Verzögerung für die Animation des Sterbens
+                        // Längere Verzögerung für die Animation des Sterbens und des Fallens
                         setTimeout(() => {
                             // Game-Over Sound abspielen
                             const gameOverSound = new Audio('../assets/audio/game_lose.mp3');
@@ -244,7 +244,7 @@ class Character extends MovableObject {
                                 window.gameOverScreen = new Endscreen();
                             }
                             window.gameOverScreen.show();
-                        }, 1000);
+                        }, 1700);
                     }
                     
                     // Sound stoppen

@@ -123,16 +123,16 @@ class Endscreen {
         // Endscreen ausblenden
         this.hide();
         
-        // Kurze Verzögerung, damit DOM-Änderungen wirksam werden
+        // Flag mit Zeitstempel setzen (robuster als ein einfacher Boolean)
+        const timestamp = new Date().getTime();
+        localStorage.setItem('elPolloLoco_startGame', 'true');
+        localStorage.setItem('elPolloLoco_restartTimestamp', timestamp.toString());
+        
+        // Verzögerung hinzufügen, um sicherzustellen, dass localStorage aktualisiert wurde
         setTimeout(() => {
-            // Spiel neu initialisieren
-            initGame();
-            
-            // Pause aufheben und Spiel starten
-            if (window.world) {
-                window.world.isPaused = false;
-            }
-        }, 100);
+            // Dann die Seite neu laden
+            window.location.reload();
+        }, 50);
     }
 
     /**

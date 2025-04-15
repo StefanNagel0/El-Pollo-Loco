@@ -15,6 +15,7 @@ class Character extends MovableObject {
         right:20,
         bottom:15,
     };
+    collidingEnemies = []; // Liste, um Gegner zu speichern, mit denen aktuell kollidiert wird
     IMAGES_WALKING = [
         '../assets/img/2_character_pepe/2_walk/W-21.png',
         '../assets/img/2_character_pepe/2_walk/W-22.png',
@@ -100,6 +101,18 @@ class Character extends MovableObject {
             this.world.userInterface.registerAudioWithCategory(this.runSound, 'character');
         }
         
+        // Offset-Werte für präzisere Kollisionserkennung
+        // Größere Werte = kleinerer Kollisionsbereich (roter Rahmen)
+        this.offset = {
+            top: 160,    // Sehr großer Abstand von oben
+            bottom: 30,  // Größerer Abstand von unten
+            left: 60,    // Größerer Abstand von links
+            right: 60    // Größerer Abstand von rechts
+        };
+
+        // Liste für Kollisionsverfolgung initialisieren
+        this.collidingEnemies = [];
+
         this.animate();
     }
 

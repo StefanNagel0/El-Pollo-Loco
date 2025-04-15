@@ -12,8 +12,36 @@ function init() {
         customConfirm.classList.add('d-none');
     }
     
-    // Hauptmenü erstellen statt das Spiel direkt zu starten
-    mainMenu = new MainMenu();
+    // Hauptmenü-Element referenzieren
+    const mainMenuElement = document.getElementById('main-menu');
+    
+    // Prüfen, ob Spiel direkt gestartet werden soll (nach Neustart)
+    const directStart = localStorage.getItem('elPolloLoco_startGame') === 'true';
+    
+    if (directStart) {
+        // Flags zurücksetzen
+        localStorage.removeItem('elPolloLoco_startGame');
+        localStorage.removeItem('elPolloLoco_restartTimestamp');
+        
+        // Sicherstellen, dass das Hauptmenü ausgeblendet ist
+        if (mainMenuElement) {
+            mainMenuElement.classList.add('d-none');
+            mainMenuElement.style.display = 'none';
+        }
+        
+        // Spiel direkt starten
+        initGame();
+        window.world.isPaused = false;
+    } else {
+        // Sicherstellen, dass das Hauptmenü sichtbar ist
+        if (mainMenuElement) {
+            mainMenuElement.classList.remove('d-none');
+            mainMenuElement.style.display = 'flex';
+        }
+        
+        // Hauptmenü erstellen
+        mainMenu = new MainMenu();
+    }
 }
 
 // Neue Funktion zum Initialisieren des Spiels nach dem Klick auf "Spiel starten"

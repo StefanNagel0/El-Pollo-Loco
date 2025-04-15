@@ -187,16 +187,39 @@ class Endboss extends MovableObject {
                         }
                     } else if (this.isResting) {
                         // Normale Bewegung nach Angriff (mit normaler Geschwindigkeit)
-                        if (this.x > characterX) {
-                            this.otherDirection = true;
-                            this.x -= this.speed;
+                        // Wichtig: Auch hier Mindestabstand (followDistance) berücksichtigen
+                        const distanceToCharacter = Math.abs(this.x - characterX);
+                        
+                        // Nur bewegen, wenn der Abstand größer als der Mindestabstand ist
+                        if (distanceToCharacter > this.followDistance) {
+                            let isMoving = false; // Variable zum Tracken der Bewegung
+                            
+                            if (this.x > characterX) {
+                                // Nach links laufen, aber Mindestabstand einhalten
+                                this.otherDirection = true; // Nach links schauen
+                                this.x -= this.speed;
+                                isMoving = true;
+                            } else {
+                                // Nach rechts laufen, aber Mindestabstand einhalten
+                                this.otherDirection = false; // Nach rechts schauen
+                                this.x += this.speed;
+                                isMoving = true;
+                            }
                         } else {
-                            this.otherDirection = false;
-                            this.x += this.speed;
+                            // Wenn zu nah am Character, in die entgegengesetzte Richtung bewegen
+                            if (this.x > characterX) {
+                                // Vom Character weg nach rechts bewegen
+                                this.otherDirection = false;
+                                this.x += this.speed;
+                            } else {
+                                // Vom Character weg nach links bewegen
+                                this.otherDirection = true;
+                                this.x -= this.speed;
+                            }
                         }
                         
                         // Prüfen, ob Ruhephase beendet ist
-                        const timeSinceAttack = now - this.lastAttackTime;
+                        const timeSinceAttack = new Date().getTime() - this.lastAttackTime;
                         if (timeSinceAttack > this.restDuration) {
                             // Ruhephase beendet
                             this.isResting = false;

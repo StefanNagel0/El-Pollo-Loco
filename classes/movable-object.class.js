@@ -44,15 +44,42 @@ class MovableObject extends DrawableObject {
             this.y + this.offset.top < mo.y + mo.height - mo.offset.bottom;
     }
 
+    // Neue Methode für präzise Kollisionserkennung hinzufügen:
+
+    /**
+     * Überprüft, ob dieses Objekt mit einem anderen Objekt kollidiert,
+     * berücksichtigt dabei die Offset-Werte für präzisere Kollisionserkennung
+     */
+    isPreciselyColiding(obj) {
+        // Character-Position mit Offset-Berücksichtigung
+        const myLeft = this.x + this.offset.left;
+        const myRight = this.x + this.width - this.offset.right;
+        const myTop = this.y + this.offset.top;
+        const myBottom = this.y + this.height - this.offset.bottom;
+        
+        // Andere Objekt-Position (ohne Offset, da nicht jedes Objekt diese hat)
+        const objLeft = obj.x;
+        const objRight = obj.x + obj.width;
+        const objTop = obj.y;
+        const objBottom = obj.y + obj.height;
+        
+        // Kollisionsprüfung mit Offset-Berücksichtigung
+        return myRight > objLeft &&
+                myLeft < objRight &&
+                myBottom > objTop &&
+                myTop < objBottom;
+    }
+
+    /**
+     * Verursacht Schaden am Objekt
+     */
     hit() {
-        const now = new Date().getTime();
-        if (now - this.lastHit > 800) { // Cooldown von 1 Sekunde
-            this.energy -= 5;
-            if (this.energy < 0) {
-                this.energy = 0;
-            }
-            this.lastHit = now; // Zeit des letzten Treffers aktualisieren
+        // Cooldown-Check entfernen, damit bei jeder Kollision Schaden genommen wird
+        this.energy -= 5;
+        if (this.energy < 0) {
+            this.energy = 0;
         }
+        this.lastHit = new Date().getTime(); // Zeit des letzten Treffers für Animation aktualisieren
     }
 
     isHurt() {

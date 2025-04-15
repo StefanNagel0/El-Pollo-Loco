@@ -111,7 +111,7 @@ class World {
 
     checkCollisions() {
         if (this.level.enemies) {
-            this.level.enemies.forEach((enemy) => {
+            this.level.enemies.forEach((enemy, enemyIndex) => {
                 const characterBottom = this.character.y + this.character.height - this.character.offset.bottom;
                 const enemyTop = enemy.y + (enemy.offset?.top || 0);
                 const stompHeight = enemy.stompableAreaHeight || 40;
@@ -149,29 +149,47 @@ class World {
                     }
                 } else if (isCollision) {
                     if (!enemy.isDead) {  // Änderung hier: isDead als Eigenschaft statt als Funktion
-                        if (enemy instanceof Endboss) {
-                            // Spezielle Logik für Kollisionen mit dem Endboss
-                            this.character.hit();
-                            this.character.energy -= (enemy.damage - 5); // Größerer Schaden
-                            this.statusBar.setEnergyPercentage(this.character.energy);
-                        } else if (enemy instanceof Chicken || enemy instanceof smallChicken) {
-                            // Bestehende Logik für normale Chickens
-                            this.character.hit();
-                            this.statusBar.setEnergyPercentage(this.character.energy);
+                        // Gegner-ID zum Tracking erzeugen (nur einmal Schaden pro Gegner)
+                        const enemyId = enemy.constructor.name + '_' + enemyIndex;
+                        
+                        // Prüfen, ob dieser Gegner bereits in der Liste ist
+                        if (!this.character.collidingEnemies.includes(enemyId)) {
+                            // Gegner zur Liste hinzufügen
+                            this.character.collidingEnemies.push(enemyId);
+                            
+                            // Jetzt Schaden zufügen (nur einmal)
+                            if (enemy instanceof Endboss) {
+                                // Spezielle Logik für Kollisionen mit dem Endboss
+                                // NICHT hit() UND energy reduzieren - wähle nur eine Methode
+                                this.character.energy -= enemy.damage; // Nur direkten Schaden anwenden
+                                this.statusBar.setEnergyPercentage(this.character.energy);
+                                this.character.lastHit = new Date().getTime(); // Für Verletzungsanimation
+                            } else if (enemy instanceof Chicken || enemy instanceof smallChicken) {
+                                // Normale Chickens verursachen standardmäßigen Schaden
+                                this.character.hit(); // hit() reduziert bereits Energy um 5
+                                this.statusBar.setEnergyPercentage(this.character.energy);
+                            }
                         }
+                    }
+                } else {
+                    // Keine Kollision mehr, Gegner aus der Liste entfernen
+                    const enemyId = enemy.constructor.name + '_' + enemyIndex;
+                    const index = this.character.collidingEnemies.indexOf(enemyId);
+                    if (index !== -1) {
+                        this.character.collidingEnemies.splice(index, 1);
                     }
                 }
             });
         }
     
         if (this.level.coins) {
-            this.level.coins.forEach((coin) => {
-                if (this.character.isColiding(coin)) {
+            this.level.coins.forEach((coin, index) => {
+                // Hier statt isColiding() die neue präzise Methode verwenden
+                if (this.character.isPreciselyColiding(coin)) {
+                    // Coin einsammeln
                     this.character.collectCoin();
-                    const coinIndex = this.level.coins.indexOf(coin);
-                    if (coinIndex > -1) {
-                        this.level.coins.splice(coinIndex, 1);
-                    }
+                    // Coin aus dem Level entfernen
+                    this.level.coins.splice(index, 1);
                 }
             });
         }
@@ -210,19 +228,22 @@ class World {
                     
                     // Nur horizontale Kollisionen prüfen, die wichtig sind
                     if (distanceX < minDistance && distanceY < enemy1.height / 2) {
-                        // Sanftere Anpassung mit kleinerem Faktor
-                        const adjustmentFactor = 0.5; // Langsamere Anpassung
-                        const correction = (minDistance - distanceX) * adjustmentFactor;
+                        // Statt die Gegner auseinanderzuschieben, drehen wir einfach um
+                        enemy1.otherDirection = !enemy1.otherDirection;
+                        enemy2.otherDirection = !enemy2.otherDirection;
                         
-                        // Feinde basierend auf ihrer Bewegungsrichtung auseinander bewegen
+                        // Kleine Positionskorrektur, damit sie nicht sofort wieder kollidieren
                         if (enemy1.x < enemy2.x) {
-                            // Nur in Richtung ihrer natürlichen Bewegung schieben
-                            if (!enemy1.otherDirection) enemy1.x -= correction * 0.3;
-                            if (enemy2.otherDirection) enemy2.x += correction * 0.3;
+                            enemy1.x -= 10;
+                            enemy2.x += 10;
                         } else {
-                            if (enemy1.otherDirection) enemy1.x += correction * 0.3;
-                            if (!enemy2.otherDirection) enemy2.x -= correction * 0.3;
+                            enemy1.x += 10;
+                            enemy2.x -= 10;
                         }
+                        
+                        // Optional: Kleine Verzögerung bis zur nächsten Richtungsänderung
+                        enemy1.setRandomDirectionChangeTime();
+                        enemy2.setRandomDirectionChangeTime();
                     }
                 }
             });

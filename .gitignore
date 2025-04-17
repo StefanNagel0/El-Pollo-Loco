@@ -1,0 +1,38 @@
+# Betriebssystemdateien
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# IDE-spezifische Dateien
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# Temporäre Dateien
+*.log
+*.tmp
+.cache
+tmp/
+
+# Persönliche Konfigurationsdateien
+*.env
+*.env.local
+config.local.js
+
+# Audio/Video Cache
+.audio-cache/
+.video-cache/
+
+# Kompilierte Dateien falls vorhanden
+dist/
+build/
+
+# Debug-Dateien
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

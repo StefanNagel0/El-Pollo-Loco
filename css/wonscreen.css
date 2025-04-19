@@ -1,0 +1,55 @@
+/* Game Won Screen */
+#game-won-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+#game-won-screen.show {
+    opacity: 1;
+}
+
+.game-won-text {
+    text-align: center;
+    color: white;
+    margin-bottom: 40px;
+}
+
+.game-won-text h1 {
+    font-size: 60px;
+    color: #FFCC00;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    margin-bottom: 20px;
+    letter-spacing: 10px;
+}
+
+.game-won-text p {
+    font-size: 28px;
+    margin-top: 10px;
+}
+
+.game-won-buttons {
+    display: flex;
+    gap: 20px;
+}
+
+
+/* Animation für das Erscheinen des Screens */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+#game-won-screen.show {
+    animation: fadeIn 0.5s forwards;
+}

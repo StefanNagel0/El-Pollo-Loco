@@ -106,8 +106,8 @@ class Character extends MovableObject {
         this.offset = {
             top: 160,    // Sehr großer Abstand von oben
             bottom: 30,  // Größerer Abstand von unten
-            left: 60,    // Größerer Abstand von links
-            right: 60    // Größerer Abstand von rechts
+            left: 45,    // Größerer Abstand von links
+            right: 45    // Größerer Abstand von rechts
         };
 
         // Liste für Kollisionsverfolgung initialisieren

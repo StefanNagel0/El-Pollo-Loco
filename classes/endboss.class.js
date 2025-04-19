@@ -347,6 +347,16 @@ class Endboss extends MovableObject {
             } catch (error) {
                 // Fehlerbehandlung ohne Logging
             }
+            
+            // Nach dem Sound (oder gleichzeitig) den Won-Screen anzeigen
+            setTimeout(() => {
+                // Won-Screen anzeigen
+                if (!window.wonScreen) {
+                    window.wonScreen = new Won();
+                }
+                window.wonScreen.show();
+            }, 1000); // Kurze Verzögerung für bessere Benutzererfahrung
+            
         }, 300); // Längere Verzögerung für bessere Kompatibilität
     }
 

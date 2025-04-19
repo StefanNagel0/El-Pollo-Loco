@@ -16,9 +16,7 @@ body {
     background-attachment: fixed;
     min-height: 100vh;
     margin: 0;
-    padding: 20px;
     box-sizing: border-box;
-    /* Fallback-Farbe, falls das Bild nicht geladen werden kann */
     background-color: #FFD8A0;
 }
 

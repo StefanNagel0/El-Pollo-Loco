@@ -223,7 +223,9 @@ class MainMenu {
             if (this.menuContainer) {
                 // Berechne die Mitte des Canvas
                 const canvasCenter = canvasRect.left + (canvasRect.width / 2);
-                const menuWidth = 720; // Die Breite des Menüs (aus CSS)
+                
+                // Änderung hier: Canvas-Breite statt fester Breite verwenden
+                const menuWidth = canvasRect.width; // Dynamische Breite statt fester 720px
                 
                 // Positioniere das Menü so, dass seine Mitte unter der Canvas-Mitte liegt
                 this.menuContainer.style.top = `${canvasRect.top}px`;
@@ -235,7 +237,7 @@ class MainMenu {
                 this.menuContainer.style.transform = 'none';
             }
             
-            // Settings-Overlay-Position anpassen (bleibt unverändert)
+            // Settings-Overlay-Position anpassen
             const settingsOverlay = document.getElementById('settings-overlay');
             if (settingsOverlay) {
                 settingsOverlay.style.top = `${canvasRect.top}px`;

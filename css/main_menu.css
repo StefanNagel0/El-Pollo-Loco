@@ -9,6 +9,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    width: 100%;
     z-index: 1000; /* Stellt sicher, dass es über anderen Elementen liegt */
 }
 
@@ -23,6 +24,7 @@
 @media only screen and (max-height: 480px) {
     #main-menu {
         height: 100vh;
+        position: static;
     }
 }
 
@@ -46,7 +48,7 @@
     margin-top: 0; /* Reset von vorherigem Margin */
     z-index: 2;
     position: absolute;
-    bottom: 360px;
+    bottom: 77%;
     width: 100%;
 }
 

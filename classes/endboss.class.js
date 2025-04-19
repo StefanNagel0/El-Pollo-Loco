@@ -187,36 +187,61 @@ class Endboss extends MovableObject {
                         }
                     } else if (this.isResting) {
                         // Normale Bewegung nach Angriff (mit normaler Geschwindigkeit)
-                        // Wichtig: Auch hier Mindestabstand (followDistance) berücksichtigen
                         const distanceToCharacter = Math.abs(this.x - characterX);
                         
-                        // Nur bewegen, wenn der Abstand größer als der Mindestabstand ist
-                        if (distanceToCharacter > this.followDistance) {
-                            let isMoving = false; // Variable zum Tracken der Bewegung
-                            
+                        // Vergrößerte Totzone, um weniger Richtungswechsel zu haben
+                        const deadZone = 80; // Erhöht von 20 auf 80 für stabilere Bewegungen
+                        
+                        // Richtungsbeibehalten bei sehr kleinen Änderungen
+                        if (!this.lastDirection) {
+                            // Initiale Richtung setzen, falls noch nicht gesetzt
+                            this.lastDirection = this.x > characterX ? 'left' : 'right';
+                        }
+                        
+                        // Vereinfachte Logik: Entweder vom Character wegbewegen oder Abstand halten
+                        if (distanceToCharacter < this.followDistance) {
+                            // Zu nah am Character - wegbewegen
                             if (this.x > characterX) {
-                                // Nach links laufen, aber Mindestabstand einhalten
-                                this.otherDirection = true; // Nach links schauen
-                                this.x -= this.speed;
-                                isMoving = true;
-                            } else {
-                                // Nach rechts laufen, aber Mindestabstand einhalten
-                                this.otherDirection = false; // Nach rechts schauen
-                                this.x += this.speed;
-                                isMoving = true;
-                            }
-                        } else {
-                            // Wenn zu nah am Character, in die entgegengesetzte Richtung bewegen
-                            if (this.x > characterX) {
-                                // Vom Character weg nach rechts bewegen
+                                // Character ist links vom Endboss - nach rechts bewegen
+                                this.lastDirection = 'right';
                                 this.otherDirection = false;
                                 this.x += this.speed;
                             } else {
-                                // Vom Character weg nach links bewegen
+                                // Character ist rechts vom Endboss - nach links bewegen
+                                this.lastDirection = 'left';
                                 this.otherDirection = true;
                                 this.x -= this.speed;
                             }
+                        } else if (distanceToCharacter > this.followDistance + 100) {
+                            // Zu weit weg - heranbewegen, aber nur bei deutlicher Distanz
+                            if (this.x > characterX + deadZone) {
+                                // Character ist links - nach links bewegen
+                                if (this.lastDirection !== 'left') {
+                                    // Nur Richtung ändern, wenn wir uns bereits länger in die andere Richtung bewegt haben
+                                    this.directionChangeCounter = (this.directionChangeCounter || 0) + 1;
+                                    if (this.directionChangeCounter > 30) { // ~0.5 Sekunden bei 60 FPS
+                                        this.lastDirection = 'left';
+                                        this.directionChangeCounter = 0;
+                                    }
+                                } else {
+                                    this.otherDirection = true;
+                                    this.x -= this.speed;
+                                }
+                            } else if (this.x < characterX - deadZone) {
+                                // Character ist rechts - nach rechts bewegen
+                                if (this.lastDirection !== 'right') {
+                                    this.directionChangeCounter = (this.directionChangeCounter || 0) + 1;
+                                    if (this.directionChangeCounter > 30) {
+                                        this.lastDirection = 'right';
+                                        this.directionChangeCounter = 0;
+                                    }
+                                } else {
+                                    this.otherDirection = false;
+                                    this.x += this.speed;
+                                }
+                            }
                         }
+                        // Innerhalb des guten Abstands und der Totzone: Stehen bleiben und aktuelle Richtung beibehalten
                         
                         // Prüfen, ob Ruhephase beendet ist
                         const timeSinceAttack = new Date().getTime() - this.lastAttackTime;
@@ -224,6 +249,7 @@ class Endboss extends MovableObject {
                             // Ruhephase beendet
                             this.isResting = false;
                             this.setRandomAttackCooldown();
+                            this.lastDirection = null; // Richtungsspeicher zurücksetzen
                         }
                     } else if (now >= this.attackCooldown && distanceAbs < 600) {
                         // Cooldown abgelaufen und Character in Reichweite - starte neuen Angriff
@@ -233,14 +259,17 @@ class Endboss extends MovableObject {
                         const distanceToCharacter = Math.abs(this.x - characterX);
                         let isMoving = false; // Variable zum Tracken, ob der Endboss sich bewegt
                         
-                        if (this.x > characterX) {
+                        // Totzone hinzufügen: Bei sehr geringem Abstand keine Richtungsänderung
+                        const deadZone = 20; // 20 Pixel Totzone
+                        
+                        if (this.x > characterX + deadZone) {
                             // Nach links laufen, aber Mindestabstand einhalten
                             this.otherDirection = true; // Nach links schauen
                             if (distanceToCharacter > this.followDistance) {
                                 this.x -= this.speed;
                                 isMoving = true; // Bewegt sich
                             }
-                        } else {
+                        } else if (this.x < characterX - deadZone) {
                             // Nach rechts laufen, aber Mindestabstand einhalten
                             this.otherDirection = false; // Nach rechts schauen
                             if (distanceToCharacter > this.followDistance) {
@@ -248,6 +277,7 @@ class Endboss extends MovableObject {
                                 isMoving = true; // Bewegt sich
                             }
                         }
+                        // Innerhalb der Totzone behält er die aktuelle Richtung bei
                         
                         // Wenn der Mindestabstand erreicht wurde und der Endboss nicht mehr läuft,
                         // wechsle wieder in den Alert-Zustand

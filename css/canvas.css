@@ -29,14 +29,25 @@ canvas{
     }
     body{
         padding: 0;
+        width: 100%;
     }
-    h1{
+    .header_h1{
         display: none;
+    }
+    .menu-button{
+        bottom: 285px;
+        position: sticky;
     }
 }
 
 @media only screen and (max-height: 480px) {
     canvas {
         height: 100vh;
+    }
+    body{
+        height: 100vh;
+    }
+    .menu-buttons{
+        bottom: 285px;
     }
 }

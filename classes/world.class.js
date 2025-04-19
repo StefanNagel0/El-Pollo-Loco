@@ -259,7 +259,6 @@ class World {
                     const enemyIsDead = enemy instanceof Endboss ? enemy.isDead() : enemy.isDead;
                     
                     if (bottle.isColiding(enemy) && !enemyIsDead && !bottle.isBroken) {
-                        console.log('Flasche kollidiert mit:', enemy instanceof Endboss ? 'Endboss' : 'Chicken');
                         
                         // Flasche zerbrechen lassen
                         bottle.break();
@@ -267,7 +266,6 @@ class World {
                         // Spezialbehandlung für den Endboss
                         if (enemy instanceof Endboss) {
                             enemy.hitWithBottle(); // Spezielle Methode für den Endboss
-                            console.log('Endboss getroffen, Energie:', enemy.energy);
                         } else {
                             // Normale Gegner sterben sofort
                             enemy.die(true); // true für "fromBottle"

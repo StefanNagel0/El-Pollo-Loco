@@ -548,6 +548,15 @@ class UserInterface extends DrawableObject {
                 this.closeSettings();
             });
         }
+        
+        // Neuen Button für Legal Notice referenzieren und Event-Listener hinzufügen
+        this.legalNoticeBtn = document.getElementById('legal-notice-btn');
+        if (this.legalNoticeBtn) {
+            this.legalNoticeBtn.addEventListener('click', () => {
+                // Legal Notice in neuem Tab öffnen
+                window.open('../html/legal_notice.html', '_blank');
+            });
+        }
     }
 
     openSettings() {

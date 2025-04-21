@@ -326,3 +326,15 @@
 .no-button:hover {
     background-color: #757575;
 }
+
+/* Am Ende der Datei oder bei den anderen Button-Stilen hinzufügen */
+
+.legal-button {
+    background-color: #607D8B; /* Anderer Farbton als die anderen Buttons */
+    margin-top: 10px;
+    font-size: 16px; /* Etwas kleinere Schrift */
+}
+
+.legal-button:hover {
+    background-color: #455A64;
+}

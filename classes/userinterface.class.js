@@ -107,6 +107,11 @@ class UserInterface extends DrawableObject {
         this.soundIcon.onerror = () => {};
         this.settingsIcon.onerror = () => {};
         this.fullscreenIcon.onerror = () => {};
+
+        // Event-Listener für Fenstergrößenänderungen
+        window.addEventListener('resize', () => {
+            this.scheduleIconPositionUpdate();
+        });
     }
 
     // Neue Methode zum Aktualisieren der Icon-Positionen
@@ -199,33 +204,62 @@ class UserInterface extends DrawableObject {
         // Mausbewegung verfolgen für Hover-Effekte
         this.canvas.addEventListener('mousemove', (event) => {
             const rect = this.canvas.getBoundingClientRect();
-            const scaleX = this.canvas.width / rect.width;
-            const scaleY = this.canvas.height / rect.height;
             
-            // Mauskoordinaten relativ zur Canvas unter Berücksichtigung der Skalierung
-            const mouseX = (event.clientX - rect.left) * scaleX;
-            const mouseY = (event.clientY - rect.top) * scaleY;
+            // Berechne das tatsächlich sichtbare Canvas-Rechteck (ohne schwarze Ränder)
+            const canvasAspectRatio = this.canvas.width / this.canvas.height;
+            const rectAspectRatio = rect.width / rect.height;
             
-            // Sound-Icon Hover prüfen
+            let visibleWidth, visibleHeight, offsetX, offsetY;
+            
+            if (rectAspectRatio > canvasAspectRatio) {
+                // Schwarze Ränder links und rechts
+                visibleHeight = rect.height;
+                visibleWidth = visibleHeight * canvasAspectRatio;
+                offsetX = (rect.width - visibleWidth) / 2;
+                offsetY = 0;
+            } else {
+                // Schwarze Ränder oben und unten
+                visibleWidth = rect.width;
+                visibleHeight = visibleWidth / canvasAspectRatio;
+                offsetX = 0;
+                offsetY = (rect.height - visibleHeight) / 2;
+            }
+            
+            // Anpassung der Mauskoordinaten
+            // In normaler Querformat-Ansicht (nicht Fullscreen) ist die Berechnung anders
+            let relativeX, relativeY;
+            
+            if (this.isFullscreen) {
+                // Fullscreen-Modus: Berücksichtige schwarze Ränder
+                relativeX = ((event.clientX - rect.left - offsetX) / visibleWidth) * this.canvas.width;
+                relativeY = ((event.clientY - rect.top - offsetY) / visibleHeight) * this.canvas.height;
+            } else {
+                // Normaler Modus: Direkte Skalierung mit einem kleinen Toleranzfaktor
+                relativeX = (event.clientX - rect.left) / rect.width * this.canvas.width;
+                relativeY = (event.clientY - rect.top) / rect.height * this.canvas.height;
+            }
+            
+            // Sound-Icon Hover prüfen mit erhöhter Toleranz
+            const iconTolerance = 10; // 10px Toleranzbereich hinzufügen
             this.soundIconHovered = 
-                mouseX >= this.soundIconX &&
-                mouseX <= this.soundIconX + this.soundIconWidth &&
-                mouseY >= this.soundIconY &&
-                mouseY <= this.soundIconY + this.soundIconHeight;
-                
-            // Settings-Icon Hover prüfen
+                relativeX >= (this.soundIconX - iconTolerance) &&
+                relativeX <= (this.soundIconX + this.soundIconWidth + iconTolerance) &&
+                relativeY >= (this.soundIconY - iconTolerance) &&
+                relativeY <= (this.soundIconY + this.soundIconHeight + iconTolerance);
+                    
+            // Settings-Icon Hover prüfen mit erhöhter Toleranz
             this.settingsIconHovered = 
-                mouseX >= this.settingsIconX &&
-                mouseX <= this.settingsIconX + this.settingsIconWidth &&
-                mouseY >= this.settingsIconY &&
-                mouseY <= this.settingsIconY + this.settingsIconHeight;
-                
-            // Fullscreen-Icon Hover prüfen
+                relativeX >= (this.settingsIconX - iconTolerance) &&
+                relativeX <= (this.settingsIconX + this.settingsIconWidth + iconTolerance) &&
+                relativeY >= (this.settingsIconY - iconTolerance) &&
+                relativeY <= (this.settingsIconY + this.settingsIconHeight + iconTolerance);
+                    
+            // Fullscreen-Icon Hover prüfen mit erhöhter Toleranz
             this.fullscreenIconHovered = 
-                mouseX >= this.fullscreenIconX &&
-                mouseX <= this.fullscreenIconX + this.fullscreenIconWidth &&
-                mouseY >= this.fullscreenIconY &&
-                mouseY <= this.fullscreenIconY + this.fullscreenIconHeight;
+                relativeX >= (this.fullscreenIconX - iconTolerance) &&
+                relativeX <= (this.fullscreenIconX + this.fullscreenIconWidth + iconTolerance) &&
+                relativeY >= (this.fullscreenIconY - iconTolerance) &&
+                relativeY <= (this.fullscreenIconY + this.fullscreenIconHeight + iconTolerance);
             
             // Cursor-Stil anpassen
             if (this.soundIconHovered || this.settingsIconHovered || this.fullscreenIconHovered) {
@@ -235,58 +269,85 @@ class UserInterface extends DrawableObject {
             }
         });
         
+        // Gleiche verbesserte Berechnung für den Click-Event-Listener
+        this.canvas.addEventListener('click', (event) => {
+            const rect = this.canvas.getBoundingClientRect();
+            
+            // Berechne das tatsächlich sichtbare Canvas-Rechteck
+            const canvasAspectRatio = this.canvas.width / this.canvas.height;
+            const rectAspectRatio = rect.width / rect.height;
+            
+            let visibleWidth, visibleHeight, offsetX, offsetY;
+            
+            if (rectAspectRatio > canvasAspectRatio) {
+                // Schwarze Ränder links und rechts
+                visibleHeight = rect.height;
+                visibleWidth = visibleHeight * canvasAspectRatio;
+                offsetX = (rect.width - visibleWidth) / 2;
+                offsetY = 0;
+            } else {
+                // Schwarze Ränder oben und unten
+                visibleWidth = rect.width;
+                visibleHeight = visibleWidth / canvasAspectRatio;
+                offsetX = 0;
+                offsetY = (rect.height - visibleHeight) / 2;
+            }
+            
+            // Anpassung der Mauskoordinaten je nach Modus
+            let relativeX, relativeY;
+            
+            if (this.isFullscreen) {
+                // Fullscreen-Modus: Berücksichtige schwarze Ränder
+                relativeX = ((event.clientX - rect.left - offsetX) / visibleWidth) * this.canvas.width;
+                relativeY = ((event.clientY - rect.top - offsetY) / visibleHeight) * this.canvas.height;
+            } else {
+                // Normaler Modus: Direkte Skalierung
+                relativeX = (event.clientX - rect.left) / rect.width * this.canvas.width;
+                relativeY = (event.clientY - rect.top) / rect.height * this.canvas.height;
+            }
+            
+            console.log('Klick bei:', relativeX, relativeY, 'isFullscreen:', this.isFullscreen);
+            console.log('Sound-Icon bei:', this.soundIconX, this.soundIconY, 'bis', this.soundIconX + this.soundIconWidth, this.soundIconY + this.soundIconHeight);
+            
+            // Toleranzbereich für leichteres Klicken
+            const iconTolerance = 10;
+            
+            // Überprüfen, ob auf das Sound-Icon geklickt wurde
+            if (relativeX >= (this.soundIconX - iconTolerance) &&
+                relativeX <= (this.soundIconX + this.soundIconWidth + iconTolerance) &&
+                relativeY >= (this.soundIconY - iconTolerance) &&
+                relativeY <= (this.soundIconY + this.soundIconHeight + iconTolerance)) {
+                this.toggleSound();
+            }
+            
+            // Überprüfen, ob auf das Settings-Icon geklickt wurde
+            if (relativeX >= (this.settingsIconX - iconTolerance) &&
+                relativeX <= (this.settingsIconX + this.settingsIconWidth + iconTolerance) &&
+                relativeY >= (this.settingsIconY - iconTolerance) &&
+                relativeY <= (this.settingsIconY + this.settingsIconHeight + iconTolerance)) {
+                this.openSettings();
+            }
+            
+            // Überprüfen, ob auf das Fullscreen-Icon geklickt wurde
+            const isSmallScreen = window.innerWidth < 720;
+            const isLandscape = window.innerHeight < window.innerWidth;
+            const shouldDisplayFullscreenIcon = !(isSmallScreen && isLandscape);
+
+            if (shouldDisplayFullscreenIcon && 
+                relativeX >= (this.fullscreenIconX - iconTolerance) &&
+                relativeX <= (this.fullscreenIconX + this.fullscreenIconWidth + iconTolerance) &&
+                relativeY >= (this.fullscreenIconY - iconTolerance) &&
+                relativeY <= (this.fullscreenIconY + this.fullscreenIconHeight + iconTolerance)) {
+                this.toggleFullscreen();
+            }
+        });
+        
         // Maus verlässt den Canvas
         this.canvas.addEventListener('mouseout', () => {
             this.soundIconHovered = false;
             this.settingsIconHovered = false;
             this.fullscreenIconHovered = false;
             this.canvas.style.cursor = 'default';
-        });
-        
-        // Den vorhandenen Click-Event-Listener beibehalten
-        this.canvas.addEventListener('click', (event) => {
-            const rect = this.canvas.getBoundingClientRect();
-            const scaleX = this.canvas.width / rect.width;
-            const scaleY = this.canvas.height / rect.height;
-            
-            // Klickkoordinaten relativ zur Canvas unter Berücksichtigung der Skalierung
-            const clickX = (event.clientX - rect.left) * scaleX;
-            const clickY = (event.clientY - rect.top) * scaleY;
-            
-            // Überprüfen, ob auf das Sound-Icon geklickt wurde
-            if (
-                clickX >= this.soundIconX &&
-                clickX <= this.soundIconX + this.soundIconWidth &&
-                clickY >= this.soundIconY &&
-                clickY <= this.soundIconY + this.soundIconHeight
-            ) {
-                this.toggleSound();
-            }
-            
-            // Überprüfen, ob auf das Settings-Icon geklickt wurde
-            if (
-                clickX >= this.settingsIconX &&
-                clickX <= this.settingsIconX + this.settingsIconWidth &&
-                clickY >= this.settingsIconY &&
-                clickY <= this.settingsIconY + this.settingsIconHeight
-            ) {
-                this.openSettings();
-            }
-            
-            // Überprüfen, ob auf das Fullscreen-Icon geklickt wurde
-            // Nur prüfen, wenn es angezeigt wird (nicht in mobiler Querformat-Ansicht)
-            const isSmallScreen = window.innerWidth < 720;
-            const isLandscape = window.innerHeight < window.innerWidth;
-            const shouldDisplayFullscreenIcon = !(isSmallScreen && isLandscape);
-
-            if (shouldDisplayFullscreenIcon && 
-                clickX >= this.fullscreenIconX &&
-                clickX <= this.fullscreenIconX + this.fullscreenIconWidth &&
-                clickY >= this.fullscreenIconY &&
-                clickY <= this.fullscreenIconY + this.fullscreenIconHeight
-            ) {
-                this.toggleFullscreen();
-            }
         });
     }
     
@@ -304,7 +365,7 @@ class UserInterface extends DrawableObject {
                 document.documentElement.msRequestFullscreen();
             }
             this.isFullscreen = true;
-            document.body.classList.add('fullscreen'); // CSS-Klasse zum body-Element hinzufügen
+            document.body.classList.add('fullscreen');
         } else {
             // Vollbildmodus beenden
             if (document.exitFullscreen) {
@@ -317,22 +378,56 @@ class UserInterface extends DrawableObject {
                 document.msExitFullscreen();
             }
             this.isFullscreen = false;
-            document.body.classList.remove('fullscreen'); // CSS-Klasse vom body-Element entfernen
+            document.body.classList.remove('fullscreen');
         }
         
         this.updateFullscreenIcon();
 
-        // Positionen nach Änderung des Vollbildstatus aktualisieren
-        setTimeout(() => {
-            this.updateIconPositions();
-        }, 100); // Kurze Verzögerung für die Anpassung des Browserfensters
+        // Verzögerte Aktualisierung, damit Änderungen wirksam werden können
+        this.scheduleIconPositionUpdate();
     }
-    
+
     // Icon basierend auf dem aktuellen Fullscreen-Status aktualisieren
     updateFullscreenIcon() {
         this.fullscreenIcon.src = this.isFullscreen 
             ? '../assets/img/ui_images/fullscreen_exit.svg'
             : '../assets/img/ui_images/fullscreen.svg';
+    }
+
+    // Neue Methode für verzögerte Aktualisierung
+    scheduleIconPositionUpdate() {
+        // Sofortige Aktualisierung
+        this.updateIconPositions();
+        this.updateIconHitboxes();
+        
+        // Nach 100ms nochmals aktualisieren (kurze Wartezeit)
+        setTimeout(() => {
+            this.updateIconPositions();
+            this.updateIconHitboxes();
+        }, 100);
+        
+        // Nach 300ms final aktualisieren (für langsamere Browser/Geräte)
+        setTimeout(() => {
+            this.updateIconPositions();
+            this.updateIconHitboxes();
+        }, 300);
+    }
+
+    // Neue Methode hinzufügen, um die Hitboxen der Icons zu aktualisieren
+    updateIconHitboxes() {
+        const rect = this.canvas.getBoundingClientRect();
+        
+        // Wichtig: Hier die richtigen Canvas-Dimensionen verwenden
+        const canvasRenderWidth = this.canvas.width;
+        const canvasRenderHeight = this.canvas.height;
+        
+        // Skalierungsfaktoren berechnen
+        const scaleX = canvasRenderWidth / rect.width;
+        const scaleY = canvasRenderHeight / rect.height;
+        
+        // Diese Werte für die Event-Handler speichern
+        this.canvasScaleX = scaleX;
+        this.canvasScaleY = scaleY;
     }
 
     initSettingsOverlay() {
@@ -353,6 +448,7 @@ class UserInterface extends DrawableObject {
         
         this.exitGameBtn = document.getElementById('exit-game');
         this.closeSettingsBtn = document.getElementById('close-settings');
+        this.returnToGameBtn = document.getElementById('return-to-game'); // Neue Referenz hinzufügen
         
         // Referenz für X-Button
         this.closeXBtn = document.getElementById('close-x');
@@ -360,6 +456,11 @@ class UserInterface extends DrawableObject {
         // Event-Listener für X-Button hinzufügen
         if (this.closeXBtn) {
             this.closeXBtn.addEventListener('click', () => this.closeSettings());
+        }
+        
+        // Event-Listener für "Zurück zum Spiel"-Button hinzufügen
+        if (this.returnToGameBtn) {
+            this.returnToGameBtn.addEventListener('click', () => this.closeSettings());
         }
         
         // Bestehenden Listener für den Close-Button beibehalten (für Kompatibilität)
@@ -500,15 +601,35 @@ class UserInterface extends DrawableObject {
         settingsOverlay.classList.remove('d-none');
     }
 
-    closeSettings() {
-        // Spiel fortsetzen
-        if (this.canvas && window.world) {
+    closeSettings(){
+        // Spiel fortsetzen mit verzögerter Ausführung
+        if (window.world) {
+            // Direktes Setzen des isPaused-Werts
             window.world.isPaused = false;
+            
+            setTimeout(() => {
+                if (window.world) {
+                    window.world.isPaused = false;
+                }
+            }, 50);
         }
         
         const settingsOverlay = document.getElementById('settings-overlay');
-        settingsOverlay.classList.remove('show');
-        settingsOverlay.classList.add('d-none');
+        if (settingsOverlay) {
+            settingsOverlay.classList.remove('show');
+            settingsOverlay.classList.add('d-none');
+            
+            // Diese Zeile entfernen oder kommentieren:
+            // settingsOverlay.style.display = 'none'; 
+            // Stattdessen:
+            // Nach kurzer Verzögerung alle inline-Styles zurücksetzen
+            setTimeout(() => {
+                if (settingsOverlay) {
+                    // Inline-Style zurücksetzen für erneutes Öffnen
+                    settingsOverlay.removeAttribute('style');
+                }
+            }, 100);
+        }
     }
 
     // Neue Methode zum Wechseln der Tabs

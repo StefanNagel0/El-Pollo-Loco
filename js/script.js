@@ -31,7 +31,7 @@ function checkOrientation() {
 
     if (isPortrait && isSmallScreen) {
         // Hochformat und kleine Bildschirmbreite: Video anzeigen, Hauptmenü ausblenden
-        videoContainer.classList.remove('d-none');
+        videoContainer.classList.add('show-rotation-video'); // Neue Klasse verwenden
         if (mainMenu) {
             mainMenu.classList.add('d-none');
         }
@@ -45,11 +45,11 @@ function checkOrientation() {
         // Sicherstellen, dass das Video abspielt
         const video = videoContainer.querySelector('video');
         if (video) {
-            video.play().catch(e => console.log('Autoplay prevented:', e));
+            video.play().catch(e => {});
         }
     } else {
         // Querformat oder große Bildschirmbreite: Video ausblenden, Hauptmenü anzeigen
-        videoContainer.classList.add('d-none');
+        videoContainer.classList.remove('show-rotation-video'); // Neue Klasse entfernen
         if (mainMenu) {
             mainMenu.classList.remove('d-none');
         }
@@ -83,17 +83,6 @@ function checkOrientation() {
             mobileControls.style.display = 'none';
         }
     }
-
-    // Log zur Fehlerbehebung
-    console.log("Spielstatus:", {
-        worldExists: !!window.world,
-        isPaused: window.world?.isPaused,
-        mainMenuHidden: document.getElementById('main-menu')?.classList.contains('d-none'),
-        settingsHidden: !document.getElementById('settings-overlay')?.classList.contains('show'),
-        gameOverHidden: !document.getElementById('game-over-screen')?.classList.contains('show'),
-        gameWonHidden: !document.getElementById('game-won-screen')?.classList.contains('show'),
-        confirmHidden: !document.getElementById('custom-confirm')?.classList.contains('show')
-    });
 }
 
 /**
@@ -110,20 +99,14 @@ function initMobileControls() {
     function handleTouchStart(event, keyAction) {
         event.preventDefault();
         event.currentTarget.classList.add('active');
-        console.log('Touch Start:', keyAction);
         
         // Überprüfen, welches keyboard-Objekt verwendet wird
         if (window.keyboard) {
             window.keyboard[keyAction] = true;
-            console.log('Keyboard-Objekt:', window.keyboard);
-            
-            // Zusätzlich: Direktes Prüfen der Eigenschaft
-            console.log(`Ist ${keyAction} gesetzt?`, window.keyboard[keyAction]);
             
             // Wenn es ein world-Objekt gibt, setze auch dort die Taste
             if (window.world && window.world.keyboard) {
                 window.world.keyboard[keyAction] = true;
-                console.log('World.keyboard nach Start:', window.world.keyboard);
             }
         }
     }
@@ -131,10 +114,8 @@ function initMobileControls() {
     function handleTouchEnd(event, keyAction) {
         event.preventDefault();
         event.currentTarget.classList.remove('active');
-        console.log('Touch End:', keyAction); // Debug-Ausgabe
         if (window.keyboard) {
             window.keyboard[keyAction] = false;
-            console.log('Keyboard nach End:', window.keyboard); // Debug-Ausgabe
         }
     }
 
@@ -266,13 +247,6 @@ function setupGameStateObserver() {
                 !document.getElementById('game-over-screen')?.classList.contains('show') &&
                 !document.getElementById('game-won-screen')?.classList.contains('show') &&
                 !document.getElementById('custom-confirm')?.classList.contains('show');
-
-            console.log("Spielstatus:", {
-                worldExists: !!window.world,
-                isPaused: window.world?.isPaused,
-                mainMenuHidden: document.getElementById('main-menu')?.classList.contains('d-none'),
-                settingsHidden: !document.getElementById('settings-overlay')?.classList.contains('show')
-            });
             
             mobileControls.style.display = gameActive ? 'flex' : 'none';
         } else {
@@ -301,6 +275,69 @@ function setupGameStateObserver() {
 }
 
 /**
+ * Initialisiert die UI-Steuerelemente
+ */
+function setupUIControls() {
+    const soundIcon = document.getElementById('sound-icon');
+    const settingsIcon = document.getElementById('settings-icon');
+    const fullscreenIcon = document.getElementById('fullscreen-icon');
+
+    // Sound-Icon-Funktionalität
+    if (soundIcon) {
+        soundIcon.addEventListener('click', () => {
+            if (window.world?.userInterface) {
+                window.world.userInterface.toggleSound();
+                // Sound-Icon aktualisieren
+                const img = soundIcon.querySelector('img');
+                if (img) {
+                    img.src = window.world.userInterface.isMuted
+                        ? '../assets/img/ui_images/sound_off.svg'
+                        : '../assets/img/ui_images/sound_on.svg';
+                }
+            }
+        });
+    }
+
+    // Settings-Icon-Funktionalität
+    if (settingsIcon) {
+        settingsIcon.addEventListener('click', () => {
+            if (window.world?.userInterface) {
+                window.world.userInterface.openSettings();
+            }
+        });
+    }
+
+    // Fullscreen-Icon-Funktionalität
+    if (fullscreenIcon) {
+        fullscreenIcon.addEventListener('click', () => {
+            if (window.world?.userInterface) {
+                window.world.userInterface.toggleFullscreen();
+                // Fullscreen-Icon aktualisieren
+                const img = fullscreenIcon.querySelector('img');
+                if (img && window.world.userInterface.isFullscreen) {
+                    img.src = '../assets/img/ui_images/fullscreen_exit.svg';
+                } else if (img) {
+                    img.src = '../assets/img/ui_images/fullscreen.svg';
+                }
+            }
+        });
+    }
+
+    // Fullscreen-Änderungserkennung
+    document.addEventListener('fullscreenchange', () => {
+        if (fullscreenIcon) {
+            const isFullscreen = !!document.fullscreenElement;
+            const img = fullscreenIcon.querySelector('img');
+            if (img) {
+                img.src = isFullscreen
+                    ? '../assets/img/ui_images/fullscreen_exit.svg'
+                    : '../assets/img/ui_images/fullscreen.svg';
+            }
+        }
+    });
+}
+
+/**
  * Event-Listener für DOMContentLoaded
  */
 document.addEventListener('DOMContentLoaded', function () {
@@ -316,4 +353,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Neuer Code: Game State Observer starten
     setupGameStateObserver();
+
+    // UI-Steuerelemente initialisieren
+    setupUIControls();
 });

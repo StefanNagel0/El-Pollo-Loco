@@ -55,18 +55,18 @@
             <img src="../assets/img/ui_images/sound_on.svg" alt="Sound" id="menu-sound-icon">
         </div>
         <div class="menu-buttons">
-            <button id="start-game" class="menu-button">Spiel starten</button>
+            <button id="start-game" class="menu-button">Start Game</button>
         </div>
     </div>
 
     <!-- Überarbeitetes Settings-Overlay mit How-to-Play und Audio-Tabs -->
     <div id="settings-overlay" class="d-none">
         <div class="settings-container">
-            <h2>Einstellungen</h2>
+            <h2>Settings</h2>
             <button class="close-x" id="close-x">&times;</button>
             
             <div class="settings-tabs">
-                <div class="tab active" id="game-tab" data-tab="game-content">Spiel</div>
+                <div class="tab active" id="game-tab" data-tab="game-content">Game</div>
                 <div class="tab" id="how-to-play-tab" data-tab="how-to-play-content">How to Play</div>
                 <div class="tab" id="audio-tab" data-tab="audio-content">Audio</div>
             </div>
@@ -75,10 +75,10 @@
                 <!-- Neuer "Spiel"-Tab Content -->
                 <div id="game-content" class="tab-content">
                     <div class="game-buttons">
-                        <button id="return-to-game" class="game-button">Zurück zum Spiel</button>
-                        <button id="exit-game" class="game-button exit-button">Spiel beenden</button>
+                        <button id="return-to-game" class="game-button">Back to Game</button>
+                        <button id="exit-game" class="game-button exit-button">Exit Game</button>
                         <!-- Neuer Button für Legal Notice -->
-                        <button id="legal-notice-btn" class="game-button legal-button">Impressum</button>
+                        <button id="legal-notice-btn" class="game-button legal-button">Legal Notice</button>
                     </div>
                 </div>
 
@@ -87,48 +87,48 @@
                     <div class="controls-content">
                         <div class="control-item">
                             <div class="key">←</div>
-                            <span>Nach links bewegen</span>
+                            <span>Move left</span>
                         </div>
                         <div class="control-item">
                             <div class="key">→</div>
-                            <span>Nach rechts bewegen</span>
+                            <span>Move right</span>
                         </div>
                         <div class="control-item">
                             <div class="key">SPACE</div>
-                            <span>Springen</span>
+                            <span>Jump</span>
                         </div>
                         <div class="control-item">
                             <div class="key">D</div>
-                            <span>Flasche werfen</span>
+                            <span>Throw bottles</span>
                         </div>
                     </div>
                     <div class="how-to-play-tips">
-                        <p>• Sammle Münzen und Flaschen</p>
-                        <p>• Springe auf Hühner, um sie zu besiegen</p>
-                        <p>• Wirf Flaschen auf den Endboss</p>
-                        <p>• Vermeide es, von Gegnern getroffen zu werden</p>
+                        <p>• Collect coins & bottles</p>
+                        <p>• Jump on chickens to defeat them</p>
+                        <p>• Throw bottles at the end boss</p>
+                        <p>• Avoid getting hit by enemies</p>
                     </div>
                 </div>
                 
                 <!-- Audio Tab Content -->
                 <div id="audio-content" class="tab-content d-none">
                     <div class="setting">
-                        <label for="character-volume">Character: <span id="character-volume-value">5</span></label>
+                        <label for="character-volume">Character: <span id="character-volume-value">1</span></label>
                         <input type="range" id="character-volume" class="volume-slider" min="0" max="10" value="1">
                     </div>
                     
                     <div class="setting">
-                        <label for="enemies-volume">Gegner: <span id="enemies-volume-value">1</span></label>
+                        <label for="enemies-volume">Enemies: <span id="enemies-volume-value">1</span></label>
                         <input type="range" id="enemies-volume" class="volume-slider" min="0" max="10" value="1"> 
                     </div>
                     
                     <div class="setting">
-                        <label for="objects-volume">Objekte: <span id="objects-volume-value">1</span></label>
+                        <label for="objects-volume">Objects: <span id="objects-volume-value">1</span></label>
                         <input type="range" id="objects-volume" class="volume-slider" min="0" max="10" value="1">
                     </div>
                     
                     <div class="setting">
-                        <label for="music-volume">Musik: <span id="music-volume-value">1</span></label>
+                        <label for="music-volume">Music: <span id="music-volume-value">1</span></label>
                         <input type="range" id="music-volume" class="volume-slider" min="0" max="10" value="1">
                     </div>
                 </div>
@@ -139,11 +139,11 @@
     <!-- Benutzerdefinierter Bestätigungsdialog - unbedingt mit d-none Klasse -->
     <div id="custom-confirm" class="d-none">
         <div class="custom-confirm-container">
-            <h3>Bist du sicher?</h3>
-            <p>Möchtest du das Spiel wirklich beenden?</p>
+            <h3>Are you sure?</h3>
+            <p>Do you really want to exit the game?</p>
             <div class="confirm-buttons">
-                <button id="confirm-yes" class="confirm-button yes-button">Ja</button>
-                <button id="confirm-no" class="confirm-button no-button">Nein</button>
+                <button id="confirm-yes" class="confirm-button yes-button">Yes</button>
+                <button id="confirm-no" class="confirm-button no-button">No</button>
             </div>
         </div>
     </div>

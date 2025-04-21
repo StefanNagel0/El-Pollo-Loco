@@ -43,11 +43,11 @@ class Won {
         
         // Überschrift erstellen
         const headline = document.createElement('h1');
-        headline.textContent = 'DU HAST GEWONNEN!';
+        headline.textContent = 'YOU WON!'; // war: 'DU HAST GEWONNEN!'
         
         // Untertext erstellen
         const subtext = document.createElement('p');
-        subtext.textContent = 'Herzlichen Glückwunsch! Du hast den Endboss besiegt!';
+        subtext.textContent = 'Congratulations! You defeated the final boss!'; // war: 'Herzlichen Glückwunsch! Du hast den Endboss besiegt!'
         
         // Text zum Container hinzufügen
         textContainer.appendChild(headline);
@@ -59,13 +59,13 @@ class Won {
         
         // Restart-Button erstellen
         const restartButton = document.createElement('button');
-        restartButton.textContent = 'Spiel neu starten';
+        restartButton.textContent = 'Restart Game'; // war: 'Spiel neu starten'
         restartButton.classList.add('game-button'); // Standard-Button-Klasse verwenden
         restartButton.addEventListener('click', () => this.restartGame());
         
         // Main-Menu-Button erstellen
         const mainMenuButton = document.createElement('button');
-        mainMenuButton.textContent = 'Zurück zum Hauptmenü';
+        mainMenuButton.textContent = 'Back to Main Menu'; // war: 'Zurück zum Hauptmenü'
         mainMenuButton.classList.add('game-button'); // Standard-Button-Klasse verwenden
         mainMenuButton.addEventListener('click', () => this.backToMainMenu());
         

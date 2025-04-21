@@ -79,13 +79,13 @@ class Endscreen {
         
         // Restart-Button erstellen
         const restartButton = document.createElement('button');
-        restartButton.textContent = 'Spiel neu starten';
+        restartButton.textContent = 'Restart Game';
         restartButton.classList.add('game-over-button');
         restartButton.addEventListener('click', () => this.restartGame());
         
         // Main-Menu-Button erstellen
         const mainMenuButton = document.createElement('button');
-        mainMenuButton.textContent = 'Zurück zum Hauptmenü';
+        mainMenuButton.textContent = 'Back to Main Menu';
         mainMenuButton.classList.add('game-over-button');
         mainMenuButton.addEventListener('click', () => this.backToMainMenu());
         

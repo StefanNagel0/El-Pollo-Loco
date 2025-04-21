@@ -170,30 +170,41 @@ class UserInterface extends DrawableObject {
         );
         this.ctx.restore();
         
-        // Fullscreen-Icon mit Hover-Effekt
-        this.ctx.save();
-        if (this.fullscreenIconHovered) {
-            // Bei Hover: Leicht vergrößern
-            this.ctx.translate(this.fullscreenIconX + this.fullscreenIconWidth/2, this.fullscreenIconY + this.fullscreenIconHeight/2);
-            this.ctx.scale(1.1, 1.1);
-            this.ctx.translate(-(this.fullscreenIconX + this.fullscreenIconWidth/2), -(this.fullscreenIconY + this.fullscreenIconHeight/2));
+        // Fullscreen-Icon nur anzeigen, wenn nicht in mobiler Querformat-Ansicht
+        const isSmallScreen = window.innerWidth < 720;
+        const isLandscape = window.innerHeight < window.innerWidth;
+        const shouldDisplayFullscreenIcon = !(isSmallScreen && isLandscape);
+        
+        if (shouldDisplayFullscreenIcon) {
+            // Fullscreen-Icon mit Hover-Effekt
+            this.ctx.save();
+            if (this.fullscreenIconHovered) {
+                // Bei Hover: Leicht vergrößern
+                this.ctx.translate(this.fullscreenIconX + this.fullscreenIconWidth/2, this.fullscreenIconY + this.fullscreenIconHeight/2);
+                this.ctx.scale(1.1, 1.1);
+                this.ctx.translate(-(this.fullscreenIconX + this.fullscreenIconWidth/2), -(this.fullscreenIconY + this.fullscreenIconHeight/2));
+            }
+            this.ctx.drawImage(
+                this.fullscreenIcon,
+                this.fullscreenIconX,
+                this.fullscreenIconY,
+                this.fullscreenIconWidth,
+                this.fullscreenIconHeight
+            );
+            this.ctx.restore();
         }
-        this.ctx.drawImage(
-            this.fullscreenIcon,
-            this.fullscreenIconX,
-            this.fullscreenIconY,
-            this.fullscreenIconWidth,
-            this.fullscreenIconHeight
-        );
-        this.ctx.restore();
     }
 
     addMouseListeners() {
         // Mausbewegung verfolgen für Hover-Effekte
         this.canvas.addEventListener('mousemove', (event) => {
             const rect = this.canvas.getBoundingClientRect();
-            const mouseX = event.clientX - rect.left;
-            const mouseY = event.clientY - rect.top;
+            const scaleX = this.canvas.width / rect.width;
+            const scaleY = this.canvas.height / rect.height;
+            
+            // Mauskoordinaten relativ zur Canvas unter Berücksichtigung der Skalierung
+            const mouseX = (event.clientX - rect.left) * scaleX;
+            const mouseY = (event.clientY - rect.top) * scaleY;
             
             // Sound-Icon Hover prüfen
             this.soundIconHovered = 
@@ -235,9 +246,13 @@ class UserInterface extends DrawableObject {
         // Den vorhandenen Click-Event-Listener beibehalten
         this.canvas.addEventListener('click', (event) => {
             const rect = this.canvas.getBoundingClientRect();
-            const clickX = event.clientX - rect.left;
-            const clickY = event.clientY - rect.top;
-
+            const scaleX = this.canvas.width / rect.width;
+            const scaleY = this.canvas.height / rect.height;
+            
+            // Klickkoordinaten relativ zur Canvas unter Berücksichtigung der Skalierung
+            const clickX = (event.clientX - rect.left) * scaleX;
+            const clickY = (event.clientY - rect.top) * scaleY;
+            
             // Überprüfen, ob auf das Sound-Icon geklickt wurde
             if (
                 clickX >= this.soundIconX &&
@@ -259,7 +274,12 @@ class UserInterface extends DrawableObject {
             }
             
             // Überprüfen, ob auf das Fullscreen-Icon geklickt wurde
-            if (
+            // Nur prüfen, wenn es angezeigt wird (nicht in mobiler Querformat-Ansicht)
+            const isSmallScreen = window.innerWidth < 720;
+            const isLandscape = window.innerHeight < window.innerWidth;
+            const shouldDisplayFullscreenIcon = !(isSmallScreen && isLandscape);
+
+            if (shouldDisplayFullscreenIcon && 
                 clickX >= this.fullscreenIconX &&
                 clickX <= this.fullscreenIconX + this.fullscreenIconWidth &&
                 clickY >= this.fullscreenIconY &&

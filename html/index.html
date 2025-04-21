@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
     <title>El Polo Loco</title>
+    
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/overlay.css">
     <link rel="stylesheet" href="../css/main_menu.css">
@@ -110,22 +112,22 @@
                 <div id="audio-content" class="tab-content d-none">
                     <div class="setting">
                         <label for="character-volume">Character: <span id="character-volume-value">5</span></label>
-                        <input type="range" id="character-volume" class="volume-slider" min="0" max="10" value="5">
+                        <input type="range" id="character-volume" class="volume-slider" min="0" max="10" value="1">
                     </div>
                     
                     <div class="setting">
-                        <label for="enemies-volume">Gegner: <span id="enemies-volume-value">5</span></label>
-                        <input type="range" id="enemies-volume" class="volume-slider" min="0" max="10" value="5"> 
+                        <label for="enemies-volume">Gegner: <span id="enemies-volume-value">1</span></label>
+                        <input type="range" id="enemies-volume" class="volume-slider" min="0" max="10" value="1"> 
                     </div>
                     
                     <div class="setting">
-                        <label for="objects-volume">Objekte: <span id="objects-volume-value">5</span></label>
-                        <input type="range" id="objects-volume" class="volume-slider" min="0" max="10" value="5">
+                        <label for="objects-volume">Objekte: <span id="objects-volume-value">1</span></label>
+                        <input type="range" id="objects-volume" class="volume-slider" min="0" max="10" value="1">
                     </div>
                     
                     <div class="setting">
-                        <label for="music-volume">Musik: <span id="music-volume-value">5</span></label>
-                        <input type="range" id="music-volume" class="volume-slider" min="0" max="10" value="5">
+                        <label for="music-volume">Musik: <span id="music-volume-value">1</span></label>
+                        <input type="range" id="music-volume" class="volume-slider" min="0" max="10" value="1">
                     </div>
                 </div>
             </div>
@@ -140,6 +142,29 @@
             <div class="confirm-buttons">
                 <button id="confirm-yes" class="confirm-button yes-button">Ja</button>
                 <button id="confirm-no" class="confirm-button no-button">Nein</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Steuerungselemente -->
+    <div id="mobile-controls" class="d-none">
+        <!-- Linke Steuerungsbuttons -->
+        <div class="mobile-control-group left-controls">
+            <div class="mobile-control-button" id="button-left">
+                <div class="mobile-key">←</div>
+            </div>
+            <div class="mobile-control-button" id="button-right">
+                <div class="mobile-key">→</div>
+            </div>
+        </div>
+        
+        <!-- Rechte Steuerungsbuttons -->
+        <div class="mobile-control-group right-controls">
+            <div class="mobile-control-button" id="button-jump">
+                <div class="mobile-key">JUMP</div>
+            </div>
+            <div class="mobile-control-button" id="button-throw">
+                <div class="mobile-key">BOTTLE</div>
             </div>
         </div>
     </div>

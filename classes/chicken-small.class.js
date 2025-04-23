@@ -15,21 +15,19 @@ class smallChicken extends MovableObject {
 
     constructor() {
         super().loadImage(this.IMAGES_WALKING[0]);
-        this.x = this.getValidXPosition();
-        MovableObject.placedEnemies.push(this.x);
+        this.initializePosition();
         this.loadImages(this.IMAGES_WALKING);
         this.speed = 2.5;
-        
-        // Zufällig entscheiden, ob nach links oder rechts gelaufen wird
-        this.otherDirection = Math.random() < 0.5;
-        
-        // Zeitraum setzen, nach dem die Richtung gewechselt werden kann
+        this.otherDirection = Math.random() < 0.5; // Zufällige Richtung
         this.setRandomDirectionChangeTime();
-        
         this.animate();
     }
-    
-    // Zufälligen Zeitpunkt für Richtungswechsel setzen
+
+    initializePosition() {
+        this.x = this.getValidXPosition();
+        MovableObject.placedEnemies.push(this.x);
+    }
+
     setRandomDirectionChangeTime() {
         this.changeDirectionTime = new Date().getTime() + Math.random() * 4000 + 1000; // 1-5 Sekunden
     }
@@ -39,42 +37,59 @@ class smallChicken extends MovableObject {
         let isTooClose;
         do {
             x = 700 + Math.random() * 4500; // Generiere eine zufällige X-Position
-            isTooClose = MovableObject.placedEnemies.some(existingX => 
+            isTooClose = MovableObject.placedEnemies.some(existingX =>
                 Math.abs(existingX - x) < MovableObject.minDistanceEnemies
             );
-        } while (isTooClose); // Wiederhole, falls der Abstand zu gering ist
+        } while (isTooClose);
         return x;
     }
 
     animate() {
+        this.setupMovementAnimation();
+        this.setupWalkingAnimation();
+    }
+
+    setupMovementAnimation() {
         setInterval(() => {
             if (!this.isDead && (!this.world || !this.world.isPaused)) {
-                const now = new Date().getTime();
-                
-                // Überprüfen, ob die Welt-Grenzen erreicht wurden
-                if (this.x <= this.worldLimits.min) {
-                    this.otherDirection = false; // Nach rechts laufen
-                    this.setRandomDirectionChangeTime(); // Neuen Zeitpunkt setzen
-                } else if (this.x >= this.worldLimits.max - this.width) {
-                    this.otherDirection = true; // Nach links laufen
-                    this.setRandomDirectionChangeTime(); // Neuen Zeitpunkt setzen
-                }
-                
-                // Zufälliger Richtungswechsel nach Ablauf der Zeit
-                if (now >= this.changeDirectionTime) {
-                    this.otherDirection = Math.random() < 0.5;
-                    this.setRandomDirectionChangeTime();
-                }
-                
-                // Bewegung in die aktuelle Richtung
-                if (this.otherDirection) {
-                    this.moveLeft();
-                } else {
-                    this.moveRight();
-                }
+                this.handleMovement();
             }
         }, 1000 / 60);
+    }
 
+    handleMovement() {
+        const now = new Date().getTime();
+        this.checkWorldLimits();
+        this.checkDirectionChange(now);
+        this.moveInCurrentDirection();
+    }
+
+    checkWorldLimits() {
+        if (this.x <= this.worldLimits.min) {
+            this.otherDirection = false; // Nach rechts laufen
+            this.setRandomDirectionChangeTime();
+        } else if (this.x >= this.worldLimits.max - this.width) {
+            this.otherDirection = true; // Nach links laufen
+            this.setRandomDirectionChangeTime();
+        }
+    }
+
+    checkDirectionChange(now) {
+        if (now >= this.changeDirectionTime) {
+            this.otherDirection = Math.random() < 0.5;
+            this.setRandomDirectionChangeTime();
+        }
+    }
+
+    moveInCurrentDirection() {
+        if (this.otherDirection) {
+            this.moveLeft();
+        } else {
+            this.moveRight();
+        }
+    }
+
+    setupWalkingAnimation() {
         setInterval(() => {
             if (!this.isDead && (!this.world || !this.world.isPaused)) {
                 this.playAnimation(this.IMAGES_WALKING);
@@ -83,10 +98,14 @@ class smallChicken extends MovableObject {
     }
 
     die() {
-        if (!this.isDead) { // Überprüfen, ob der Gegner bereits tot ist
-            this.isDead = true; // Gegner als tot markieren
-            this.loadImage(this.IMAGE_DEAD); // Bild auf "tot" setzen
-            this.speed = 0; // Bewegung stoppen
+        if (!this.isDead) {
+            this.markAsDead();
+            this.loadImage(this.IMAGE_DEAD);
+            this.speed = 0;
         }
+    }
+
+    markAsDead() {
+        this.isDead = true;
     }
 }

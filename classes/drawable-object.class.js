@@ -7,8 +7,6 @@ class DrawableObject {
     height = 150;
     width = 100;
 
-
-
     loadImage(path) {
         this.img = new Image();
         this.img.src = path;
@@ -19,7 +17,7 @@ class DrawableObject {
             let img = new Image();
             img.src = path;
             this.imageCache[path] = img;
-        })
+        });
     }
 
     draw(ctx) {
@@ -27,44 +25,61 @@ class DrawableObject {
     }
 
     drawFrame(ctx) {
-        if (this instanceof Character || this instanceof Chicken || this instanceof smallChicken) {
-            // Blauer Rahmen (originale Bounding Box)
-            ctx.beginPath();
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = 'blue';
-            ctx.rect(this.x, this.y, this.width, this.height);
-            ctx.stroke();
-    
-            // Roter Rahmen (mit Offset angepasst)
+        if (this.isDrawableWithFrame()) {
+            this.drawBoundingBox(ctx);
+            this.drawOffsetBox(ctx);
+            this.drawStompableArea(ctx);
+            this.drawHealthBarIfApplicable(ctx);
+        }
+    }
+
+    isDrawableWithFrame() {
+        return this instanceof Character || this instanceof Chicken || this instanceof smallChicken;
+    }
+
+    drawBoundingBox(ctx) {
+        ctx.beginPath();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'blue';
+        ctx.rect(this.x, this.y, this.width, this.height);
+        ctx.stroke();
+    }
+
+    drawOffsetBox(ctx) {
+        ctx.beginPath();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'red';
+        ctx.rect(
+            this.x + this.offset.left,
+            this.y + this.offset.top,
+            this.width - this.offset.left - this.offset.right,
+            this.height - this.offset.top - this.offset.bottom
+        );
+        ctx.stroke();
+    }
+
+    drawStompableArea(ctx) {
+        if (this.hasStompableArea()) {
             ctx.beginPath();
             ctx.lineWidth = 2;
-            ctx.strokeStyle = 'red';
+            ctx.strokeStyle = 'green';
             ctx.rect(
                 this.x + this.offset.left,
                 this.y + this.offset.top,
                 this.width - this.offset.left - this.offset.right,
-                this.height - this.offset.top - this.offset.bottom
+                this.stompableAreaHeight
             );
             ctx.stroke();
-    
-            // Grüner Rahmen (stompbarer Bereich bei Chicken)
-            if ((this instanceof Chicken || this instanceof smallChicken) && this.stompableAreaHeight) {
-                ctx.beginPath();
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = 'green';
-                ctx.rect(
-                    this.x + this.offset.left,
-                    this.y + this.offset.top,
-                    this.width - this.offset.left - this.offset.right,
-                    this.stompableAreaHeight
-                );
-                ctx.stroke();
-            }
-            
-            // Zeichne Lebensbalken für Chicken
-            if (this instanceof Chicken && this.drawHealthBar) {
-                this.drawHealthBar(ctx);
-            }
+        }
+    }
+
+    hasStompableArea() {
+        return (this instanceof Chicken || this instanceof smallChicken) && this.stompableAreaHeight;
+    }
+
+    drawHealthBarIfApplicable(ctx) {
+        if (this instanceof Chicken && this.drawHealthBar) {
+            this.drawHealthBar(ctx);
         }
     }
 }

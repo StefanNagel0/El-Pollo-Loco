@@ -18,66 +18,32 @@ class Chicken extends MovableObject {
 
     constructor() {
         super().loadImage(this.IMAGES_WALKING[0]);
-        this.x = this.getValidXPosition(); // Berechne eine gültige X-Position
-        MovableObject.placedEnemies.push(this.x); // Speichere die X-Position in der gemeinsamen Liste
+        this.initializePosition();
         this.loadImages(this.IMAGES_WALKING);
         this.speed = 2;
-        
-        // Zufällig entscheiden, ob nach links oder rechts gelaufen wird
-        this.otherDirection = Math.random() < 0.5;
-        
-        // Zeitraum setzen, nach dem die Richtung gewechselt werden kann
+        this.otherDirection = Math.random() < 0.5; // Zufällige Richtung
         this.setRandomDirectionChangeTime();
-        
         this.animate();
     }
 
-    // Zufälligen Zeitpunkt für Richtungswechsel setzen
     setRandomDirectionChangeTime() {
         this.changeDirectionTime = new Date().getTime() + Math.random() * 4000 + 2000; // 2-6 Sekunden
     }
 
-    getValidXPosition() {
-        let x;
-        let isTooClose;
-        do {
-            x = 700 + Math.random() * 4500; // Generiere eine zufällige X-Position
-            isTooClose = MovableObject.placedEnemies.some(existingX => 
-                Math.abs(existingX - x) < MovableObject.minDistanceEnemies
-            );
-        } while (isTooClose); // Wiederhole, falls der Abstand zu gering ist
-        return x;
+    animate() {
+        this.setupMovementAnimation();
+        this.setupWalkingAnimation();
     }
 
-    animate() {
+    setupMovementAnimation() {
         setInterval(() => {
             if (!this.isDead && (!this.world || !this.world.isPaused)) {
-                const now = new Date().getTime();
-                
-                // Überprüfen, ob die Welt-Grenzen erreicht wurden
-                if (this.x <= this.worldLimits.min) {
-                    this.otherDirection = false; // Nach rechts laufen
-                    this.setRandomDirectionChangeTime(); // Neuen Zeitpunkt setzen
-                } else if (this.x >= this.worldLimits.max - this.width) {
-                    this.otherDirection = true; // Nach links laufen
-                    this.setRandomDirectionChangeTime(); // Neuen Zeitpunkt setzen
-                }
-                
-                // Zufälliger Richtungswechsel nach Ablauf der Zeit
-                if (now >= this.changeDirectionTime) {
-                    this.otherDirection = Math.random() < 0.5;
-                    this.setRandomDirectionChangeTime();
-                }
-                
-                // Bewegung in die aktuelle Richtung
-                if (this.otherDirection) {
-                    this.moveLeft();
-                } else {
-                    this.moveRight();
-                }
+                this.handleMovement();
             }
         }, 1000 / 60);
+    }
 
+    setupWalkingAnimation() {
         setInterval(() => {
             if (!this.isDead && (!this.world || !this.world.isPaused)) {
                 this.playAnimation(this.IMAGES_WALKING);
@@ -87,49 +53,66 @@ class Chicken extends MovableObject {
 
     die(fromBottle = false) {
         if (fromBottle) {
-            // Bei Flaschentreffern sofort töten, unabhängig vom aktuellen Health
-            this.health = 0;
-            this.isDead = true;
-            this.loadImage(this.IMAGE_DEAD);
-            this.speed = 0;
-            this.showHealthBar = false; // Verstecke Lebensbalken bei Tod
+            this.handleDeathFromBottle();
         } else {
-            // Bei Stomps normales Verhalten (reduziere Leben um 1)
-            this.health -= 1;
-            
-            if (this.health <= 0) {
-                // Chicken stirbt, wenn kein Leben mehr übrig
-                this.isDead = true;
-                this.loadImage(this.IMAGE_DEAD);
-                this.speed = 0;
-                this.showHealthBar = false; // Verstecke Lebensbalken bei Tod
-            } else {
-                // Bei Treffer, aber noch am Leben
-                this.showHealthBar = true; // Zeige Lebensbalken
-                
-                // Bug-Fix: Chicken wird schneller nach erstem Treffer (vorher 1.7)
-                this.speed = this.speed * 3; // Reduziere Geschwindigkeit auf 70% nach Treffer
-            }
+            this.handleDeathFromStomp();
         }
     }
 
-    // Neue Methode zum Zeichnen des Lebensbalkens
+    handleDeathFromBottle() {
+        this.health = 0;
+        this.isDead = true;
+        this.loadImage(this.IMAGE_DEAD);
+        this.speed = 0;
+        this.showHealthBar = false; // Verstecke Lebensbalken bei Tod
+    }
+
+    handleDeathFromStomp() {
+        this.health -= 1;
+        if (this.health <= 0) {
+            this.markAsDead();
+        } else {
+            this.handleHurtState();
+        }
+    }
+
+    markAsDead() {
+        this.isDead = true;
+        this.loadImage(this.IMAGE_DEAD);
+        this.speed = 0;
+        this.showHealthBar = false; // Verstecke Lebensbalken bei Tod
+    }
+
+    handleHurtState() {
+        this.showHealthBar = true; // Zeige Lebensbalken
+        this.speed = this.speed * 3; // Reduziere Geschwindigkeit auf 70% nach Treffer
+    }
+
     drawHealthBar(ctx) {
         if (this.showHealthBar && this.health > 0) {
-            // Position über dem Chicken
-            let barWidth = 60;
-            let barHeight = 10;
-            let barX = this.x + (this.width - barWidth) / 2;
-            let barY = this.y - barHeight - 5;
-            
-            // Hintergrund des Lebensbalkens (rot)
-            ctx.fillStyle = 'grey';
-            ctx.fillRect(barX, barY, barWidth, barHeight);
-            
-            // Vordergrund des Lebensbalkens (grün) - prozentual zur Gesundheit
-            let healthPercentage = this.health / 2; // 2 ist die maximale Gesundheit
-            ctx.fillStyle = 'red';
-            ctx.fillRect(barX, barY, barWidth * healthPercentage, barHeight);
+            this.drawHealthBarBackground(ctx);
+            this.drawHealthBarForeground(ctx);
         }
+    }
+
+    drawHealthBarBackground(ctx) {
+        let barWidth = 60;
+        let barHeight = 10;
+        let barX = this.x + (this.width - barWidth) / 2;
+        let barY = this.y - barHeight - 5;
+
+        ctx.fillStyle = 'grey';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+    }
+
+    drawHealthBarForeground(ctx) {
+        let barWidth = 60;
+        let barHeight = 10;
+        let barX = this.x + (this.width - barWidth) / 2;
+        let barY = this.y - barHeight - 5;
+
+        let healthPercentage = this.health / 2; // 2 ist die maximale Gesundheit
+        ctx.fillStyle = 'red';
+        ctx.fillRect(barX, barY, barWidth * healthPercentage, barHeight);
     }
 }

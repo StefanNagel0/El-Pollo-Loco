@@ -23,27 +23,6 @@ class smallChicken extends MovableObject {
         this.animate();
     }
 
-    initializePosition() {
-        this.x = this.getValidXPosition();
-        MovableObject.placedEnemies.push(this.x);
-    }
-
-    setRandomDirectionChangeTime() {
-        this.changeDirectionTime = new Date().getTime() + Math.random() * 4000 + 1000; // 1-5 Sekunden
-    }
-
-    getValidXPosition() {
-        let x;
-        let isTooClose;
-        do {
-            x = 700 + Math.random() * 4500; // Generiere eine zufällige X-Position
-            isTooClose = MovableObject.placedEnemies.some(existingX =>
-                Math.abs(existingX - x) < MovableObject.minDistanceEnemies
-            );
-        } while (isTooClose);
-        return x;
-    }
-
     animate() {
         this.setupMovementAnimation();
         this.setupWalkingAnimation();
@@ -55,38 +34,6 @@ class smallChicken extends MovableObject {
                 this.handleMovement();
             }
         }, 1000 / 60);
-    }
-
-    handleMovement() {
-        const now = new Date().getTime();
-        this.checkWorldLimits();
-        this.checkDirectionChange(now);
-        this.moveInCurrentDirection();
-    }
-
-    checkWorldLimits() {
-        if (this.x <= this.worldLimits.min) {
-            this.otherDirection = false; // Nach rechts laufen
-            this.setRandomDirectionChangeTime();
-        } else if (this.x >= this.worldLimits.max - this.width) {
-            this.otherDirection = true; // Nach links laufen
-            this.setRandomDirectionChangeTime();
-        }
-    }
-
-    checkDirectionChange(now) {
-        if (now >= this.changeDirectionTime) {
-            this.otherDirection = Math.random() < 0.5;
-            this.setRandomDirectionChangeTime();
-        }
-    }
-
-    moveInCurrentDirection() {
-        if (this.otherDirection) {
-            this.moveLeft();
-        } else {
-            this.moveRight();
-        }
     }
 
     setupWalkingAnimation() {

@@ -43,7 +43,7 @@ class World {
         this.level.enemies.forEach(enemy => {
             enemy.world = this; // World-Referenz für alle Feinde
             
-            if (enemy instanceof Chicken || enemy instanceof smallChicken) {
+            if (enemy instanceof Chicken || enemy instanceof smallChicken || enemy instanceof Endboss) {
                 enemy.worldLimits = {
                     min: 0,
                     max: this.level.level_end_x

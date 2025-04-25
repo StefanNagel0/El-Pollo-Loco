@@ -1,19 +1,14 @@
 class MovableObject extends DrawableObject {
-    static placedObjects = []; // Gemeinsame Liste für Coins und Bottles
-    static placedEnemies = []; // Gemeinsame Liste für alle Gegner
-    static minDistanceObjects = 65; // Mindestabstand für Coins und Bottles
-    static minDistanceEnemies = 200; // Mindestabstand für Gegner
+    static placedObjects = [];
+    static placedEnemies = [];
+    static minDistanceObjects = 65;
+    static minDistanceEnemies = 200;
     speed = 0.15;
     otherDirection = false;
     speedY = 0;
     acceleration = 2.5;
     isJumping = false;
-    offset = {
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-    };
+    offset = {top: 0,left: 0,right: 0,bottom: 0,};
     energy = 100;
     lastHit = 0;
 
@@ -23,14 +18,14 @@ class MovableObject extends DrawableObject {
     }
 
     setRandomDirectionChangeTime() {
-        this.changeDirectionTime = new Date().getTime() + Math.random() * 4000 + 1000; // 1-5 Sekunden
+        this.changeDirectionTime = new Date().getTime() + Math.random() * 4000 + 1000;
     }
 
     getValidXPosition() {
         let x;
         let isTooClose;
         do {
-            x = 700 + Math.random() * 4500; // Generiere eine zufällige X-Position
+            x = 700 + Math.random() * 4500;
             isTooClose = MovableObject.placedEnemies.some(existingX =>
                 Math.abs(existingX - x) < MovableObject.minDistanceEnemies
             );
@@ -40,10 +35,10 @@ class MovableObject extends DrawableObject {
 
     checkWorldLimits() {
         if (this.x <= this.worldLimits.min) {
-            this.otherDirection = false; // Nach rechts laufen
+            this.otherDirection = false;
             this.setRandomDirectionChangeTime();
         } else if (this.x >= this.worldLimits.max - this.width) {
-            this.otherDirection = true; // Nach links laufen
+            this.otherDirection = true;
             this.setRandomDirectionChangeTime();
         }
     }
@@ -72,7 +67,6 @@ class MovableObject extends DrawableObject {
 
     applyGravity() {
         setInterval(() => {
-            // Nur anwenden, wenn das Spiel nicht pausiert ist
             if (!this.world || !this.world.isPaused) {
                 if (this.isAboveGround() || this.speedY > 0) {
                     this.y -= this.speedY;
@@ -83,7 +77,7 @@ class MovableObject extends DrawableObject {
     }
 
     isAboveGround() {
-        if (this instanceof ThrowableObject) { // throwableObjects should always fall
+        if (this instanceof ThrowableObject) {
             return true;
         } else {
             return this.y < 150;
@@ -97,56 +91,41 @@ class MovableObject extends DrawableObject {
             this.y + this.offset.top < mo.y + mo.height - mo.offset.bottom;
     }
 
-    // Neue Methode für präzise Kollisionserkennung hinzufügen:
-
-    /**
-     * Überprüft, ob dieses Objekt mit einem anderen Objekt kollidiert,
-     * berücksichtigt dabei die Offset-Werte für präzisere Kollisionserkennung
-     */
     isPreciselyColiding(obj) {
-        // Character-Position mit Offset-Berücksichtigung
         const myLeft = this.x + this.offset.left;
         const myRight = this.x + this.width - this.offset.right;
         const myTop = this.y + this.offset.top;
         const myBottom = this.y + this.height - this.offset.bottom;
-        
-        // Andere Objekt-Position (ohne Offset, da nicht jedes Objekt diese hat)
         const objLeft = obj.x;
         const objRight = obj.x + obj.width;
         const objTop = obj.y;
         const objBottom = obj.y + obj.height;
-        
-        // Kollisionsprüfung mit Offset-Berücksichtigung
         return myRight > objLeft &&
                 myLeft < objRight &&
                 myBottom > objTop &&
                 myTop < objBottom;
     }
 
-    /**
-     * Verursacht Schaden am Objekt
-     */
     hit() {
-        // Cooldown-Check entfernen, damit bei jeder Kollision Schaden genommen wird
         this.energy -= 5;
         if (this.energy < 0) {
             this.energy = 0;
         }
-        this.lastHit = new Date().getTime(); // Zeit des letzten Treffers für Animation aktualisieren
+        this.lastHit = new Date().getTime();
     }
 
     isHurt() {
-        let timePassed = new Date().getTime() - this.lastHit; // difference in ms
-        timePassed = timePassed / 1000; //difference in s
+        let timePassed = new Date().getTime() - this.lastHit;
+        timePassed = timePassed / 1000;
         return timePassed < 1;
     }
 
     isDead() {
-        return this.energy <= 0; // Änderung von "==" zu "<="
+        return this.energy <= 0;
     }
 
     playAnimation(images) {
-        let i = this.currentImage % images.length; // let i = 0 % 6
+        let i = this.currentImage % images.length;
         let path = images[i];
         this.img = this.imageCache[path];
         this.currentImage++;

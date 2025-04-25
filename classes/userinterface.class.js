@@ -3,21 +3,15 @@ class UserInterface extends DrawableObject {
         super();
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
-        
-        // Aus localStorage laden, falls vorhanden
         this.isMuted = localStorage.getItem('elPolloLoco_isMuted') === 'true';
-        
-        // Audio-Kategorien-Settings aus localStorage laden
         this.characterVolume = parseInt(localStorage.getItem('elPolloLoco_characterVolume')) || 5;
         this.enemiesVolume = parseInt(localStorage.getItem('elPolloLoco_enemiesVolume')) || 5;
-        this.objectsVolume = parseInt(localStorage.getItem('elPolloLoco_objectsVolume')) || 5; // Neue Kategorie
+        this.objectsVolume = parseInt(localStorage.getItem('elPolloLoco_objectsVolume')) || 5;
         this.musicVolume = parseInt(localStorage.getItem('elPolloLoco_musicVolume')) || 5;
-        
-        // Audio-Kategorien für die Verwaltung
         this.audioCategories = {
             character: [],
             enemies: [],
-            objects: [], // Neue Kategorie
+            objects: [],
             music: []
         };
         

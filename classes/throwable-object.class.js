@@ -1,7 +1,7 @@
 class ThrowableObject extends MovableObject {
     isBroken = false;
-    moveInterval = null; // Speichern der Intervall-ID
-    groundPosition = 400; // Y-Position des Bodens für die Flasche
+    moveInterval = null;
+    groundPosition = 400;
     
     IMAGES_BREAK = [
         '../assets/img/6_salsa_bottle/bottle_rotation/bottle_splash/1_bottle_splash.png',
@@ -16,24 +16,19 @@ class ThrowableObject extends MovableObject {
         super();
         this.x = x;
         this.y = y;
-        this.otherDirection = otherDirection; // Speichere die Richtung des Charakters
+        this.otherDirection = otherDirection;
         this.loadImage('../assets/img/6_salsa_bottle/salsa_bottle.png');
-        this.loadImages(this.IMAGES_BREAK); // Zerbrech-Bilder laden
+        this.loadImages(this.IMAGES_BREAK);
         this.height = 80;
         this.width = 60;
         this.throw();
     }
 
     throw() {
-        this.speedY = 30; // Anfangsgeschwindigkeit nach oben
-        this.applyGravity(); // Schwerkraft anwenden
-
-        // Speichern der Intervall-ID für spätere Verwendung
+        this.speedY = 30;
+        this.applyGravity();
         this.moveInterval = setInterval(() => {
-            // Bewege die Flasche nach rechts oder links basierend auf der Richtung des Charakters
             this.x += this.otherDirection ? -25 : 25;
-            
-            // Überprüfen, ob die Flasche den Boden erreicht hat
             if (this.y + this.height >= this.groundPosition && !this.isBroken) {
                 this.break();
             }
@@ -41,18 +36,22 @@ class ThrowableObject extends MovableObject {
     }
 
     break() {
-        if (this.isBroken) return; // Verhindere mehrfaches Zerbrechen
-        
+        if (this.isBroken) return;
         this.isBroken = true;
-        this.speedY = 0; // Stoppe die Y-Bewegung
-        
-        // Stoppen des X-Bewegungsintervalls
+        this.speedY = 0;
+        this.stopMovement();
+        this.playBreakAnimation();
+        this.playBreakSound();
+    }
+    
+    stopMovement() {
         if (this.moveInterval) {
             clearInterval(this.moveInterval);
             this.moveInterval = null;
         }
-        
-        // Animation für das Zerbrechen abspielen
+    }
+    
+    playBreakAnimation() {
         let i = 0;
         let breakInterval = setInterval(() => {
             if (i < this.IMAGES_BREAK.length) {
@@ -62,18 +61,17 @@ class ThrowableObject extends MovableObject {
                 clearInterval(breakInterval);
             }
         }, 50);
+    }
+    
+    playBreakSound() {
+        if (!this.world || !this.world.userInterface) return;
         
-        // Zerbrech-Sound abspielen
-        if (this.world && this.world.userInterface) {
-            const breakSound = new Audio('../assets/audio/bottle_break.mp3');
-            this.world.userInterface.registerAudioWithCategory(breakSound, 'objects');
-            
-            // Manuell die Lautstärke der objects-Kategorie anwenden
-            if (!this.world.userInterface.isMuted) {
-                const objectsVolume = this.world.userInterface.objectsVolume / 10;
-                breakSound.volume = objectsVolume;
-                breakSound.play();
-            }
+        const breakSound = new Audio('../assets/audio/bottle_break.mp3');
+        this.world.userInterface.registerAudioWithCategory(breakSound, 'objects');
+        if (!this.world.userInterface.isMuted) {
+            const objectsVolume = this.world.userInterface.objectsVolume / 10;
+            breakSound.volume = objectsVolume;
+            breakSound.play();
         }
     }
 }

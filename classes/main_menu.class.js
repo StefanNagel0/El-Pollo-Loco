@@ -1,208 +1,148 @@
 class MainMenu {
     constructor() {
-        // Canvas-Referenz für UserInterface holen
         const canvas = document.getElementById('canvas');
-        
-        // UserInterface-Instanz für das Hauptmenü erstellen
         this.userInterface = new UserInterface(canvas);
-        
-        // DOM-Elemente referenzieren und Event-Listener hinzufügen
         this.init();
     }
 
-    /**
-     * Initialisiert das Hauptmenü
-     */
     init() {
-        // Referenzen auf DOM-Elemente
+        this.setupReferences();
+        this.setupEventListeners();
+        this.showMenu();
+        this.adjustMenuPosition();
+        window.addEventListener('resize', () => this.adjustMenuPosition());
+    }
+    
+    setupReferences() {
         this.menuContainer = document.getElementById('main-menu');
         this.startButton = document.getElementById('start-game');
         this.settingsIcon = document.getElementById('menu-settings-icon');
         this.settingsOverlay = document.getElementById('settings-overlay');
         this.closeSettingsBtn = document.getElementById('close-settings');
         this.gameTitle = document.querySelector('h1');
-        
-        // Zusätzliche Referenz für das X-Symbol
         this.closeXBtn = document.getElementById('close-x');
-        
-        // Tab-Navigation erweitern
         this.gameTab = document.getElementById('game-tab');
         this.howToPlayTab = document.getElementById('how-to-play-tab');
         this.audioTab = document.getElementById('audio-tab');
         this.gameContent = document.getElementById('game-content');
         this.howToPlayContent = document.getElementById('how-to-play-content');
         this.audioContent = document.getElementById('audio-content');
-
-        // Neue Button-Referenzen
         this.returnToGameBtn = document.getElementById('return-to-game');
         this.exitGameBtn = document.getElementById('exit-game');
-
-        // Sound-Icon Referenz
         this.soundIcon = document.getElementById('menu-sound-icon');
-
-        // Event-Listener mit Null-Prüfung hinzufügen
-        if (this.startButton) {
-            this.startButton.addEventListener('click', () => this.startGame());
+    }
+    
+    setupEventListeners() {
+        this.startButton?.addEventListener('click', () => this.startGame());
+        this.settingsIcon?.addEventListener('click', () => this.openSettings());
+        this.closeSettingsBtn?.addEventListener('click', () => this.closeSettings());
+        this.closeXBtn?.addEventListener('click', () => this.closeSettings());
+        this.gameTab?.addEventListener('click', () => this.switchTab('game'));
+        this.howToPlayTab?.addEventListener('click', () => this.switchTab('how-to-play'));
+        this.audioTab?.addEventListener('click', () => this.switchTab('audio'));
+        this.returnToGameBtn?.addEventListener('click', () => this.closeSettings());
+        this.exitGameBtn?.addEventListener('click', () => this.handleExitGame());
+        this.soundIcon?.addEventListener('click', () => this.toggleSound());
+    }
+    
+    handleExitGame() {
+        if (window.world?.userInterface) {
+            window.world.userInterface.showCustomConfirm(() => window.location.reload());
+        } else {
+            window.location.reload();
         }
-        
-        if (this.settingsIcon) {
-            this.settingsIcon.addEventListener('click', () => this.openSettings());
-        }
-        
-        if (this.closeSettingsBtn) {
-            this.closeSettingsBtn.addEventListener('click', () => this.closeSettings());
-        }
-        
-        // X-Button-Event-Listener
-        if (this.closeXBtn) {
-            this.closeXBtn.addEventListener('click', () => this.closeSettings());
-        }
-        
-        // Tab-Wechsel mit Null-Prüfung
-        if (this.gameTab) {
-            this.gameTab.addEventListener('click', () => this.switchTab('game'));
-        }
-        
-        if (this.howToPlayTab) {
-            this.howToPlayTab.addEventListener('click', () => this.switchTab('how-to-play'));
-        }
-        
-        if (this.audioTab) {
-            this.audioTab.addEventListener('click', () => this.switchTab('audio'));
-        }
-
-        // Neue Event-Listener für die Buttons mit Null-Prüfung
-        if (this.returnToGameBtn) {
-            this.returnToGameBtn.addEventListener('click', () => this.closeSettings());
-        }
-        
-        if (this.exitGameBtn) {
-            this.exitGameBtn.addEventListener('click', () => {
-                // Benutzerdefinierten Dialog anzeigen
-                if (window.world && window.world.userInterface) {
-                    window.world.userInterface.showCustomConfirm(() => {
-                        window.location.reload();
-                    });
-                } else {
-                    // Fallback zum normalen Reload, falls userInterface nicht verfügbar ist
-                    window.location.reload();
-                }
-            });
-        }
-
-        // Sound-Icon Event-Listener
-        if (this.soundIcon) {
-            // Initialen Zustand setzen
+    }
+    
+    toggleSound() {
+        if (this.userInterface) {
+            this.userInterface.toggleSound();
             this.updateSoundIcon();
-            
-            // Klick-Event-Listener
-            this.soundIcon.addEventListener('click', () => {
-                if (this.userInterface) {
-                    this.userInterface.toggleSound();
-                    this.updateSoundIcon();
-                }
-            });
         }
-
-        // Hauptmenü anzeigen
-        if (this.menuContainer) {
-            this.showMenu();
-        }
-        
-        // Fenstergrößenänderungen überwachen
-        window.addEventListener('resize', () => {
-            this.adjustMenuPosition();
-        });
-        
-        // Initiale Positionierung
-        this.adjustMenuPosition();
     }
 
-    /**
-     * Zeigt das Hauptmenü an und versteckt den Spieltitel
-     */
     showMenu() {
         this.menuContainer.classList.remove('d-none');
         this.gameTitle.classList.add('d-none');
+        void this.menuContainer.offsetWidth;
+        this.adjustMenuPosition();
+        setTimeout(() => this.adjustMenuPosition(), 50);
     }
 
-    /**
-     * Startet das Spiel und versteckt das Hauptmenü
-     */
-    startGame() {
-        // Menü ausblenden
-        this.menuContainer.classList.add('d-none');
-        this.menuContainer.style.display = 'none';
-        
-        // Spieltitel anzeigen
-        this.gameTitle.classList.remove('d-none');
-        this.gameTitle.style.display = '';
-        
-        // Spiel initialisieren
-        initGame();
-        
-        // Wichtig: Pause aufheben, damit das Spiel beginnt
-        if (window.world) {
-            window.world.isPaused = false;
-            
-            // Hintergrundmusik und Mute-Status fortsetzen
-            if (this.userInterface) {
-                // Hintergrundmusik übernehmen
-                if (this.userInterface.backgroundMusic) {
-                    window.world.userInterface.backgroundMusic = this.userInterface.backgroundMusic;
-                }
-                
-                // Mute-Status übernehmen
-                window.world.userInterface.isMuted = this.userInterface.isMuted;
-                window.world.userInterface.updateSoundIcon();
-            }
-        }
-        
-        // Overlays schließen
-        if (this.howToPlayOverlay) {
-            this.howToPlayOverlay.classList.add('d-none');
-            this.howToPlayOverlay.classList.remove('show');
-        }
-        
-        const settingsOverlay = document.getElementById('settings-overlay');
-        if (settingsOverlay) {
-            settingsOverlay.classList.add('d-none');
-            settingsOverlay.classList.remove('show');
-        }
-    }
+startGame() {
+    this.hideMenu();
+    this.showGameTitle();
+    initGame();
+    this.resumeWorld();
+    this.hideOverlays();
+}
 
-    /**
-     * Öffnet das "How to Play"-Overlay
-     */
+hideMenu() {
+    this.menuContainer.classList.add('d-none');
+    this.menuContainer.style.display = 'none';
+}
+
+showGameTitle() {
+    this.gameTitle.classList.remove('d-none');
+    this.gameTitle.style.display = '';
+}
+
+resumeWorld() {
+    if (window.world) {
+        window.world.isPaused = false;
+        this.syncUserInterface();
+    }
+}
+
+syncUserInterface() {
+    if (this.userInterface) {
+        if (this.userInterface.backgroundMusic) {
+            window.world.userInterface.backgroundMusic = this.userInterface.backgroundMusic;
+        }
+        window.world.userInterface.isMuted = this.userInterface.isMuted;
+        window.world.userInterface.updateSoundIcon();
+    }
+}
+
+hideOverlays() {
+    this.hideHowToPlayOverlay();
+    this.hideSettingsOverlay();
+}
+
+hideHowToPlayOverlay() {
+    if (this.howToPlayOverlay) {
+        this.howToPlayOverlay.classList.add('d-none');
+        this.howToPlayOverlay.classList.remove('show');
+    }
+}
+
+hideSettingsOverlay() {
+    const settingsOverlay = document.getElementById('settings-overlay');
+    if (settingsOverlay) {
+        settingsOverlay.classList.add('d-none');
+        settingsOverlay.classList.remove('show');
+    }
+}
+
     openHowToPlay() {
         this.howToPlayOverlay.classList.remove('d-none');
         this.howToPlayOverlay.classList.add('show');
     }
 
-    /**
-     * Schließt das "How to Play"-Overlay
-     */
     closeHowToPlay() {
         this.howToPlayOverlay.classList.remove('show');
         this.howToPlayOverlay.classList.add('d-none');
     }
 
-    /**
-     * Öffnet die Einstellungen
-     */
     openSettings() {
-        // Wenn im Spiel, den "Spiel beenden"-Button anzeigen
         if (window.world) {
             this.exitGameBtn.style.display = 'block';
         } else {
             this.exitGameBtn.style.display = 'none';
         }
-        
-        // Standard-Tab ist jetzt "Spiel"
         this.switchTab('game');
-        
-        // Rest unverändert...
         this.settingsOverlay.classList.remove('d-none');
+        this.adjustMenuPosition();
+        setTimeout(() => this.adjustMenuPosition(), 10);
         this.settingsOverlay.classList.add('show');
     }
 
@@ -211,57 +151,43 @@ class MainMenu {
         this.settingsOverlay.classList.add('d-none');
     }
 
-    /**
-     * Passt die Position des Menüs an die Canvas-Position an
-     */
     adjustMenuPosition() {
         const canvas = document.getElementById('canvas');
-        if (canvas) {
+        if (canvas && this.menuContainer) {
+            this.menuContainer.removeAttribute('style');
             const canvasRect = canvas.getBoundingClientRect();
-            
-            // Menücontainer an Canvas ausrichten und horizontal zentrieren
-            if (this.menuContainer) {
-                // Berechne die Mitte des Canvas
-                const canvasCenter = canvasRect.left + (canvasRect.width / 2);
-                
-                // Änderung hier: Canvas-Breite statt fester Breite verwenden
-                const menuWidth = canvasRect.width; // Dynamische Breite statt fester 720px
-                
-                // Positioniere das Menü so, dass seine Mitte unter der Canvas-Mitte liegt
-                this.menuContainer.style.top = `${canvasRect.top}px`;
-                this.menuContainer.style.left = `${canvasCenter - (menuWidth / 2)}px`;
-                this.menuContainer.style.width = `${menuWidth}px`;
-                this.menuContainer.style.height = `${canvasRect.height}px`;
-                
-                // Transform-Eigenschaft zurücksetzen, da wir jetzt direkt positionieren
-                this.menuContainer.style.transform = 'none';
-            }
-            
-            // Settings-Overlay-Position anpassen
+            this.menuContainer.style.cssText = `
+                display: flex;
+                position: absolute;
+                top: ${canvasRect.top}px;
+                left: ${canvasRect.left}px;
+                width: ${canvasRect.width}px;
+                height: ${canvasRect.height}px;
+                transform: none;
+                z-index: 1000;
+            `;
             const settingsOverlay = document.getElementById('settings-overlay');
             if (settingsOverlay) {
-                settingsOverlay.style.top = `${canvasRect.top}px`;
-                settingsOverlay.style.left = `${canvasRect.left}px`;
-                settingsOverlay.style.width = `${canvasRect.width}px`;
-                settingsOverlay.style.height = `${canvasRect.height}px`;
-                settingsOverlay.style.transform = 'none';
+                settingsOverlay.style.cssText = `
+                    position: absolute;
+                    top: ${canvasRect.top}px;
+                    left: ${canvasRect.left}px;
+                    width: ${canvasRect.width}px;
+                    height: ${canvasRect.height}px;
+                    transform: none;
+                    z-index: 1001;
+                `;
             }
         }
     }
 
-    /**
-     * Wechselt zwischen den Tabs
-     */
     switchTab(tabId) {
-        // Alle Tabs zurücksetzen
         this.gameTab.classList.remove('active');
         this.howToPlayTab.classList.remove('active');
         this.audioTab.classList.remove('active');
         this.gameContent.classList.add('d-none');
         this.howToPlayContent.classList.add('d-none');
         this.audioContent.classList.add('d-none');
-        
-        // Gewählten Tab aktivieren
         if (tabId === 'game') {
             this.gameTab.classList.add('active');
             this.gameContent.classList.remove('d-none');
@@ -274,9 +200,6 @@ class MainMenu {
         }
     }
 
-    /**
-     * Aktualisiert das Sound-Icon basierend auf dem Mute-Status
-     */
     updateSoundIcon() {
         if (this.soundIcon && this.userInterface) {
             this.soundIcon.src = this.userInterface.isMuted 

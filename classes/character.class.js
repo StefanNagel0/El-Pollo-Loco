@@ -212,9 +212,20 @@ class Character extends MovableObject {
 
     showGameOverScreen() {
         this.gameOverScreenShown = true;
-        if (this.world && this.world.userInterface && this.world.userInterface.backgroundMusic) {
-            this.world.userInterface.backgroundMusic.pause();
+        if (this.world && this.world.userInterface) {
+            // Hintergrundmusik pausieren
+            if (this.world.userInterface.backgroundMusic) {
+                this.world.userInterface.backgroundMusic.pause();
+            }
+            
+            // Todes-Sound abspielen
+            const deathSound = new Audio('../assets/audio/character_death.mp3');
+            this.world.userInterface.registerAudioWithCategory(deathSound, 'character');
+            if (!this.world.userInterface.isMuted) {
+                deathSound.play();
+            }
         }
+        
         setTimeout(() => {
             if (!window.gameOverScreen) {
                 window.gameOverScreen = new Endscreen();

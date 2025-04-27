@@ -23,6 +23,35 @@ class Endscreen {
         if (window.world) this.pauseGameAndHideEnemies();
         if (!this.container) this.createGameOverScreen();
         this.displayGameOverScreen();
+        
+        // Sound abspielen
+        this.playGameOverSound();
+    }
+
+    playGameOverSound() {
+        try {
+            const ui = window.world?.userInterface;
+            const soundPath = '../assets/audio/game_lose.mp3';
+            
+            if (!ui) return;
+            
+            // Hintergrundmusik pausieren
+            if (ui.backgroundMusic) {
+                ui.backgroundMusic.pause();
+            }
+            
+            // Game-Over-Sound abspielen
+            const gameOverSound = new Audio(soundPath);
+            ui.registerAudioWithCategory(gameOverSound, 'music');
+            
+            if (!ui.isMuted) {
+                gameOverSound.play().catch(error => {
+                    console.log('Fehler beim Abspielen des Game-Over-Sounds:', error);
+                });
+            }
+        } catch (error) {
+            console.log('Fehler beim Abspielen des Game-Over-Sounds:', error);
+        }
     }
 
     pauseGameAndHideEnemies() {

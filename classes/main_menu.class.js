@@ -3,6 +3,7 @@ class MainMenu {
         const canvas = document.getElementById('canvas');
         this.userInterface = new UserInterface(canvas);
         this.init();
+        this.updateSoundIcon();
     }
 
     init() {
@@ -94,11 +95,8 @@ resumeWorld() {
 }
 
 syncUserInterface() {
-    if (this.userInterface) {
-        if (this.userInterface.backgroundMusic) {
-            window.world.userInterface.backgroundMusic = this.userInterface.backgroundMusic;
-        }
-        window.world.userInterface.isMuted = this.userInterface.isMuted;
+    if (this.userInterface && window.world && window.world.userInterface) {
+        window.world.userInterface.audio = this.userInterface.audio;
         window.world.userInterface.updateSoundIcon();
     }
 }
@@ -202,7 +200,7 @@ hideSettingsOverlay() {
 
     updateSoundIcon() {
         if (this.soundIcon && this.userInterface) {
-            this.soundIcon.src = this.userInterface.isMuted 
+            this.soundIcon.src = this.userInterface.audio.isMuted 
                 ? '../assets/img/ui_images/sound_off.svg' 
                 : '../assets/img/ui_images/sound_on.svg';
         }

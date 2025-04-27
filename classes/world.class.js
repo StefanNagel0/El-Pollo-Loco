@@ -17,23 +17,22 @@ class World {
         this.ctx = canvas.getContext('2d');
         this.canvas = canvas;
         this.keyboard = keyboard;
-        this.userInterface = new UserInterface(canvas);
         
-        // Wenn eine MainMenu-Instanz existiert, prüfen ob Musik bereits läuft
-        if (window.mainMenu && window.mainMenu.userInterface && 
-            window.mainMenu.userInterface.backgroundMusic) {
-            // Musik-Instanz übernehmen statt neu zu starten
-            this.userInterface.backgroundMusic = window.mainMenu.userInterface.backgroundMusic;
+        // Prüfen, ob bereits eine UserInterface-Instanz im MainMenu existiert
+        if (window.mainMenu?.userInterface) {
+            // Bestehende UI-Instanz wiederverwenden statt eine neue zu erstellen
+            this.userInterface = window.mainMenu.userInterface;
+        } else {
+            // Nur wenn keine existiert, eine neue erstellen
+            this.userInterface = new UserInterface(canvas);
         }
         
-        // Flaschenbild für den Cooldown laden
+        // Cooldown-Bild laden und restliche Initialisierung
         this.cooldownImage.src = '../assets/img/6_salsa_bottle/salsa_bottle.png';
-        
         this.draw();
         this.setWorld();
         this.run();
         this.character.previousY = this.character.y;
-
     }
 
     setWorld() {

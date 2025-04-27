@@ -3,9 +3,6 @@ class UserInterface extends DrawableObject {
         super();
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
-        
-        // Wenn eine existierende GameAudio-Instanz übergeben wird, verwende diese
-        // ansonsten erstelle eine neue (Rückwärtskompatibilität)
         this.audio = gameAudio || new GameAudio();
         
         this.soundIcon = new Image();
@@ -54,8 +51,6 @@ class UserInterface extends DrawableObject {
             }
             this.updateFullscreenIcon();
         });
-
-        // Keine zweite Hintergrundmusik-Instanz erstellen, da wir bereits eine in GameAudio haben
         this.soundIcon.onerror = () => {};
         this.settingsIcon.onerror = () => {};
         this.fullscreenIcon.onerror = () => {};

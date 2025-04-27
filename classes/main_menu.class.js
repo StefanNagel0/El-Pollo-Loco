@@ -1,7 +1,15 @@
 class MainMenu {
-    constructor() {
+    constructor(gameAudio) {
         const canvas = document.getElementById('canvas');
-        this.userInterface = new UserInterface(canvas);
+        
+        // Prüfe, ob bereits eine UserInterface-Instanz in window.world existiert
+        if (window.world && window.world.userInterface) {
+            this.userInterface = window.world.userInterface;
+        } else {
+            // Erstelle eine neue UserInterface-Instanz mit der übergebenen gameAudio
+            this.userInterface = new UserInterface(canvas, gameAudio);
+        }
+        
         this.init();
         this.updateSoundIcon();
     }

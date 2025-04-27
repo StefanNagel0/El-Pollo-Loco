@@ -183,11 +183,8 @@ class World {
     
         if (this.level.coins) {
             this.level.coins.forEach((coin, index) => {
-                // Hier statt isColiding() die neue präzise Methode verwenden
                 if (this.character.isPreciselyColiding(coin)) {
-                    // Coin einsammeln
                     this.character.collectCoin();
-                    // Coin aus dem Level entfernen
                     this.level.coins.splice(index, 1);
                 }
             });
@@ -196,7 +193,7 @@ class World {
         if (this.level.bottles) {
             this.level.bottles.forEach((bottle) => {
                 if (this.character.isColiding(bottle)) {
-                    this.character.collectBottle(); // Methode zum Sammeln der Bottle
+                    this.character.collectBottle();
                     const bottleIndex = this.level.bottles.indexOf(bottle);
                     if (bottleIndex > -1) {
                         this.level.bottles.splice(bottleIndex, 1);

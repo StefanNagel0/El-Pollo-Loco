@@ -8,7 +8,7 @@ class MovableObject extends DrawableObject {
     speedY = 0;
     acceleration = 2.5;
     isJumping = false;
-    offset = {top: 0,left: 0,right: 0,bottom: 0,};
+    offset = { top: 0, left: 0, right: 0, bottom: 0, };
     energy = 100;
     lastHit = 0;
 
@@ -96,14 +96,17 @@ class MovableObject extends DrawableObject {
         const myRight = this.x + this.width - this.offset.right;
         const myTop = this.y + this.offset.top;
         const myBottom = this.y + this.height - this.offset.bottom;
-        const objLeft = obj.x;
-        const objRight = obj.x + obj.width;
-        const objTop = obj.y;
-        const objBottom = obj.y + obj.height;
+        const objOffset = obj.offset || { top: 0, left: 0, right: 0, bottom: 0 };
+        const objIsCoin = obj.constructor.name === 'Coin';
+        const coinInset = objIsCoin ? Math.min(obj.width, obj.height) * 0.25 : 0;
+        const objLeft = obj.x + objOffset.left + (objIsCoin ? coinInset : 0);
+        const objRight = obj.x + obj.width - objOffset.right - (objIsCoin ? coinInset : 0);
+        const objTop = obj.y + objOffset.top + (objIsCoin ? coinInset : 0);
+        const objBottom = obj.y + obj.height - objOffset.bottom - (objIsCoin ? coinInset : 0);
         return myRight > objLeft &&
-                myLeft < objRight &&
-                myBottom > objTop &&
-                myTop < objBottom;
+            myLeft < objRight &&
+            myBottom > objTop &&
+            myTop < objBottom;
     }
 
     hit() {

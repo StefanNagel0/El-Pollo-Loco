@@ -2,9 +2,13 @@ let canvas;
 let world;
 let keyboard = new Keyboard();
 let mainMenu;
+let gameAudio; // Zentrale Audio-Instance
 
 function init() {
     canvas = document.getElementById("canvas");
+    
+    // Zentrale Audio-Instance erstellen
+    gameAudio = new GameAudio();
     
     // Sicherstellen, dass der benutzerdefinierte Bestätigungsdialog versteckt ist
     const customConfirm = document.getElementById('custom-confirm');
@@ -39,14 +43,14 @@ function init() {
             mainMenuElement.style.display = 'flex';
         }
         
-        // Hauptmenü erstellen
-        mainMenu = new MainMenu();
+        // Hauptmenü erstellen mit der zentralen Audio-Instance
+        mainMenu = new MainMenu(gameAudio);
     }
 }
 
 // Neue Funktion zum Initialisieren des Spiels nach dem Klick auf "Spiel starten"
 function initGame() {
-    world = new World(canvas, keyboard);
+    world = new World(canvas, keyboard, gameAudio); // Übergebe die zentrale Audio-Instance
     window.world = world; // Globalen Zugriff ermöglichen
     
     // Sicherstellen, dass das Spiel zunächst pausiert ist

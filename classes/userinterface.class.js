@@ -1,9 +1,13 @@
 class UserInterface extends DrawableObject {
-    constructor(canvas) {
+    constructor(canvas, gameAudio) {
         super();
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
-        this.audio = new GameAudio();
+        
+        // Wenn eine existierende GameAudio-Instanz übergeben wird, verwende diese
+        // ansonsten erstelle eine neue (Rückwärtskompatibilität)
+        this.audio = gameAudio || new GameAudio();
+        
         this.soundIcon = new Image();
         this.soundIcon.src = this.audio.isMuted 
             ? '../assets/img/ui_images/sound_off.svg' 
@@ -51,16 +55,7 @@ class UserInterface extends DrawableObject {
             this.updateFullscreenIcon();
         });
 
-        this.backgroundMusic = new Audio('../assets/audio/background.mp3');
-        this.backgroundMusic.loop = true;
-        this.registerAudioWithCategory(this.backgroundMusic, 'music');
-        setTimeout(() => {
-            if (!this.isMuted) {
-                this.backgroundMusic.play()
-                    .catch(error => {});
-            }
-        }, 500);
-
+        // Keine zweite Hintergrundmusik-Instanz erstellen, da wir bereits eine in GameAudio haben
         this.soundIcon.onerror = () => {};
         this.settingsIcon.onerror = () => {};
         this.fullscreenIcon.onerror = () => {};

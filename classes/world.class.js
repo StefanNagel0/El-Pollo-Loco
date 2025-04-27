@@ -13,7 +13,7 @@ class World {
     cooldownImage = new Image(); // Bild für die Flasche im Cooldown
     isPaused = true; // Auf true setzen, damit das Spiel im pausierten Zustand startet
 
-    constructor(canvas, keyboard) {
+    constructor(canvas, keyboard, gameAudio) {
         this.ctx = canvas.getContext('2d');
         this.canvas = canvas;
         this.keyboard = keyboard;
@@ -23,8 +23,8 @@ class World {
             // Bestehende UI-Instanz wiederverwenden statt eine neue zu erstellen
             this.userInterface = window.mainMenu.userInterface;
         } else {
-            // Nur wenn keine existiert, eine neue erstellen
-            this.userInterface = new UserInterface(canvas);
+            // Eine neue UI-Instanz mit der übergebenen gameAudio-Instanz erstellen
+            this.userInterface = new UserInterface(canvas, gameAudio);
         }
         
         // Cooldown-Bild laden und restliche Initialisierung

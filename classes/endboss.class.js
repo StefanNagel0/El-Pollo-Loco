@@ -283,7 +283,7 @@ class Endboss extends MovableObject {
     startRestingState(now) {
         this.isAttacking = false;
         this.isResting = true;
-        this.restDuration = 2000 + Math.random() * 2000; // 2-6 Sekunden Ruhephase
+        this.restDuration = 2000 + Math.random() * 2000;
         this.lastAttackTime = now;
         this.setRandomAttackCooldown();
     }
@@ -323,35 +323,48 @@ class Endboss extends MovableObject {
 
     handleGameWonSound() {
         try {
-            if (this.world?.userInterface?.backgroundMusic) {
-                this.pauseBackgroundMusic();
-                this.playGameWonSound();
-            } else {
-                new Audio('../assets/audio/game_won.mp3').play();
-            }
-        } catch (error) { }
+            const ui = this.world?.userInterface, src = '../assets/audio/game_won.mp3';
+            if (!ui) return new Audio(src).play().catch(() => {});
+            this.pauseBackgroundMusic();
+            const sound = Object.assign(new Audio(src), { volume: 1.0 });
+            ui.registerAudioWithCategory(sound, 'music');
+            const resume = () => this.resumeBackgroundMusic();
+            if (!ui.isMuted) {
+                sound.addEventListener('ended', resume);
+                sound.play().catch(resume);
+            } else setTimeout(resume, 2000);
+        } catch {
+            setTimeout(() => this.world?.userInterface?.backgroundMusic && this.resumeBackgroundMusic(), 2000);
+        }
     }
 
     pauseBackgroundMusic() {
-        const bgMusic = this.world.userInterface.backgroundMusic;
-        bgMusic.pause();
-        this.wasPlaying = !bgMusic.paused;
-        this.wasMuted = bgMusic.muted;
-    }
-
-    playGameWonSound() {
-        const gameWonSound = new Audio('../assets/audio/game_won.mp3');
-        gameWonSound.volume = 1.0;
-        this.world.userInterface.registerAudioWithCategory(gameWonSound, 'music');
-        gameWonSound.addEventListener('ended', () => this.resumeBackgroundMusic());
-        gameWonSound.play().catch(() => this.resumeBackgroundMusic());
+        try {
+            if (!this.world?.userInterface?.backgroundMusic) {
+                return;
+            }
+            const bgMusic = this.world.userInterface.backgroundMusic;
+            this.wasPlaying = !bgMusic.paused;
+            this.wasMuted = bgMusic.muted;
+            bgMusic.pause();
+        } catch (error) {
+            console.error('Fehler beim Pausieren der Hintergrundmusik:', error);
+        }
     }
 
     resumeBackgroundMusic() {
-        const bgMusic = this.world.userInterface.backgroundMusic;
-        if (this.wasPlaying && !this.world.userInterface.isMuted) {
-            bgMusic.muted = this.wasMuted;
-            bgMusic.play();
+        try {
+            if (!this.world?.userInterface?.backgroundMusic) {
+                return;
+            }
+            const bgMusic = this.world.userInterface.backgroundMusic;
+            if (this.wasPlaying && !this.world.userInterface.isMuted) {
+                bgMusic.muted = this.wasMuted;
+                bgMusic.play()
+                    .catch(error => console.error('Fehler beim Fortsetzen der Hintergrundmusik:', error));
+            }
+        } catch (error) {
+            console.error('Fehler beim Fortsetzen der Hintergrundmusik:', error);
         }
     }
 

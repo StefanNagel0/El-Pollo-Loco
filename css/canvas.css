@@ -3,6 +3,7 @@ body.fullscreen canvas {
     height: 100vh;
     object-fit: contain;
     background-color: black;
+    z-index: 999; /* Erhöht den z-index, damit das Canvas über anderen Elementen liegt */
 }
 
 body.fullscreen {
@@ -17,10 +18,9 @@ body.fullscreen h1 {
 
 canvas{
     background-color: black;
-    /* Schatten für besseren Kontrast zum Hintergrund */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     display: block;
-    margin: 0 auto; /* Horizontale Zentrierung */
+    margin: 0 auto;
 }
 
 @media only screen and (max-width:720px) {

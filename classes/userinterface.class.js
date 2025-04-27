@@ -228,20 +228,19 @@ class UserInterface extends DrawableObject {
 
     toggleFullscreen() {
         if (!document.fullscreenElement) {
-            // Vollbildmodus aktivieren
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            } else if (document.documentElement.mozRequestFullScreen) { // Firefox
-                document.documentElement.mozRequestFullScreen();
-            } else if (document.documentElement.webkitRequestFullscreen) { // Chrome, Safari
-                document.documentElement.webkitRequestFullscreen();
-            } else if (document.documentElement.msRequestFullscreen) { // IE/Edge
-                document.documentElement.msRequestFullscreen();
+            // Canvas als Vollbild-Element verwenden statt documentElement
+            if (this.canvas.requestFullscreen) {
+                this.canvas.requestFullscreen();
+            } else if (this.canvas.mozRequestFullScreen) {
+                this.canvas.mozRequestFullScreen();
+            } else if (this.canvas.webkitRequestFullscreen) {
+                this.canvas.webkitRequestFullscreen();
+            } else if (this.canvas.msRequestFullscreen) {
+                this.canvas.msRequestFullscreen();
             }
             this.isFullscreen = true;
             document.body.classList.add('fullscreen');
         } else {
-            // Vollbildmodus beenden
             if (document.exitFullscreen) {
                 document.exitFullscreen();
             } else if (document.mozCancelFullScreen) {
@@ -256,6 +255,12 @@ class UserInterface extends DrawableObject {
         }
         this.updateFullscreenIcon();
         this.scheduleIconPositionUpdate();
+        
+        // Sicherstellen, dass das Main-Menu nicht angezeigt wird
+        const mainMenu = document.getElementById('main-menu');
+        if (mainMenu && window.world && !window.world.isPaused) {
+            mainMenu.classList.add('d-none');
+        }
     }
     updateFullscreenIcon() {
         this.fullscreenIcon.src = this.isFullscreen 

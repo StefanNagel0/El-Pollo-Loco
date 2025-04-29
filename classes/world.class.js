@@ -369,40 +369,38 @@ class World {
 
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.drawGameWorld();
+        this.drawOptimizedGameWorld();
         this.drawUIElements();
-        let self = this;
-        requestAnimationFrame(function () {
-            self.draw();
-        });
+        requestAnimationFrame(() => this.draw());
     }
 
-    drawGameWorld() {
+    drawOptimizedGameWorld() {
         this.ctx.translate(this.camera_x, 0);
-        this.addObjectsToMap(this.level.backgroundObjects);
+        const visibleObjects = this.getVisibleObjects(this.level.backgroundObjects);
+        this.addObjectsToMap(visibleObjects);
         this.addToMap(this.character);
-        this.addObjectsToMap(this.level.clouds);
-        this.addObjectsToMap(this.level.enemies);
-        this.addObjectsToMap(this.level.coins);
-        this.addObjectsToMap(this.level.bottles);
+        const visibleClouds = this.getVisibleObjects(this.level.clouds);
+        this.addObjectsToMap(visibleClouds);
+        const visibleEnemies = this.getVisibleObjects(this.level.enemies);
+        this.addObjectsToMap(visibleEnemies);
+        const visibleCoins = this.getVisibleObjects(this.level.coins);
+        this.addObjectsToMap(visibleCoins);
+        const visibleBottles = this.getVisibleObjects(this.level.bottles);
+        this.addObjectsToMap(visibleBottles);
         this.addObjectsToMap(this.throwableObjects);
         this.ctx.translate(-this.camera_x, 0);
     }
 
-    drawUIElements() {
-        this.statusBar.draw(this.ctx);
-        this.userInterface.drawIcons();
-        this.drawEndbossHealthBar();
-        if (this.throwCooldown > 0) {
-            this.drawCooldownCircle();
-        }
-    }
-
-    drawEndbossHealthBar() {
-        const endboss = this.level.enemies.find(enemy => enemy instanceof Endboss);
-        if (endboss && endboss.showHealthBar) {
-            endboss.drawHealthBar(this.ctx);
-        }
+    getVisibleObjects(objects) {
+        if (!objects || !Array.isArray(objects)) return [];
+        const buffer = 150;
+        const leftEdge = -this.camera_x - buffer;
+        const rightEdge = leftEdge + this.canvas.width + 2 * buffer;
+        return objects.filter(obj => {
+            const objRightEdge = obj.x + obj.width;
+            const objLeftEdge = obj.x;
+            return objRightEdge > leftEdge && objLeftEdge < rightEdge;
+        });
     }
 
     addObjectsToMap(objects) {

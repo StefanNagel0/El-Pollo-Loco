@@ -8,62 +8,15 @@ class MovableObject extends DrawableObject {
     speedY = 0;
     acceleration = 2.5;
     isJumping = false;
-    offset = { top: 0, left: 0, right: 0, bottom: 0, };
+    offset = { top: 0, left: 0, right: 0, bottom: 0 };
     energy = 100;
-    lastHit = 0;
-
-    initializePosition() {
-        this.x = this.getValidXPosition();
-        MovableObject.placedEnemies.push(this.x);
-    }
-
-    setRandomDirectionChangeTime() {
-        this.changeDirectionTime = new Date().getTime() + Math.random() * 4000 + 1000;
-    }
-
-    getValidXPosition() {
-        let x;
-        let isTooClose;
-        do {
-            x = 700 + Math.random() * 4500;
-            isTooClose = MovableObject.placedEnemies.some(existingX =>
-                Math.abs(existingX - x) < MovableObject.minDistanceEnemies
-            );
-        } while (isTooClose);
-        return x;
-    }
-
-    checkWorldLimits() {
-        if (this.x <= this.worldLimits.min) {
-            this.otherDirection = false;
-            this.setRandomDirectionChangeTime();
-        } else if (this.x >= this.worldLimits.max - this.width) {
-            this.otherDirection = true;
-            this.setRandomDirectionChangeTime();
-        }
-    }
-
-    checkDirectionChange(now) {
-        if (now >= this.changeDirectionTime) {
-            this.otherDirection = Math.random() < 0.5;
-            this.setRandomDirectionChangeTime();
-        }
-    }
-
-    moveInCurrentDirection() {
-        if (this.otherDirection) {
-            this.moveLeft();
-        } else {
-            this.moveRight();
-        }
-    }
-
-    handleMovement() {
-        const now = new Date().getTime();
-        this.checkWorldLimits();
-        this.checkDirectionChange(now);
-        this.moveInCurrentDirection();
-    }
+    lastHit = 0;    
+    changeDirectionTime = 0;
+    worldLimits = { min: 0, max: 720 };
+    minXSpawn = 200;
+    maxXSpawnRange = 500;
+    minDirectionChangeDelay = 1000;
+    maxDirectionChangeDelay = 4000;
 
     applyGravity() {
         setInterval(() => {
@@ -77,11 +30,8 @@ class MovableObject extends DrawableObject {
     }
 
     isAboveGround() {
-        if (this instanceof ThrowableObject) {
-            return true;
-        } else {
-            return this.y < 150;
-        }
+        if (this instanceof ThrowableObject) return true;
+        else return this.y < 150;
     }
 
     isColiding(mo) {
@@ -96,24 +46,16 @@ class MovableObject extends DrawableObject {
         const myRight = this.x + this.width - this.offset.right;
         const myTop = this.y + this.offset.top;
         const myBottom = this.y + this.height - this.offset.bottom;
-        const objOffset = obj.offset || { top: 0, left: 0, right: 0, bottom: 0 };
-        const objIsCoin = obj.constructor.name === 'Coin';
-        const coinInset = objIsCoin ? Math.min(obj.width, obj.height) * 0.25 : 0;
-        const objLeft = obj.x + objOffset.left + (objIsCoin ? coinInset : 0);
-        const objRight = obj.x + obj.width - objOffset.right - (objIsCoin ? coinInset : 0);
-        const objTop = obj.y + objOffset.top + (objIsCoin ? coinInset : 0);
-        const objBottom = obj.y + obj.height - objOffset.bottom - (objIsCoin ? coinInset : 0);
-        return myRight > objLeft &&
-            myLeft < objRight &&
-            myBottom > objTop &&
-            myTop < objBottom;
+        const objLeft = obj.x;
+        const objRight = obj.x + obj.width;
+        const objTop = obj.y;
+        const objBottom = obj.y + obj.height;
+        return myRight > objLeft && myLeft < objRight && myBottom > objTop && myTop < objBottom;
     }
 
     hit() {
         this.energy -= 5;
-        if (this.energy < 0) {
-            this.energy = 0;
-        }
+        if (this.energy < 0) this.energy = 0;
         this.lastHit = new Date().getTime();
     }
 
@@ -144,5 +86,72 @@ class MovableObject extends DrawableObject {
 
     jump() {
         this.speedY = 30;
+    }
+
+    setRandomDirectionChangeTime() {
+        const randomDelay = Math.random() * this.maxDirectionChangeDelay + this.minDirectionChangeDelay;
+        this.changeDirectionTime = new Date().getTime() + randomDelay;
+    }
+
+    getValidXPosition() {
+        let x, isTooClose;
+        do {
+            x = this.minXSpawn + Math.random() * this.maxXSpawnRange;
+            isTooClose = MovableObject.placedEnemies.some(existingX =>
+                Math.abs(existingX - x) < MovableObject.minDistanceEnemies
+            );
+        } while (isTooClose);
+        return x;
+    }
+
+    animate() {
+        setInterval(() => this.handleMovement(), 1000 / 60);
+        setInterval(() => this.handleAnimation(), 200);
+    }
+
+    handleMovement() {
+        if (this.shouldMove()) {
+            this.checkBoundaryCollision();
+            this.checkRandomDirectionChange();
+            this.performMovement();
+        }
+    }
+
+    handleAnimation() {
+        if (this.shouldMove() && this.IMAGES_WALKING && this.IMAGES_WALKING.length > 0) {
+            this.playAnimation(this.IMAGES_WALKING);
+        }
+    }
+
+    shouldMove() {
+        const worldExists = typeof this.world !== 'undefined' && this.world !== null;
+        const isPaused = worldExists && typeof this.world.isPaused === 'boolean' ? this.world.isPaused : false;
+        const isDead = typeof this.isDead === 'function' ? this.isDead() : this.isDead;
+        return !isDead && !isPaused;
+    }
+
+    checkBoundaryCollision() {
+        const minLimit = this.worldLimits?.min ?? 0;
+        const maxLimit = this.worldLimits?.max ?? Infinity;
+        if (this.x <= minLimit) {
+            this.otherDirection = false;
+            this.setRandomDirectionChangeTime();
+        } else if (this.x >= maxLimit - this.width) {
+            this.otherDirection = true;
+            this.setRandomDirectionChangeTime();
+        }
+    }
+
+    checkRandomDirectionChange() {
+        const now = new Date().getTime();
+        if (now >= this.changeDirectionTime) {
+            this.otherDirection = Math.random() < 0.5;
+            this.setRandomDirectionChangeTime();
+        }
+    }
+
+    performMovement() {
+        if (this.otherDirection) this.moveLeft();
+        else this.moveRight();
     }
 }

@@ -1,17 +1,13 @@
 class Endscreen {
     constructor() {
         this.container = null;
-        this.gameOverImages = this.loadGameOverImages();
-        this.selectedImage = this.getRandomGameOverImage();
-    }
-
-    loadGameOverImages() {
-        return [
+        this.gameOverImages = [
             '../assets/img/9_intro_outro_screens/game_over/oh no you lost!.png',
             '../assets/img/9_intro_outro_screens/game_over/game over.png',
             '../assets/img/9_intro_outro_screens/game_over/game over!.png',
             '../assets/img/9_intro_outro_screens/game_over/you lost.png'
         ];
+        this.selectedImage = this.getRandomGameOverImage();
     }
 
     getRandomGameOverImage() {
@@ -20,43 +16,17 @@ class Endscreen {
     }
 
     show() {
-        if (window.world) this.pauseGameAndHideEnemies();
-        if (!this.container) this.createGameOverScreen();
-        this.displayGameOverScreen();
-        
-        // Sound abspielen
-        this.playGameOverSound();
-    }
-
-    playGameOverSound() {
-        try {
-            const ui = window.world?.userInterface;
-            const soundPath = '../assets/audio/game_lose.mp3';
-            
-            if (!ui) return;
-            
-            // Hintergrundmusik pausieren
-            if (ui.backgroundMusic) {
-                ui.backgroundMusic.pause();
-            }
-            
-            // Game-Over-Sound abspielen
-            const gameOverSound = new Audio(soundPath);
-            ui.registerAudioWithCategory(gameOverSound, 'music');
-            
-            if (!ui.isMuted) {
-                gameOverSound.play().catch(error => {
-                    console.log('Fehler beim Abspielen des Game-Over-Sounds:', error);
-                });
-            }
-        } catch (error) {
-            console.log('Fehler beim Abspielen des Game-Over-Sounds:', error);
+        if (window.world) {
+            window.world.isPaused = true;
+            this.hideEnemies();
         }
-    }
-
-    pauseGameAndHideEnemies() {
-        window.world.isPaused = true;
-        this.hideEnemies();
+        if (!this.container) {
+            this.createGameOverScreen();
+        }
+        this.container.classList.remove('d-none');
+        this.container.classList.add('show');
+        this.container.style.display = 'flex';
+        this.adjustPosition();
     }
 
     hideEnemies() {
@@ -69,21 +39,20 @@ class Endscreen {
     }
 
     createGameOverScreen() {
-        this.container = this.createEndscreenContainer();
-        const gameOverImage = this.createGameOverImage();
+        this.createContainer();
+        const gameOverImage = this.createImageElement();
         const buttonContainer = this.createButtonContainer();
-        this.container.append(gameOverImage, buttonContainer);
+        this.appendElementsToContainer(gameOverImage, buttonContainer);
         document.body.appendChild(this.container);
     }
 
-    createEndscreenContainer() {
-        const container = document.createElement('div');
-        container.id = 'game-over-screen';
-        container.classList.add('d-none');
-        return container;
+    createContainer() {
+        this.container = document.createElement('div');
+        this.container.id = 'game-over-screen';
+        this.container.classList.add('d-none');
     }
 
-    createGameOverImage() {
+    createImageElement() {
         const img = document.createElement('img');
         img.src = this.selectedImage;
         img.alt = 'Game Over';
@@ -94,57 +63,44 @@ class Endscreen {
     createButtonContainer() {
         const container = document.createElement('div');
         container.classList.add('game-over-buttons');
-        container.append(this.createRestartButton(), this.createMainMenuButton());
+        const restartBtn = this.createButton('Restart Game', () => this.restartGame());
+        const mainMenuBtn = this.createButton('Back to Main Menu', () => this.backToMainMenu());
+        container.appendChild(restartBtn);
+        container.appendChild(mainMenuBtn);
         return container;
     }
 
-    createRestartButton() {
+    createButton(text, onClick) {
         const button = document.createElement('button');
-        button.textContent = 'Restart Game';
+        button.textContent = text;
         button.classList.add('game-over-button');
-        button.addEventListener('click', () => this.restartGame());
+        button.addEventListener('click', onClick);
         return button;
     }
 
-    createMainMenuButton() {
-        const button = document.createElement('button');
-        button.textContent = 'Back to Main Menu';
-        button.classList.add('game-over-button');
-        button.addEventListener('click', () => this.backToMainMenu());
-        return button;
-    }
-
-    displayGameOverScreen() {
-        this.container.classList.remove('d-none');
-        this.container.classList.add('show');
-        this.container.style.display = 'flex';
-        this.adjustPosition();
+    appendElementsToContainer(image, buttons) {
+        this.container.appendChild(image);
+        this.container.appendChild(buttons);
     }
 
     adjustPosition() {
         const canvas = document.getElementById('canvas');
         if (canvas && this.container) {
             const canvasRect = canvas.getBoundingClientRect();
-            Object.assign(this.container.style, {
-                position: 'absolute',
-                top: `${canvasRect.top}px`,
-                left: `${canvasRect.left}px`,
-                width: `${canvasRect.width}px`,
-                height: `${canvasRect.height}px`
-            });
+            this.container.style.position = 'absolute';
+            this.container.style.top = `${canvasRect.top}px`;
+            this.container.style.left = `${canvasRect.left}px`;
+            this.container.style.width = `${canvasRect.width}px`;
+            this.container.style.height = `${canvasRect.height}px`;
         }
     }
 
     restartGame() {
         this.hide();
-        this.storeRestartState();
-        setTimeout(() => window.location.reload(), 50);
-    }
-
-    storeRestartState() {
         const timestamp = new Date().getTime();
         localStorage.setItem('elPolloLoco_startGame', 'true');
         localStorage.setItem('elPolloLoco_restartTimestamp', timestamp.toString());
+        setTimeout(() => window.location.reload(), 50);
     }
 
     backToMainMenu() {

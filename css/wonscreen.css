@@ -1,4 +1,3 @@
-/* Game Won Screen */
 #game-won-screen {
     position: absolute;
     top: 0;
@@ -43,8 +42,6 @@
     gap: 20px;
 }
 
-
-/* Animation für das Erscheinen des Screens */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }

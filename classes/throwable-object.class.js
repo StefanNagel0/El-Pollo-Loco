@@ -2,7 +2,6 @@ class ThrowableObject extends MovableObject {
     isBroken = false;
     moveInterval = null;
     groundPosition = 400;
-    
     IMAGES_BREAK = [
         '../assets/img/6_salsa_bottle/bottle_rotation/bottle_splash/1_bottle_splash.png',
         '../assets/img/6_salsa_bottle/bottle_rotation/bottle_splash/2_bottle_splash.png',
@@ -38,19 +37,19 @@ class ThrowableObject extends MovableObject {
     break() {
         if (this.isBroken) return;
         this.isBroken = true;
-        this.speedY = 0;
         this.stopMovement();
         this.playBreakAnimation();
         this.playBreakSound();
     }
-    
+
     stopMovement() {
+        this.speedY = 0;
         if (this.moveInterval) {
             clearInterval(this.moveInterval);
             this.moveInterval = null;
         }
     }
-    
+
     playBreakAnimation() {
         let i = 0;
         let breakInterval = setInterval(() => {
@@ -62,10 +61,9 @@ class ThrowableObject extends MovableObject {
             }
         }, 50);
     }
-    
+
     playBreakSound() {
         if (!this.world || !this.world.userInterface) return;
-        
         const breakSound = new Audio('../assets/audio/bottle_break.mp3');
         this.world.userInterface.registerAudioWithCategory(breakSound, 'objects');
         if (!this.world.userInterface.isMuted) {

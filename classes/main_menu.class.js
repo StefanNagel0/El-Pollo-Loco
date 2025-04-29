@@ -1,25 +1,19 @@
 class MainMenu {
-    constructor(gameAudio) {
+    constructor() {
         const canvas = document.getElementById('canvas');
-        if (window.world && window.world.userInterface) {
-            this.userInterface = window.world.userInterface;
-        } else {
-            this.userInterface = new UserInterface(canvas, gameAudio);
-        }
-        
+        this.userInterface = new UserInterface(canvas);
         this.init();
-        this.updateSoundIcon();
     }
 
     init() {
-        this.setupReferences();
-        this.setupEventListeners();
-        this.showMenu();
-        this.adjustMenuPosition();
+        this.initDOMReferences();
+        this.initEventListeners();
+        if (this.menuContainer) this.showMenu();
         window.addEventListener('resize', () => this.adjustMenuPosition());
+        this.adjustMenuPosition();
     }
-    
-    setupReferences() {
+
+    initDOMReferences() {
         this.menuContainer = document.getElementById('main-menu');
         this.startButton = document.getElementById('start-game');
         this.settingsIcon = document.getElementById('menu-settings-icon');
@@ -37,94 +31,89 @@ class MainMenu {
         this.exitGameBtn = document.getElementById('exit-game');
         this.soundIcon = document.getElementById('menu-sound-icon');
     }
-    
-    setupEventListeners() {
-        this.startButton?.addEventListener('click', () => this.startGame());
-        this.settingsIcon?.addEventListener('click', () => this.openSettings());
-        this.closeSettingsBtn?.addEventListener('click', () => this.closeSettings());
-        this.closeXBtn?.addEventListener('click', () => this.closeSettings());
-        this.gameTab?.addEventListener('click', () => this.switchTab('game'));
-        this.howToPlayTab?.addEventListener('click', () => this.switchTab('how-to-play'));
-        this.audioTab?.addEventListener('click', () => this.switchTab('audio'));
-        this.returnToGameBtn?.addEventListener('click', () => this.closeSettings());
-        this.exitGameBtn?.addEventListener('click', () => this.handleExitGame());
-        this.soundIcon?.addEventListener('click', () => this.toggleSound());
+
+    initEventListeners() {
+        this.addButtonListener(this.startButton, () => this.startGame());
+        this.addButtonListener(this.settingsIcon, () => this.openSettings());
+        this.addButtonListener(this.closeSettingsBtn, () => this.closeSettings());
+        this.addButtonListener(this.closeXBtn, () => this.closeSettings());
+        this.addButtonListener(this.gameTab, () => this.switchTab('game'));
+        this.addButtonListener(this.howToPlayTab, () => this.switchTab('how-to-play'));
+        this.addButtonListener(this.audioTab, () => this.switchTab('audio'));
+        this.addButtonListener(this.returnToGameBtn, () => this.closeSettings());
+        this.addButtonListener(this.exitGameBtn, () => this.handleExitGame());
+        this.initSoundIconListener();
     }
-    
+
+    addButtonListener(button, callback) {
+        if (button) button.addEventListener('click', callback);
+    }
+
     handleExitGame() {
-        if (window.world?.userInterface) {
-            window.world.userInterface.showCustomConfirm(() => window.location.reload());
-        } else {
-            window.location.reload();
-        }
+        const ui = window.world?.userInterface;
+        if (ui) ui.showCustomConfirm(() => window.location.reload());
+        else window.location.reload();
     }
-    
-    toggleSound() {
-        if (this.userInterface) {
-            this.userInterface.toggleSound();
+
+    initSoundIconListener() {
+        if (this.soundIcon) {
             this.updateSoundIcon();
+            this.soundIcon.addEventListener('click', () => {
+                if (this.userInterface) {
+                    this.userInterface.toggleSound();
+                    this.updateSoundIcon();
+                }
+            });
         }
     }
 
     showMenu() {
         this.menuContainer.classList.remove('d-none');
         this.gameTitle.classList.add('d-none');
-        void this.menuContainer.offsetWidth;
-        this.adjustMenuPosition();
-        setTimeout(() => this.adjustMenuPosition(), 50);
     }
 
-startGame() {
-    this.hideMenu();
-    this.showGameTitle();
-    initGame();
-    this.resumeWorld();
-    this.hideOverlays();
-}
-
-hideMenu() {
-    this.menuContainer.classList.add('d-none');
-    this.menuContainer.style.display = 'none';
-}
-
-showGameTitle() {
-    this.gameTitle.classList.remove('d-none');
-    this.gameTitle.style.display = '';
-}
-
-resumeWorld() {
-    if (window.world) {
-        window.world.isPaused = false;
-        this.syncUserInterface();
+    startGame() {
+        this.hideMenuShowTitle();
+        initGame();
+        this.initializeAndResumeGame();
+        this.closeAllOverlays();
     }
-}
 
-syncUserInterface() {
-    if (this.userInterface && window.world && window.world.userInterface) {
-        window.world.userInterface.audio = this.userInterface.audio;
-        window.world.userInterface.updateSoundIcon();
+    hideMenuShowTitle() {
+        this.menuContainer.classList.add('d-none');
+        this.menuContainer.style.display = 'none';
+        this.gameTitle.classList.remove('d-none');
+        this.gameTitle.style.display = '';
     }
-}
 
-hideOverlays() {
-    this.hideHowToPlayOverlay();
-    this.hideSettingsOverlay();
-}
-
-hideHowToPlayOverlay() {
-    if (this.howToPlayOverlay) {
-        this.howToPlayOverlay.classList.add('d-none');
-        this.howToPlayOverlay.classList.remove('show');
+    initializeAndResumeGame() {
+        if (window.world) {
+            window.world.isPaused = false;
+            if (this.userInterface) {
+                this.transferUIState(window.world.userInterface);
+            }
+        }
     }
-}
 
-hideSettingsOverlay() {
-    const settingsOverlay = document.getElementById('settings-overlay');
-    if (settingsOverlay) {
-        settingsOverlay.classList.add('d-none');
-        settingsOverlay.classList.remove('show');
+    transferUIState(targetUI) {
+        if (this.userInterface.backgroundMusic) {
+            targetUI.backgroundMusic = this.userInterface.backgroundMusic;
+        }
+        targetUI.isMuted = this.userInterface.isMuted;
+        targetUI.updateSoundIcon();
     }
-}
+
+    closeAllOverlays() {
+        if (this.howToPlayOverlay) {
+            this.howToPlayOverlay.classList.add('d-none');
+            this.howToPlayOverlay.classList.remove('show');
+        }
+        const settingsOverlay = document.getElementById('settings-overlay');
+        if (settingsOverlay) {
+            settingsOverlay.classList.add('d-none');
+            settingsOverlay.classList.remove('show');
+        }
+    }
 
     openHowToPlay() {
         this.howToPlayOverlay.classList.remove('d-none');
@@ -137,15 +126,9 @@ hideSettingsOverlay() {
     }
 
     openSettings() {
-        if (window.world) {
-            this.exitGameBtn.style.display = 'block';
-        } else {
-            this.exitGameBtn.style.display = 'none';
-        }
+        this.exitGameBtn.style.display = window.world ? 'block' : 'none';
         this.switchTab('game');
         this.settingsOverlay.classList.remove('d-none');
-        this.adjustMenuPosition();
-        setTimeout(() => this.adjustMenuPosition(), 10);
         this.settingsOverlay.classList.add('show');
     }
 
@@ -156,58 +139,69 @@ hideSettingsOverlay() {
 
     adjustMenuPosition() {
         const canvas = document.getElementById('canvas');
-        if (canvas && this.menuContainer) {
-            this.menuContainer.removeAttribute('style');
+        if (canvas) {
             const canvasRect = canvas.getBoundingClientRect();
-            this.menuContainer.style.cssText = `
-                display: flex;
-                position: absolute;
-                top: ${canvasRect.top}px;
-                left: ${canvasRect.left}px;
-                width: ${canvasRect.width}px;
-                height: ${canvasRect.height}px;
-                transform: none;
-                z-index: 1000;
-            `;
-            const settingsOverlay = document.getElementById('settings-overlay');
-            if (settingsOverlay) {
-                settingsOverlay.style.cssText = `
-                    position: absolute;
-                    top: ${canvasRect.top}px;
-                    left: ${canvasRect.left}px;
-                    width: ${canvasRect.width}px;
-                    height: ${canvasRect.height}px;
-                    transform: none;
-                    z-index: 1001;
-                `;
-            }
+            this.positionMenuContainer(canvasRect);
+            this.positionSettingsOverlay(canvasRect);
+        }
+    }
+
+    positionMenuContainer(canvasRect) {
+        if (this.menuContainer) {
+            const canvasCenter = canvasRect.left + (canvasRect.width / 2);
+            const menuWidth = canvasRect.width;
+            this.menuContainer.style.top = `${canvasRect.top}px`;
+            this.menuContainer.style.left = `${canvasCenter - (menuWidth / 2)}px`;
+            this.menuContainer.style.width = `${menuWidth}px`;
+            this.menuContainer.style.height = `${canvasRect.height}px`;
+            this.menuContainer.style.transform = 'none';
+        }
+    }
+
+    positionSettingsOverlay(canvasRect) {
+        const settingsOverlay = document.getElementById('settings-overlay');
+        if (settingsOverlay) {
+            settingsOverlay.style.top = `${canvasRect.top}px`;
+            settingsOverlay.style.left = `${canvasRect.left}px`;
+            settingsOverlay.style.width = `${canvasRect.width}px`;
+            settingsOverlay.style.height = `${canvasRect.height}px`;
+            settingsOverlay.style.transform = 'none';
         }
     }
 
     switchTab(tabId) {
-        this.gameTab.classList.remove('active');
-        this.howToPlayTab.classList.remove('active');
-        this.audioTab.classList.remove('active');
-        this.gameContent.classList.add('d-none');
-        this.howToPlayContent.classList.add('d-none');
-        this.audioContent.classList.add('d-none');
+        this.resetAllTabs();
+        this.activateTab(tabId);
+    }
+
+    resetAllTabs() {
+        this.gameTab?.classList.remove('active');
+        this.howToPlayTab?.classList.remove('active');
+        this.audioTab?.classList.remove('active');
+        this.gameContent?.classList.add('d-none');
+        this.howToPlayContent?.classList.add('d-none');
+        this.audioContent?.classList.add('d-none');
+    }
+
+    activateTab(tabId) {
         if (tabId === 'game') {
-            this.gameTab.classList.add('active');
-            this.gameContent.classList.remove('d-none');
+            this.gameTab?.classList.add('active');
+            this.gameContent?.classList.remove('d-none');
         } else if (tabId === 'how-to-play') {
-            this.howToPlayTab.classList.add('active');
-            this.howToPlayContent.classList.remove('d-none');
+            this.howToPlayTab?.classList.add('active');
+            this.howToPlayContent?.classList.remove('d-none');
         } else if (tabId === 'audio') {
-            this.audioTab.classList.add('active');
-            this.audioContent.classList.remove('d-none');
+            this.audioTab?.classList.add('active');
+            this.audioContent?.classList.remove('d-none');
         }
     }
 
     updateSoundIcon() {
         if (this.soundIcon && this.userInterface) {
-            this.soundIcon.src = this.userInterface.audio.isMuted 
-                ? '../assets/img/ui_images/sound_off.svg' 
+            const iconPath = this.userInterface.isMuted
+                ? '../assets/img/ui_images/sound_off.svg'
                 : '../assets/img/ui_images/sound_on.svg';
+            this.soundIcon.src = iconPath;
         }
     }
 }

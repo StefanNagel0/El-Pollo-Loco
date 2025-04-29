@@ -2,112 +2,68 @@ let canvas;
 let world;
 let keyboard = new Keyboard();
 let mainMenu;
-let gameAudio; // Zentrale Audio-Instance
 
 function init() {
     canvas = document.getElementById("canvas");
-    
-    // Zentrale Audio-Instance erstellen
-    gameAudio = new GameAudio();
-    
-    // Sicherstellen, dass der benutzerdefinierte Bestätigungsdialog versteckt ist
-    const customConfirm = document.getElementById('custom-confirm');
-    if (customConfirm) {
-        customConfirm.classList.add('d-none');
-    }
-    
-    // Hauptmenü-Element referenzieren
-    const mainMenuElement = document.getElementById('main-menu');
-    
-    // Prüfen, ob Spiel direkt gestartet werden soll (nach Neustart)
+    initializeUIElements();
     const directStart = localStorage.getItem('elPolloLoco_startGame') === 'true';
     
     if (directStart) {
-        // Flags zurücksetzen
-        localStorage.removeItem('elPolloLoco_startGame');
-        localStorage.removeItem('elPolloLoco_restartTimestamp');
-        
-        // Sicherstellen, dass das Hauptmenü ausgeblendet ist
-        if (mainMenuElement) {
-            mainMenuElement.classList.add('d-none');
-            mainMenuElement.style.display = 'none';
-        }
-        
-        // Spiel direkt starten
-        initGame();
-        window.world.isPaused = false;
+        handleDirectStart();
     } else {
-        // Sicherstellen, dass das Hauptmenü sichtbar ist
-        if (mainMenuElement) {
-            mainMenuElement.classList.remove('d-none');
-            mainMenuElement.style.display = 'flex';
-        }
-        
-        // Hauptmenü erstellen mit der zentralen Audio-Instance
-        mainMenu = new MainMenu(gameAudio);
+        showMainMenu();
     }
 }
 
-// Neue Funktion zum Initialisieren des Spiels nach dem Klick auf "Spiel starten"
-function initGame() {
-    world = new World(canvas, keyboard, gameAudio); // Übergebe die zentrale Audio-Instance
-    window.world = world; // Globalen Zugriff ermöglichen
+function initializeUIElements() {
+    const customConfirm = document.getElementById('custom-confirm');
+    if (customConfirm) customConfirm.classList.add('d-none');
+}
+
+function handleDirectStart() {
+    localStorage.removeItem('elPolloLoco_startGame');
+    localStorage.removeItem('elPolloLoco_restartTimestamp');
+    const mainMenuElement = document.getElementById('main-menu');
     
-    // Sicherstellen, dass das Spiel zunächst pausiert ist
-    // und erst nach dem Klick auf "Spiel starten" aktiviert wird
+    if (mainMenuElement) {
+        mainMenuElement.classList.add('d-none');
+        mainMenuElement.style.display = 'none';
+    }
+    
+    initGame();
+    window.world.isPaused = false;
+}
+
+function showMainMenu() {
+    const mainMenuElement = document.getElementById('main-menu');
+    if (mainMenuElement) {
+        mainMenuElement.classList.remove('d-none');
+        mainMenuElement.style.display = 'flex';
+    }
+    mainMenu = new MainMenu();
+}
+
+function initGame() {
+    world = new World(canvas, keyboard);
+    window.world = world;
     window.world.isPaused = true;
 }
 
-window.addEventListener('keydown', (event)=>{
-    if(event.keyCode == 39){
-        keyboard.RIGHT = true;
-    }
+const KEY_ACTIONS = {
+    39: { property: 'RIGHT', down: true, up: false },
+    37: { property: 'LEFT', down: true, up: false },
+    40: { property: 'DOWN', down: true, up: false },
+    38: { property: 'UP', down: true, up: false },
+    32: { property: 'SPACE', down: true, up: false },
+    68: { property: 'D', down: true, up: false }
+};
 
-    if(event.keyCode == 37){
-        keyboard.LEFT = true;
-    }
+window.addEventListener('keydown', (event) => {
+    const action = KEY_ACTIONS[event.keyCode];
+    if (action) keyboard[action.property] = action.down;
+});
 
-    if(event.keyCode == 40){
-        keyboard.DOWN = true;
-    }
-
-    if(event.keyCode == 38){
-        keyboard.UP = true;
-    }
-
-    if(event.keyCode == 32){
-        keyboard.SPACE = true;
-    }
-
-    if(event.keyCode == 68){
-        keyboard.D = true;
-    }
-
-})
-
-window.addEventListener('keyup', (event)=>{
-    if(event.keyCode == 39){
-        keyboard.RIGHT = false;
-    }
-
-    if(event.keyCode == 37){
-        keyboard.LEFT = false;
-    }
-
-    if(event.keyCode == 40){
-        keyboard.DOWN = false;
-    }
-
-    if(event.keyCode == 38){
-        keyboard.UP = false;
-    }
-
-    if(event.keyCode == 32){
-        keyboard.SPACE = false;
-    }
-
-    if(event.keyCode == 68){
-        keyboard.D = false;
-    }
-    
-})
+window.addEventListener('keyup', (event) => {
+    const action = KEY_ACTIONS[event.keyCode];
+    if (action) keyboard[action.property] = action.up;
+});

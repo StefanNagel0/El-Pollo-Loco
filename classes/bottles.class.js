@@ -6,8 +6,7 @@ class Bottles extends MovableObject {
         super();
         this.loadImage('../assets/img/6_salsa_bottle/1_salsa_bottle_on_ground.png');
         this.x = this.getValidXPosition();
-        this.y = 350; // Fester Y-Wert für alle Flaschen
-        
+        this.y = 350;
         MovableObject.placedObjects.push(this.x);
     }
 

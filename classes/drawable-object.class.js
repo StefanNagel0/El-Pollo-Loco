@@ -17,7 +17,7 @@ class DrawableObject {
             let img = new Image();
             img.src = path;
             this.imageCache[path] = img;
-        });
+        })
     }
 
     draw(ctx) {
@@ -25,61 +25,50 @@ class DrawableObject {
     }
 
     drawFrame(ctx) {
-        if (this.isDrawableWithFrame()) {
-            this.drawBoundingBox(ctx);
-            this.drawOffsetBox(ctx);
-            this.drawStompableArea(ctx);
-            this.drawHealthBarIfApplicable(ctx);
+        if (this.shouldDrawFrames()) {
+            this.drawOuterFrame(ctx);
+            this.drawCollisionFrame(ctx);
+            this.drawSpecificFrames(ctx);
         }
     }
 
-    isDrawableWithFrame() {
+    shouldDrawFrames() {
         return this instanceof Character || this instanceof Chicken || this instanceof smallChicken;
     }
 
-    drawBoundingBox(ctx) {
-        ctx.beginPath();
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = 'blue';
-        ctx.rect(this.x, this.y, this.width, this.height);
-        ctx.stroke();
+    drawOuterFrame(ctx) {
+        this.drawRect(ctx, this.x, this.y, this.width, this.height, 'blue', 4);
     }
 
-    drawOffsetBox(ctx) {
-        ctx.beginPath();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = 'red';
-        ctx.rect(
-            this.x + this.offset.left,
-            this.y + this.offset.top,
-            this.width - this.offset.left - this.offset.right,
-            this.height - this.offset.top - this.offset.bottom
-        );
-        ctx.stroke();
+    drawCollisionFrame(ctx) {
+        const offsetX = this.offset?.left ?? 0;
+        const offsetY = this.offset?.top ?? 0;
+        const offsetWidth = (this.offset?.left ?? 0) + (this.offset?.right ?? 0);
+        const offsetHeight = (this.offset?.top ?? 0) + (this.offset?.bottom ?? 0);
+        this.drawRect(ctx, this.x + offsetX, this.y + offsetY, this.width - offsetWidth, this.height - offsetHeight, 'red', 2);
     }
 
-    drawStompableArea(ctx) {
-        if (this.hasStompableArea()) {
-            ctx.beginPath();
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = 'green';
-            ctx.rect(
-                this.x + this.offset.left,
-                this.y + this.offset.top,
-                this.width - this.offset.left - this.offset.right,
-                this.stompableAreaHeight
-            );
-            ctx.stroke();
+    drawSpecificFrames(ctx) {
+        if ((this instanceof Chicken || this instanceof smallChicken) && this.stompableAreaHeight) {
+            this.drawStompableFrame(ctx);
         }
-    }
-
-    hasStompableArea() {
-        return (this instanceof Chicken || this instanceof smallChicken) && this.stompableAreaHeight;
-    }
-
-    drawHealthBarIfApplicable(ctx) {
         if (this instanceof Chicken && this.drawHealthBar) {
             this.drawHealthBar(ctx);
         }
+    }
+
+    drawStompableFrame(ctx) {
+        const offsetX = this.offset?.left ?? 0;
+        const offsetY = this.offset?.top ?? 0;
+        const offsetWidth = (this.offset?.left ?? 0) + (this.offset?.right ?? 0);
+        this.drawRect(ctx, this.x + offsetX, this.y + offsetY, this.width - offsetWidth, this.stompableAreaHeight, 'green', 2);
+    }
+
+    drawRect(ctx, x, y, width, height, color, lineWidth) {
+        ctx.beginPath();
+        ctx.lineWidth = lineWidth;
+        ctx.strokeStyle = color;
+        ctx.rect(x, y, width, height);
+        ctx.stroke();
     }
 }

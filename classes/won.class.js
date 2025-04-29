@@ -3,91 +3,65 @@ class Won {
         this.container = null;
     }
 
-    /**
-     * Zeigt den Game-Won-Screen an
-     */
     show() {
-        // Spiel pausieren
-        if (window.world) {
-            window.world.isPaused = true;
-        }
-        
-        // Erstellen, falls noch nicht vorhanden
-        if (!this.container) {
-            this.createWonScreen();
-        }
-        
-        // Anzeigen
+        if (window.world) window.world.isPaused = true;
+        if (!this.container) this.createWonScreen();
         this.container.classList.remove('d-none');
         this.container.classList.add('show');
-        
-        // Position anpassen
         this.adjustPosition();
-        
-        // Event-Listener für Fenstergrößenänderungen
         window.addEventListener('resize', this.adjustPosition.bind(this));
     }
 
-    /**
-     * Erstellt die HTML-Elemente für den Game-Won-Screen
-     */
     createWonScreen() {
-        // Container erstellen
-        this.container = document.createElement('div');
-        this.container.id = 'game-won-screen';
-        this.container.classList.add('d-none');
-        
-        // Text-Container für Gewonnen-Nachricht
-        const textContainer = document.createElement('div');
-        textContainer.classList.add('game-won-text');
-        
-        // Überschrift erstellen
-        const headline = document.createElement('h1');
-        headline.textContent = 'YOU WON!'; // war: 'DU HAST GEWONNEN!'
-        
-        // Untertext erstellen
-        const subtext = document.createElement('p');
-        subtext.textContent = 'Congratulations! You defeated the final boss!'; // war: 'Herzlichen Glückwunsch! Du hast den Endboss besiegt!'
-        
-        // Text zum Container hinzufügen
-        textContainer.appendChild(headline);
-        textContainer.appendChild(subtext);
-        
-        // Button-Container erstellen
-        const buttonContainer = document.createElement('div');
-        buttonContainer.classList.add('game-won-buttons');
-        
-        // Restart-Button erstellen
-        const restartButton = document.createElement('button');
-        restartButton.textContent = 'Restart Game'; // war: 'Spiel neu starten'
-        restartButton.classList.add('game-button'); // Standard-Button-Klasse verwenden
-        restartButton.addEventListener('click', () => this.restartGame());
-        
-        // Main-Menu-Button erstellen
-        const mainMenuButton = document.createElement('button');
-        mainMenuButton.textContent = 'Back to Main Menu'; // war: 'Zurück zum Hauptmenü'
-        mainMenuButton.classList.add('game-button'); // Standard-Button-Klasse verwenden
-        mainMenuButton.addEventListener('click', () => this.backToMainMenu());
-        
-        // Elemente zusammenfügen
-        buttonContainer.appendChild(restartButton);
-        buttonContainer.appendChild(mainMenuButton);
-        
+        this.container = this.createContainer();
+        const textContainer = this.createTextContent();
+        const buttonContainer = this.createButtonContainer();
         this.container.appendChild(textContainer);
         this.container.appendChild(buttonContainer);
-        
-        // Container zum DOM hinzufügen
         document.body.appendChild(this.container);
     }
 
-    /**
-     * Passt die Position des Game-Won-Screens an die Canvas-Position an
-     */
+    createContainer() {
+        const container = document.createElement('div');
+        container.id = 'game-won-screen';
+        container.classList.add('d-none');
+        return container;
+    }
+
+    createTextContent() {
+        const textContainer = document.createElement('div');
+        textContainer.classList.add('game-won-text');
+        const headline = document.createElement('h1');
+        headline.textContent = 'YOU WON!';
+        const subtext = document.createElement('p');
+        subtext.textContent = 'Congratulations! You defeated the final boss!';
+        textContainer.appendChild(headline);
+        textContainer.appendChild(subtext);
+        return textContainer;
+    }
+
+    createButtonContainer() {
+        const buttonContainer = document.createElement('div');
+        buttonContainer.classList.add('game-won-buttons');
+        const restartButton = this.createButton('Restart Game', () => this.restartGame());
+        const mainMenuButton = this.createButton('Back to Main Menu', () => this.backToMainMenu());
+        buttonContainer.appendChild(restartButton);
+        buttonContainer.appendChild(mainMenuButton);
+        return buttonContainer;
+    }
+
+    createButton(text, clickHandler) {
+        const button = document.createElement('button');
+        button.textContent = text;
+        button.classList.add('game-button');
+        button.addEventListener('click', clickHandler);
+        return button;
+    }
+
     adjustPosition() {
         const canvas = document.getElementById('canvas');
         if (canvas && this.container) {
             const canvasRect = canvas.getBoundingClientRect();
-            
             this.container.style.position = 'absolute';
             this.container.style.top = `${canvasRect.top}px`;
             this.container.style.left = `${canvasRect.left}px`;
@@ -96,37 +70,19 @@ class Won {
         }
     }
 
-    /**
-     * Startet das Spiel neu
-     */
     restartGame() {
-        // Won-Screen ausblenden
         this.hide();
-        
-        // Flag mit Zeitstempel setzen
         const timestamp = new Date().getTime();
         localStorage.setItem('elPolloLoco_startGame', 'true');
         localStorage.setItem('elPolloLoco_restartTimestamp', timestamp.toString());
-        
-        // Verzögerung hinzufügen
-        setTimeout(() => {
-            window.location.reload();
-        }, 50);
+        setTimeout(() => window.location.reload(), 50);
     }
 
-    /**
-     * Kehrt zum Hauptmenü zurück
-     */
     backToMainMenu() {
-        // Won-Screen ausblenden
         this.hide();
-        
         window.location.reload();
     }
 
-    /**
-     * Blendet den Game-Won-Screen aus
-     */
     hide() {
         if (this.container) {
             this.container.classList.remove('show');

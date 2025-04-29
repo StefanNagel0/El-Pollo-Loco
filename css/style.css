@@ -21,16 +21,14 @@ body {
 }
 
 h1 {
-    font-family: 'Zabars', cursive; /* Neue Schriftart anwenden mit Fallback */
+    font-family: 'Zabars', cursive;
     font-size: 52px;
     color: rgb(255, 255, 255);
     letter-spacing: 4px;
-    /* Textschatten für bessere Lesbarkeit auf dem Hintergrundbild */
     text-shadow: 2px 5px 11px rgba(0, 0, 0, 0.7);
     margin-bottom: 20px;
 }
 
-/* Rotations-Video Container Styling */
 #rotation-video-container {
     position: fixed;
     top: 0;
@@ -39,7 +37,7 @@ h1 {
     height: 100vh;
     background-color: black;
     z-index: 2000;
-    display: none; /* Standardmäßig ausblenden */
+    display: none;
     justify-content: center;
     align-items: center;
 }
@@ -49,12 +47,6 @@ h1 {
     max-height: 100%;
 }
 
-/* Hilfeklasse zum Ausblenden */
-/* .d-none {
-    display: none !important;
-} */
-
-/* Mobile Steuerungselemente */
 #mobile-controls {
     position: fixed;
     bottom: 20px;
@@ -62,7 +54,7 @@ h1 {
     right: 0;
     display: flex;
     justify-content: space-between;
-    pointer-events: none; /* Verhindert, dass der Container selbst Klicks abfängt */
+    pointer-events: none;
     z-index: 1000;
     padding: 0 20px;
 }
@@ -70,7 +62,7 @@ h1 {
 .mobile-control-group {
     display: flex;
     gap: 15px;
-    pointer-events: auto; /* Aktiviert Interaktion für die Button-Gruppen */
+    pointer-events: auto;
 }
 
 .mobile-control-button {
@@ -83,7 +75,7 @@ h1 {
     align-items: center;
     cursor: pointer;
     user-select: none;
-    touch-action: manipulation; /* Verbessert Touch-Handling */
+    touch-action: manipulation;
 }
 
 .mobile-key {
@@ -93,7 +85,6 @@ h1 {
     text-align: center;
 }
 
-/* Nur auf mobilen Geräten im Querformat anzeigen */
 @media (max-width: 720px) and (orientation: landscape) {
     #fullscreen-icon {
         display: none !important;
@@ -103,27 +94,24 @@ h1 {
     }
 }
 
-/* Nur auf kleinen Geräten im Hochformat anzeigen */
 @media (max-width: 720px) and (orientation: portrait) {
     #rotation-video-container.show-rotation-video {
         display: flex !important;
     }
 }
 
-/* Aktiver Zustand für Buttons beim Drücken */
 .mobile-control-button.active {
     background-color: rgba(255, 120, 0, 0.8);
     transform: scale(0.95);
 }
 
-/* Game Controls Overlay */
 #game-controls-overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none; /* Erlaubt Klicks durch das Overlay */
+    pointer-events: none;
     z-index: 100;
 }
 
@@ -133,7 +121,7 @@ h1 {
     right: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none; /* Erlaubt Klicks durch den Container */
+    pointer-events: none;
 }
 
 .game-icon {
@@ -141,7 +129,7 @@ h1 {
     width: 40px;
     height: 40px;
     cursor: pointer;
-    pointer-events: auto; /* Macht nur die Icons klickbar */
+    pointer-events: auto;
     transition: transform 0.2s ease;
 }
 
@@ -178,7 +166,6 @@ h1 {
     transition: transform 0.2s ease;
 }
 
-/* Nur auf mobilen Geräten im Querformat ausblenden */
 @media (max-width: 720px) and (orientation: landscape) {
     #fullscreen-icon {
         display: none !important;

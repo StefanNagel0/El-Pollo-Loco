@@ -19,7 +19,6 @@
     <script src="../classes/main_menu.class.js"></script>
     <script src="../classes/endscreen_class.js"></script>
     <script src="../classes/won.class.js"></script>
-    <script src="../classes/audio.class.js"></script>
     <script src="../classes/keyboard.class.js"></script>
     <script src="../classes/level.class.js"></script>
     <script src="../classes/drawable-object.class.js"></script>
@@ -42,10 +41,7 @@
 <body onload="init()">
 
     <h1 class="header_h1">El Pollo Loco</h1>
-
     <canvas id="canvas" width="720" height="480"></canvas>
-    
-    <!-- Hauptmenü mit nur einem Button und Settings-Icon -->
     <div id="main-menu">
         <img src="../assets/img/9_intro_outro_screens/start/startscreen_2.png" alt="El Pollo Loco" class="menu-background">
         <div class="menu-settings-icon">
@@ -58,8 +54,6 @@
             <button id="start-game" class="menu-button">Start Game</button>
         </div>
     </div>
-
-    <!-- Überarbeitetes Settings-Overlay mit How-to-Play und Audio-Tabs -->
     <div id="settings-overlay" class="d-none">
         <div class="settings-container">
             <h2>Settings</h2>
@@ -70,19 +64,14 @@
                 <div class="tab" id="how-to-play-tab" data-tab="how-to-play-content">How to Play</div>
                 <div class="tab" id="audio-tab" data-tab="audio-content">Audio</div>
             </div>
-            
             <div class="settings-content">
-                <!-- Neuer "Spiel"-Tab Content -->
                 <div id="game-content" class="tab-content">
                     <div class="game-buttons">
                         <button id="return-to-game" class="game-button">Back to Game</button>
                         <button id="exit-game" class="game-button exit-button">Exit Game</button>
-                        <!-- Neuer Button für Legal Notice -->
                         <button id="legal-notice-btn" class="game-button legal-button">Legal Notice</button>
                     </div>
                 </div>
-
-                <!-- How to Play Tab Content -->
                 <div id="how-to-play-content" class="tab-content d-none">
                     <div class="controls-content">
                         <div class="control-item">
@@ -109,24 +98,19 @@
                         <p>• Avoid getting hit by enemies</p>
                     </div>
                 </div>
-                
-                <!-- Audio Tab Content -->
                 <div id="audio-content" class="tab-content d-none">
                     <div class="setting">
                         <label for="character-volume">Character: <span id="character-volume-value">1</span></label>
                         <input type="range" id="character-volume" class="volume-slider" min="0" max="10" value="1">
                     </div>
-                    
                     <div class="setting">
                         <label for="enemies-volume">Enemies: <span id="enemies-volume-value">1</span></label>
                         <input type="range" id="enemies-volume" class="volume-slider" min="0" max="10" value="1"> 
                     </div>
-                    
                     <div class="setting">
                         <label for="objects-volume">Objects: <span id="objects-volume-value">1</span></label>
                         <input type="range" id="objects-volume" class="volume-slider" min="0" max="10" value="1">
                     </div>
-                    
                     <div class="setting">
                         <label for="music-volume">Music: <span id="music-volume-value">1</span></label>
                         <input type="range" id="music-volume" class="volume-slider" min="0" max="10" value="1">
@@ -135,8 +119,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Benutzerdefinierter Bestätigungsdialog - unbedingt mit d-none Klasse -->
     <div id="custom-confirm" class="d-none">
         <div class="custom-confirm-container">
             <h3>Are you sure?</h3>
@@ -147,10 +129,7 @@
             </div>
         </div>
     </div>
-
-    <!-- Mobile Steuerungselemente -->
     <div id="mobile-controls" class="d-none">
-        <!-- Linke Steuerungsbuttons -->
         <div class="mobile-control-group left-controls">
             <div class="mobile-control-button" id="button-left">
                 <div class="mobile-key">←</div>
@@ -159,8 +138,6 @@
                 <div class="mobile-key">→</div>
             </div>
         </div>
-        
-        <!-- Rechte Steuerungsbuttons -->
         <div class="mobile-control-group right-controls">
             <div class="mobile-control-button" id="button-jump">
                 <div class="mobile-key">JUMP</div>

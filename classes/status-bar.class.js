@@ -23,7 +23,6 @@ class StatusBar extends DrawableObject {
         '../assets/img/7_statusbars/1_statusbar/3_statusbar_bottle/blue/80.png',
         '../assets/img/7_statusbars/1_statusbar/3_statusbar_bottle/blue/100.png',
     ]
-
     percentage_energy = 100;
     percentage_coins = 0;
     percentage_bottles = 0;
@@ -50,6 +49,7 @@ class StatusBar extends DrawableObject {
         this.img_energy = new Image();
         this.img_coins = new Image();
         this.img_bottles = new Image();
+
         this.updateStatusBars();
     }
 
@@ -67,7 +67,7 @@ class StatusBar extends DrawableObject {
 
     setBottlesPercentage(percentage) {
         this.percentage_bottles = percentage;
-        this.current_bottles = Math.min(Math.ceil(percentage / 10), this.max_bottles);
+        this.current_bottles = Math.min(Math.ceil(percentage / 10), this.max_bottles); // 10 Flaschen maximal
         this.updateStatusBars();
     }
 

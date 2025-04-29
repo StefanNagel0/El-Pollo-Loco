@@ -7,101 +7,95 @@ class World {
     camera_x = 0;
     statusBar = new StatusBar();
     throwableObjects = [];
-    canThrow = true; // Variable, um das Werfen zu steuern
-    throwCooldown = 0; // Aktueller Cooldown in ms
-    maxThrowCooldown = 2250; // Maximaler Cooldown in ms
-    cooldownImage = new Image(); // Bild für die Flasche im Cooldown
-    isPaused = true; // Auf true setzen, damit das Spiel im pausierten Zustand startet
+    canThrow = true;
+    throwCooldown = 0;
+    maxThrowCooldown = 2250;
+    cooldownImage = new Image();
+    isPaused = true;
 
-    constructor(canvas, keyboard, gameAudio) {
+    constructor(canvas, keyboard) {
         this.ctx = canvas.getContext('2d');
         this.canvas = canvas;
         this.keyboard = keyboard;
-        
-        // Prüfen, ob bereits eine UserInterface-Instanz im MainMenu existiert
-        if (window.mainMenu?.userInterface) {
-            // Bestehende UI-Instanz wiederverwenden statt eine neue zu erstellen
-            this.userInterface = window.mainMenu.userInterface;
-        } else {
-            // Eine neue UI-Instanz mit der übergebenen gameAudio-Instanz erstellen
-            this.userInterface = new UserInterface(canvas, gameAudio);
-        }
-        
-        // Cooldown-Bild laden und restliche Initialisierung
-        this.cooldownImage.src = '../assets/img/6_salsa_bottle/salsa_bottle.png';
+        this.userInterface = new UserInterface(canvas);
+        this.initializeUI();
         this.draw();
         this.setWorld();
         this.run();
         this.character.previousY = this.character.y;
     }
 
+    initializeUI() {
+        if (window.mainMenu?.userInterface?.backgroundMusic) {
+            this.userInterface.backgroundMusic = window.mainMenu.userInterface.backgroundMusic;
+        }
+        this.cooldownImage.src = '../assets/img/6_salsa_bottle/salsa_bottle.png';
+    }
+
     setWorld() {
         this.character.world = this;
-        
-        // Setze die Weltgrenzen für alle Chickens und Small Chickens
         this.level.enemies.forEach(enemy => {
-            enemy.world = this; // World-Referenz für alle Feinde
-            
-            if (enemy instanceof Chicken || enemy instanceof smallChicken || enemy instanceof Endboss) {
-                enemy.worldLimits = {
-                    min: 0,
-                    max: this.level.level_end_x
-                };
+            enemy.world = this;
+            if (enemy instanceof Chicken || enemy instanceof smallChicken) {
+                enemy.worldLimits = { min: 0, max: this.level.level_end_x };
             }
         });
     }
 
-
-    run(){
-        setInterval(() => { 
-            // Alle Aktionen nur ausführen, wenn das Spiel nicht pausiert ist
+    run() {
+        setInterval(() => {
             if (!this.isPaused) {
                 this.checkThrowObjects();
                 this.checkCollisions();
-                this.checkCollisionsWithBottles(); // Neue Methode aufrufen
+                this.checkCollisionsWithBottles();
                 this.checkEnemyDistances();
-                this.updateCooldown(); // Cooldown-Timer aktualisieren
+                this.updateCooldown();
             }
         }, 1000 / 60);
     }
 
     checkThrowObjects() {
         if (this.keyboard.D && this.character.bottles > 0 && this.canThrow) {
-            // Idle-Zustand zurücksetzen, wenn eine Flasche geworfen wird
             this.character.resetIdleState();
             this.throwBottle();
         }
     }
 
     throwBottle() {
-        let bottle = new ThrowableObject(
-            this.character.x + (this.character.otherDirection ? -50 : 100), // Startposition der Flasche
-            this.character.y + 100, // Vertikale Position der Flasche
-            this.character.otherDirection // Richtung des Charakters
-        );
-        bottle.world = this; // Füge eine Referenz zur World hinzu
+        const bottle = this.createBottle();
         this.throwableObjects.push(bottle);
-        this.character.bottles--; // Reduziere die Anzahl der verfügbaren Bottles
-        
-        // Direkt die Flaschenanzahl aktualisieren statt Prozentsatz
-        this.statusBar.setBottlesCount(this.character.bottles);
+        this.decreaseBottlesAndUpdateUI();
+        this.playThrowSound();
+        this.startThrowCooldown();
+    }
 
-        // Sound beim Werfen der Flasche abspielen
+    createBottle() {
+        let bottle = new ThrowableObject(
+            this.character.x + (this.character.otherDirection ? -50 : 100),
+            this.character.y + 100,
+            this.character.otherDirection
+        );
+        bottle.world = this;
+        return bottle;
+    }
+
+    decreaseBottlesAndUpdateUI() {
+        this.character.bottles--;
+        this.statusBar.setBottlesCount(this.character.bottles);
+    }
+
+    playThrowSound() {
         const throwSound = new Audio('../assets/audio/bottle_throw.mp3');
         this.userInterface.registerAudioWithCategory(throwSound, 'objects');
-        
-        // Manuell die Lautstärke der objects-Kategorie anwenden
         if (!this.userInterface.isMuted) {
-            const objectsVolume = this.userInterface.objectsVolume / 10;
-            throwSound.volume = objectsVolume;
+            throwSound.volume = this.userInterface.objectsVolume / 10;
             throwSound.play();
         }
+    }
 
-        // Cooldown starten
+    startThrowCooldown() {
         this.canThrow = false;
         this.throwCooldown = this.maxThrowCooldown;
-        
-        // Warte, bis der Cooldown abgelaufen ist
         setTimeout(() => {
             this.canThrow = true;
             this.throwCooldown = 0;
@@ -109,346 +103,347 @@ class World {
     }
 
     checkCollisions() {
-        if (this.level.enemies) {
-            this.level.enemies.forEach((enemy, enemyIndex) => {
-                const characterBottom = this.character.y + this.character.height - this.character.offset.bottom;
-                const enemyTop = enemy.y + (enemy.offset?.top || 0);
-                const stompHeight = enemy.stompableAreaHeight || 40;
-                const enemyStompBottom = enemyTop + stompHeight;
-    
-                const isStomp =
-                    this.character.isColiding(enemy) &&
-                    characterBottom >= enemyTop &&
-                    characterBottom <= enemyStompBottom &&
-                    this.character.speedY < 0;
-    
-                const isCollision = this.character.isColiding(enemy);
-    
-                if (isStomp && !(enemy instanceof Endboss)) {
-                    if (!enemy.isDead) {
-                        enemy.die();
-                        this.character.speedY = 25; // Bounce-Effekt
-                        
-                        const stompSound = new Audio('../assets/audio/stomp_enemie.mp3');
-                        this.userInterface.registerAudioWithCategory(stompSound, 'enemies');
+        if (this.level.enemies) this.checkEnemyCollisions();
+        if (this.level.coins) this.checkCoinCollisions();
+        if (this.level.bottles) this.checkBottleCollisions();
+    }
 
-                        if (!this.userInterface.isMuted) {
-                            // Kategorie-Lautstärke direkt anwenden
-                            const enemiesVolume = this.userInterface.enemiesVolume / 10;
-                            stompSound.volume = enemiesVolume;
-                            stompSound.play();
-                        }
+    checkEnemyCollisions() {
+        this.level.enemies.forEach((enemy, enemyIndex) => {
+            if (this.isCharacterStompingEnemy(enemy)) {
+                this.handleEnemyStomp(enemy);
+            } else if (this.character.isColiding(enemy)) {
+                this.handleEnemyCollision(enemy, enemyIndex);
+            } else {
+                this.removeEnemyFromCollisionList(enemy, enemyIndex);
+            }
+        });
+    }
 
-                        setTimeout(() => {
-                            const enemyIndex = this.level.enemies.indexOf(enemy);
-                            if (enemyIndex > -1 && enemy.isDead) {
-                                this.level.enemies.splice(enemyIndex, 1);
-                            }
-                        }, 500);
-                    }
-                } else if (isCollision) {
-                    if (!enemy.isDead) {  // Änderung hier: isDead als Eigenschaft statt als Funktion
-                        // Gegner-ID zum Tracking erzeugen (nur einmal Schaden pro Gegner)
-                        const enemyId = enemy.constructor.name + '_' + enemyIndex;
-                        
-                        // Prüfen, ob dieser Gegner bereits in der Liste ist
-                        if (!this.character.collidingEnemies.includes(enemyId)) {
-                            // Gegner zur Liste hinzufügen
-                            this.character.collidingEnemies.push(enemyId);
-                            
-                            // Jetzt Schaden zufügen (nur einmal)
-                            if (enemy instanceof Endboss) {
-                                // Spezielle Logik für Kollisionen mit dem Endboss
-                                // NICHT hit() UND energy reduzieren - wähle nur eine Methode
-                                this.character.energy -= enemy.damage; // Nur direkten Schaden anwenden
-                                this.statusBar.setEnergyPercentage(this.character.energy);
-                                this.character.lastHit = new Date().getTime(); // Für Verletzungsanimation
-                            } else if (enemy instanceof Chicken || enemy instanceof smallChicken) {
-                                // Normale Chickens verursachen standardmäßigen Schaden
-                                this.character.hit(); // hit() reduziert bereits Energy um 5
-                                this.statusBar.setEnergyPercentage(this.character.energy);
-                            }
-                        }
-                    }
-                } else {
-                    // Keine Kollision mehr, Gegner aus der Liste entfernen
-                    const enemyId = enemy.constructor.name + '_' + enemyIndex;
-                    const index = this.character.collidingEnemies.indexOf(enemyId);
-                    if (index !== -1) {
-                        this.character.collidingEnemies.splice(index, 1);
-                    }
-                }
-            });
-        }
-    
-        if (this.level.coins) {
-            this.level.coins.forEach((coin, index) => {
-                if (this.character.isPreciselyColiding(coin)) {
-                    this.character.collectCoin();
-                    this.level.coins.splice(index, 1);
-                }
-            });
-        }
-    
-        if (this.level.bottles) {
-            this.level.bottles.forEach((bottle) => {
-                if (this.character.isColiding(bottle)) {
-                    this.character.collectBottle();
-                    const bottleIndex = this.level.bottles.indexOf(bottle);
-                    if (bottleIndex > -1) {
-                        this.level.bottles.splice(bottleIndex, 1);
-                    }
-                }
-            });
+    isCharacterStompingEnemy(enemy) {
+        const characterBottom = this.character.y + this.character.height - this.character.offset.bottom;
+        const enemyTop = enemy.y + (enemy.offset?.top || 0);
+        const stompHeight = enemy.stompableAreaHeight || 40;
+        return this.character.isColiding(enemy) &&
+            characterBottom >= enemyTop &&
+            characterBottom <= enemyTop + stompHeight &&
+            this.character.speedY < 0;
+    }
+
+    handleEnemyStomp(enemy) {
+        if (!(enemy instanceof Endboss) && !enemy.isDead) {
+            enemy.die();
+            this.character.speedY = 25;
+            this.playStompSound();
+            this.scheduleEnemyRemoval(enemy, 500);
         }
     }
-        
+
+    playStompSound() {
+        const stompSound = new Audio('../assets/audio/stomp_enemie.mp3');
+        this.userInterface.registerAudioWithCategory(stompSound, 'enemies');
+        if (!this.userInterface.isMuted) {
+            stompSound.volume = this.userInterface.enemiesVolume / 10;
+            stompSound.play();
+        }
+    }
+
+    handleEnemyCollision(enemy, enemyIndex) {
+        if (!enemy.isDead) {
+            const enemyId = enemy.constructor.name + '_' + enemyIndex;
+            if (!this.character.collidingEnemies.includes(enemyId)) {
+                this.character.collidingEnemies.push(enemyId);
+                this.applyEnemyDamage(enemy);
+            }
+        }
+    }
+
+    applyEnemyDamage(enemy) {
+        if (enemy instanceof Endboss) {
+            this.character.energy -= enemy.damage;
+            this.statusBar.setEnergyPercentage(this.character.energy);
+            this.character.lastHit = new Date().getTime();
+        } else if (enemy instanceof Chicken || enemy instanceof smallChicken) {
+            this.character.hit();
+            this.statusBar.setEnergyPercentage(this.character.energy);
+        }
+    }
+
+    removeEnemyFromCollisionList(enemy, enemyIndex) {
+        const enemyId = enemy.constructor.name + '_' + enemyIndex;
+        const index = this.character.collidingEnemies.indexOf(enemyId);
+        if (index !== -1) {
+            this.character.collidingEnemies.splice(index, 1);
+        }
+    }
+
+    checkCoinCollisions() {
+        this.level.coins.forEach((coin, index) => {
+            if (this.character.isPreciselyColiding(coin)) {
+                this.character.collectCoin();
+                this.level.coins.splice(index, 1);
+            }
+        });
+    }
+
+    checkBottleCollisions() {
+        this.level.bottles.forEach((bottle) => {
+            if (this.character.isColiding(bottle)) {
+                this.character.collectBottle();
+                const bottleIndex = this.level.bottles.indexOf(bottle);
+                if (bottleIndex > -1) {
+                    this.level.bottles.splice(bottleIndex, 1);
+                }
+            }
+        });
+    }
+
+    scheduleEnemyRemoval(enemy, delay) {
+        setTimeout(() => {
+            const enemyIndex = this.level.enemies.indexOf(enemy);
+            if (enemyIndex > -1 && enemy.isDead) {
+                this.level.enemies.splice(enemyIndex, 1);
+            }
+        }, delay);
+    }
+
     checkEnemyDistances() {
-        // Nicht überprüfen, wenn das Spiel pausiert ist
         if (this.isPaused) return;
-        
-        const minDistance = 100; // Festgelegter Mindestabstand für bessere Kontrolle
-        
+        const minDistance = 100;
         this.level.enemies.forEach((enemy1, index1) => {
-            // Endboss überspringen - der sollte seine eigenen Regeln haben
             if (enemy1 instanceof Endboss) return;
-            
+
             this.level.enemies.forEach((enemy2, index2) => {
-                // Vergleich mit sich selbst oder mit Endboss vermeiden
-                if (index1 !== index2 && !(enemy2 instanceof Endboss)) { 
-                    // Ignorieren toter Feinde
-                    if (enemy1.isDead || enemy2.isDead) return;
-                    
-                    const distanceX = Math.abs(enemy1.x - enemy2.x);
-                    const distanceY = Math.abs(enemy1.y - enemy2.y);
-                    
-                    // Nur horizontale Kollisionen prüfen, die wichtig sind
-                    if (distanceX < minDistance && distanceY < enemy1.height / 2) {
-                        // Statt die Gegner auseinanderzuschieben, drehen wir einfach um
-                        enemy1.otherDirection = !enemy1.otherDirection;
-                        enemy2.otherDirection = !enemy2.otherDirection;
-                        
-                        // Kleine Positionskorrektur, damit sie nicht sofort wieder kollidieren
-                        if (enemy1.x < enemy2.x) {
-                            enemy1.x -= 10;
-                            enemy2.x += 10;
-                        } else {
-                            enemy1.x += 10;
-                            enemy2.x -= 10;
-                        }
-                        
-                        // Optional: Kleine Verzögerung bis zur nächsten Richtungsänderung
-                        enemy1.setRandomDirectionChangeTime();
-                        enemy2.setRandomDirectionChangeTime();
-                    }
+                if (this.shouldCheckEnemies(enemy1, enemy2, index1, index2)) {
+                    this.handleEnemyProximity(enemy1, enemy2);
                 }
             });
         });
     }
 
-    // Neue Methode zur Überprüfung von Kollisionen zwischen Flaschen und Gegnern
+    shouldCheckEnemies(enemy1, enemy2, index1, index2) {
+        return index1 !== index2 &&
+            !(enemy2 instanceof Endboss) &&
+            !enemy1.isDead &&
+            !enemy2.isDead;
+    }
+
+    handleEnemyProximity(enemy1, enemy2) {
+        const distanceX = Math.abs(enemy1.x - enemy2.x);
+        const distanceY = Math.abs(enemy1.y - enemy2.y);
+
+        if (distanceX < 100 && distanceY < enemy1.height / 2) {
+            enemy1.otherDirection = !enemy1.otherDirection;
+            enemy2.otherDirection = !enemy2.otherDirection;
+            if (enemy1.x < enemy2.x) {
+                enemy1.x -= 10;
+                enemy2.x += 10;
+            } else {
+                enemy1.x += 10;
+                enemy2.x -= 10;
+            }
+            enemy1.setRandomDirectionChangeTime();
+            enemy2.setRandomDirectionChangeTime();
+        }
+    }
+
     checkCollisionsWithBottles() {
         if (this.throwableObjects.length > 0 && this.level.enemies) {
             this.throwableObjects.forEach((bottle, bottleIndex) => {
                 this.level.enemies.forEach((enemy, enemyIndex) => {
-                    // Korrigierte Bedingung, um beide isDead-Varianten zu berücksichtigen
-                    const enemyIsDead = enemy instanceof Endboss ? enemy.isDead() : enemy.isDead;
-                    
-                    if (bottle.isColiding(enemy) && !enemyIsDead && !bottle.isBroken) {
-                        
-                        // Flasche zerbrechen lassen
-                        bottle.break();
-                        
-                        // Spezialbehandlung für den Endboss
-                        if (enemy instanceof Endboss) {
-                            enemy.hitWithBottle(); // Spezielle Methode für den Endboss
-                        } else {
-                            // Normale Gegner sterben sofort
-                            enemy.die(true); // true für "fromBottle"
-                        }
-                        
-                        // Zerbrech-Sound abspielen
-                        const breakSound = new Audio('../assets/audio/bottle_break.mp3');
-                        this.userInterface.registerAudioWithCategory(breakSound, 'objects');
-                        
-                        // Manuell die Lautstärke der objects-Kategorie anwenden
-                        if (!this.userInterface.isMuted) {
-                            const objectsVolume = this.userInterface.objectsVolume / 10;
-                            breakSound.volume = objectsVolume;
-                            breakSound.play();
-                        }
-                        
-                        // Flasche nach Animation entfernen
-                        setTimeout(() => {
-                            const bottleIndex = this.throwableObjects.indexOf(bottle);
-                            if (bottleIndex > -1) {
-                                this.throwableObjects.splice(bottleIndex, 1);
-                            }
-                        }, 300); // Zeit für die Zerbrech-Animation
-                        
-                        // Gegner nach Animation entfernen, ABER NUR wenn kein Endboss oder der Endboss tot ist
-                        setTimeout(() => {
-                            const enemyIndex = this.level.enemies.indexOf(enemy);
-                            if (enemyIndex > -1 && (!(enemy instanceof Endboss) || enemy.isDead())) {
-                                this.level.enemies.splice(enemyIndex, 1);
-                            }
-                        }, 500);
-                    }
+                    this.checkBottleEnemyCollision(bottle, enemy);
                 });
             });
         }
     }
 
-    // Neue Methode zum Aktualisieren des Cooldown-Timers
+    checkBottleEnemyCollision(bottle, enemy) {
+        const enemyIsDead = enemy instanceof Endboss ? enemy.isDead() : enemy.isDead;
+        if (bottle.isColiding(enemy) && !enemyIsDead && !bottle.isBroken) {
+            bottle.break();
+            this.handleEnemyHitByBottle(enemy);
+            this.playBottleBreakSound();
+            this.scheduleObjectRemoval(bottle, this.throwableObjects, 300);
+            if (!(enemy instanceof Endboss) || enemy.isDead()) {
+                this.scheduleEnemyRemoval(enemy, 500);
+            }
+        }
+    }
+
+    handleEnemyHitByBottle(enemy) {
+        if (enemy instanceof Endboss) {
+            enemy.hitWithBottle();
+        } else {
+            enemy.die(true);
+        }
+    }
+
+    playBottleBreakSound() {
+        const breakSound = new Audio('../assets/audio/bottle_break.mp3');
+        this.userInterface.registerAudioWithCategory(breakSound, 'objects');
+        if (!this.userInterface.isMuted) {
+            breakSound.volume = this.userInterface.objectsVolume / 10;
+            breakSound.play();
+        }
+    }
+
+    scheduleObjectRemoval(object, array, delay) {
+        setTimeout(() => {
+            const index = array.indexOf(object);
+            if (index > -1) {
+                array.splice(index, 1);
+            }
+        }, delay);
+    }
+
     updateCooldown() {
         if (this.throwCooldown > 0) {
-            this.throwCooldown -= (1000 / 60); // Reduzierung pro Frame (60 FPS)
+            this.throwCooldown -= (1000 / 60);
             if (this.throwCooldown < 0) this.throwCooldown = 0;
         }
     }
-    
-    // Aktualisierte Methode zum Zeichnen des Cooldown-Kreises
+
     drawCooldownCircle() {
         if (this.throwCooldown <= 0) return;
-        
-        // Positioniere den Kreis unter dem Settings-Icon (ursprüngliche Größe)
-        const circleRadius = 25; // Zurück zur ursprünglichen Größe
-        const padding = 10;      // Ursprünglicher Abstand
-        
-        // Position basierend auf dem Settings-Icon bestimmen
+        const circleData = this.calculateCooldownCirclePosition();
+        this.drawBackgroundCircle(circleData);
+        this.drawProgressCircle(circleData);
+        this.drawBottleImage(circleData);
+        this.drawRemainingTime(circleData);
+    }
+
+    calculateCooldownCirclePosition() {
+        const circleRadius = 25;
+        const padding = 10;
         const offsetX = this.userInterface.settingsIconX + this.userInterface.settingsIconWidth / 2;
         const offsetY = this.userInterface.settingsIconY + this.userInterface.settingsIconHeight + padding + circleRadius;
-        
-        // Grauer Hintergrund-Kreis (voller Kreis)
+        return {
+            x: offsetX,
+            y: offsetY,
+            radius: circleRadius,
+            progress: this.throwCooldown / this.maxThrowCooldown
+        };
+    }
+
+    drawBackgroundCircle(data) {
         this.ctx.beginPath();
-        this.ctx.arc(offsetX, offsetY, circleRadius, 0, 2 * Math.PI);
+        this.ctx.arc(data.x, data.y, data.radius, 0, 2 * Math.PI);
         this.ctx.fillStyle = 'rgba(80, 80, 80, 0.7)';
         this.ctx.fill();
-        
-        // Oranger fortschreitender Kreis (von oben im Uhrzeigersinn)
-        const progress = this.throwCooldown / this.maxThrowCooldown;
+    }
+
+    drawProgressCircle(data) {
         this.ctx.beginPath();
-        this.ctx.moveTo(offsetX, offsetY);
+        this.ctx.moveTo(data.x, data.y);
         this.ctx.arc(
-            offsetX, 
-            offsetY, 
-            circleRadius, 
-            -Math.PI / 2, // Startwinkel (oben)
-            -Math.PI / 2 + (1 - progress) * 2 * Math.PI, // Endwinkel basierend auf Fortschritt
-            false // im Uhrzeigersinn
+            data.x, data.y, data.radius,
+            -Math.PI / 2,
+            -Math.PI / 2 + (1 - data.progress) * 2 * Math.PI,
+            false
         );
-        this.ctx.lineTo(offsetX, offsetY);
+        this.ctx.lineTo(data.x, data.y);
         this.ctx.fillStyle = 'rgba(255, 140, 0, 0.7)';
         this.ctx.fill();
-        
-        // Flaschenbild in der Mitte des Kreises zeichnen
+    }
+
+    drawBottleImage(data) {
         if (this.cooldownImage.complete) {
-            const bottleSize = circleRadius * 2.4; // Proportional vergrößert
+            const bottleSize = data.radius * 2.4;
             this.ctx.drawImage(
-                this.cooldownImage, 
-                offsetX - bottleSize / 2, 
-                offsetY - bottleSize / 2, 
-                bottleSize, 
+                this.cooldownImage,
+                data.x - bottleSize / 2,
+                data.y - bottleSize / 2,
+                bottleSize,
                 bottleSize
             );
         }
-        
-        // Verbleibende Zeit anzeigen - Kleinere Schrift
-        const remainingTime = (this.throwCooldown / 1000).toFixed(1);
-        this.ctx.font = 'bold 16px Arial'; // Zurück zur ursprünglichen Schriftgröße
-        this.ctx.textAlign = 'center';
-        this.ctx.fillStyle = 'white';
-        this.ctx.fillText(remainingTime + 's', offsetX, offsetY + circleRadius + 15);
     }
 
-    // Aktualisierte draw-Methode, um den Cooldown-Kreis an der richtigen Stelle zu zeichnen
-    draw(ctx) {
+    drawRemainingTime(data) {
+        const remainingTime = (this.throwCooldown / 1000).toFixed(1);
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillText(remainingTime + 's', data.x, data.y + data.radius + 15);
+    }
+
+    draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        this.ctx.translate(this.camera_x, 0);
-        this.addObjectsToMap(this.level.backgroundObjects);
-        this.addToMap(this.character);
-        this.addObjectsToMap(this.level.clouds);
-        this.addObjectsToMap(this.level.enemies);
-        this.addObjectsToMap(this.level.coins); 
-        this.addObjectsToMap(this.level.bottles);
-        this.addObjectsToMap(this.throwableObjects); 
-        this.ctx.translate(-this.camera_x, 0);
-
-        // UI-Elemente nach der Kamera-Transformation zeichnen
-        this.statusBar.draw(this.ctx);  
-        this.userInterface.drawIcons();
-        
-        // Endboss-Lebensbalken als UI-Element zeichnen
-        this.drawEndbossHealthBar();
-        
-        // Cooldown-Kreis als UI-Element zeichnen (ohne Kamera-Transformation)
-        if (this.throwCooldown > 0) {
-            this.drawCooldownCircle(); // Keine Kamera-Transformation nötig, da feste Position
-        }
-        
-        //Draw() wird immer wieder aufgerufen
+        this.drawGameWorld();
+        this.drawUIElements();
         let self = this;
         requestAnimationFrame(function () {
             self.draw();
         });
     }
 
-    // Neue Methode zum Zeichnen des Endboss-Lebensbalken als UI-Element
+    drawGameWorld() {
+        this.ctx.translate(this.camera_x, 0);
+        this.addObjectsToMap(this.level.backgroundObjects);
+        this.addToMap(this.character);
+        this.addObjectsToMap(this.level.clouds);
+        this.addObjectsToMap(this.level.enemies);
+        this.addObjectsToMap(this.level.coins);
+        this.addObjectsToMap(this.level.bottles);
+        this.addObjectsToMap(this.throwableObjects);
+        this.ctx.translate(-this.camera_x, 0);
+    }
+
+    drawUIElements() {
+        this.statusBar.draw(this.ctx);
+        this.userInterface.drawIcons();
+        this.drawEndbossHealthBar();
+        if (this.throwCooldown > 0) {
+            this.drawCooldownCircle();
+        }
+    }
+
     drawEndbossHealthBar() {
-        // Suche nach dem Endboss
         const endboss = this.level.enemies.find(enemy => enemy instanceof Endboss);
-        
-        // Wenn der Endboss existiert und sein Lebensbalken angezeigt werden soll,
-        // rufen wir seine drawHealthBar-Methode auf
         if (endboss && endboss.showHealthBar) {
             endboss.drawHealthBar(this.ctx);
         }
     }
 
     addObjectsToMap(objects) {
-        if (!objects || !Array.isArray(objects)) return; // Sicherheitsprüfung
+        if (!objects || !Array.isArray(objects)) return;
         objects.forEach((o) => {
             this.addToMap(o);
         });
     }
 
     addToMap(mo) {
-        // Spiegellogik für verschiedene Objekttypen
-        if ((mo instanceof Character && mo.otherDirection) || 
-            ((mo instanceof Chicken || mo instanceof smallChicken || mo instanceof Endboss) && !mo.otherDirection)) {
-            this.flipImage(mo);
-        }
-        
+        this.handleObjectDirection(mo, true);
         mo.draw(this.ctx);
-        
-        // Zeichne Lebensbalken für Chicken nach dem Zeichnen des Objekts
-        // Aber NICHT für den Endboss - dieser wird separat gezeichnet
+        this.drawAdditionalElements(mo);
+        mo.drawFrame(this.ctx);
+        this.handleObjectDirection(mo, false);
+    }
+
+    handleObjectDirection(mo, beforeDraw) {
+        const shouldFlip = (mo instanceof Character && mo.otherDirection) ||
+            ((mo instanceof Chicken || mo instanceof smallChicken || mo instanceof Endboss) && !mo.otherDirection);
+
+        if (shouldFlip) {
+            beforeDraw ? this.flipImage(mo) : this.flipImageBack(mo);
+        }
+    }
+
+    drawAdditionalElements(mo) {
         if (mo instanceof Chicken && mo.showHealthBar) {
             mo.drawHealthBar(this.ctx);
         }
-        // Endboss-Lebensbalken wird jetzt in drawEndbossHealthBar() gezeichnet
-        
-        mo.drawFrame(this.ctx);
-        
-        // Stelle den ursprünglichen Zustand wieder her
-        if ((mo instanceof Character && mo.otherDirection) || 
-            ((mo instanceof Chicken || mo instanceof smallChicken || mo instanceof Endboss) && !mo.otherDirection)) {
-            this.flipImageBack(mo);
-        }
     }
 
-    // Komplett überarbeitete flipImage und flipImageBack Methoden
-
-    flipImage(mo){
+    flipImage(mo) {
         this.ctx.save();
         this.ctx.translate(mo.width, 0);
         this.ctx.scale(-1, 1);
-        mo.x = mo.x * -1; // Hier wird die tatsächliche Position geändert
+        mo.x = mo.x * -1;
     }
 
-    flipImageBack(mo){
-        mo.x = mo.x * -1; // Hier sollte die Position wiederhergestellt werden
+    flipImageBack(mo) {
+        mo.x = mo.x * -1;
         this.ctx.restore();
     }
 }

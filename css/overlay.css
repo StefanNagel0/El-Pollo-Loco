@@ -1,10 +1,10 @@
 #settings-overlay {
-    position: absolute; /* Statt fixed, damit es relativ zum Canvas positioniert werden kann */
+    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 720px; /* Exakte Canvas-Breite */
-    height: 480px; /* Exakte Canvas-Höhe */
+    width: 720px;
+    height: 480px;
     background-color: rgba(0, 0, 0, 0.7);
     display: none;
     justify-content: center;
@@ -16,7 +16,6 @@
     display: flex;
 }
 
-/* Anpassungen für kleinere Bildschirme */
 @media only screen and (max-width: 720px) {
     #settings-overlay {
         width: 100%;
@@ -30,25 +29,24 @@
     }
 }
 
-/* Settings-Container etwas kleiner machen, damit er gut ins Overlay passt */
 .settings-container {
     background-color: #FFF5E6;
     padding: 20px;
     border-radius: 8px;
-    width: 400px; /* Etwas schmaler */
+    width: 400px;
     max-width: 80%;
     max-height: 90%;
-    overflow-y: auto; /* Scrollbar bei Bedarf */
+    overflow-y: auto;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    position: relative; /* Für absolute Positionierung des X-Buttons */
-    font-size: 16px; /* Größere Basisschrift */
+    position: relative;
+    font-size: 16px;
 }
 
 .settings-container h2 {
     text-align: center;
     margin-bottom: 20px;
-    font-size: 28px; /* Von 24px auf 28px */
-    color: #FF7700; /* Orange Überschrift */
+    font-size: 28px;
+    color: #FF7700;
 }
 
 .settings-tabs {
@@ -58,13 +56,13 @@
 }
 
 .tab {
-    padding: 12px 24px; /* Von 10px 20px auf 12px 24px */
+    padding: 12px 24px;
     cursor: pointer;
     border-radius: 5px 5px 0 0;
     background-color: #FFE0B2;
     margin-right: 5px;
     transition: all 0.3s ease;
-    font-size: 18px; /* Von etwa 16px auf 18px */
+    font-size: 18px;
 }
 
 .tab:hover {
@@ -83,8 +81,8 @@
 
 .setting label {
     display: block;
-    margin-bottom: 10px; /* Von 8px auf 10px */
-    font-size: 18px; /* Von 16px auf 18px */
+    margin-bottom: 10px;
+    font-size: 18px;
     color: #333;
 }
 
@@ -93,7 +91,7 @@
     height: 8px;
     -webkit-appearance: none;
     appearance: none;
-    background-color: #E0E0E0; /* Grauer Hintergrund */
+    background-color: #E0E0E0;
     border-radius: 5px;
     outline: none;
 }
@@ -102,7 +100,7 @@
     -webkit-appearance: none;
     width: 18px;
     height: 18px;
-    background-color: #FF7700; /* Knalliges Orange für den Slider */
+    background-color: #FF7700;
     border-radius: 50%;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -128,7 +126,7 @@
 
 .setting-buttons {
     display: flex;
-    justify-content: center; /* Zentrieren */
+    justify-content: center;
     margin-top: 30px;
 }
 
@@ -160,24 +158,21 @@
     transition: all 0.3s ease;
 }
 
-/* Größere Texte in der How-to-Play-Anleitung */
 .control-item span {
     font-size: 18px;
 }
 
 .how-to-play-tips p {
     font-size: 18px;
-    margin: 10px 0; /* Mehr Abstand zwischen den Tipps */
+    margin: 10px 0;
 }
 
-/* Größere Tasten-Boxen */
 .key {
-    padding: 8px 12px; /* Von 5px 10px auf 8px 12px */
-    min-width: 80px; /* Von 60px auf 80px */
-    font-size: 18px; /* Von kleiner auf 18px */
+    padding: 8px 12px;
+    min-width: 80px;
+    font-size: 18px;
 }
 
-/* X-Button für Schließen */
 .close-x {
     position: absolute;
     top: 10px;
@@ -197,12 +192,9 @@
     color: #FF5722;
 }
 
-/* Bestehenden Schließen-Button verstecken */
 #close-settings {
     display: none;
 }
-
-/* Styling für den Spiel-Tab */
 
 .game-buttons {
     display: flex;
@@ -241,23 +233,19 @@
     background-color: #E64A19;
 }
 
-/* Am Ende der Datei hinzufügen: */
-
-/* Benutzerdefinierter Bestätigungsdialog */
 #custom-confirm {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    display: none; /* Von flex auf none ändern */
+    display: none;
     justify-content: center;
     align-items: center;
     background-color: rgba(0, 0, 0, 0.7);
-    z-index: 1200; /* Höher als andere Overlays */
+    z-index: 1200;
 }
 
-/* Neue Klasse für den sichtbaren Zustand */
 #custom-confirm.show {
     display: flex;
 }
@@ -327,12 +315,10 @@
     background-color: #757575;
 }
 
-/* Am Ende der Datei oder bei den anderen Button-Stilen hinzufügen */
-
 .legal-button {
-    background-color: #607D8B; /* Anderer Farbton als die anderen Buttons */
+    background-color: #607D8B;
     margin-top: 10px;
-    font-size: 16px; /* Etwas kleinere Schrift */
+    font-size: 16px;
 }
 
 .legal-button:hover {

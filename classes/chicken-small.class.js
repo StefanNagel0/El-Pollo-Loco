@@ -3,9 +3,11 @@ class smallChicken extends MovableObject {
     height = 80;
     width = 55;
     isDead = false;
-    changeDirectionTime = 0;
-    worldLimits = { min: 0, max: 5800 }; // Standardwerte, werden aktualisiert
-
+    worldLimits = { min: 0, max: 5800 };
+    minXSpawn = 700;
+    maxXSpawnRange = 4500;
+    minDirectionChangeDelay = 1000;
+    maxDirectionChangeDelay = 4000;
     IMAGES_WALKING = [
         '../assets/img/3_enemies_chicken/chicken_small/1_walk/1_w.png',
         '../assets/img/3_enemies_chicken/chicken_small/1_walk/2_w.png',
@@ -15,44 +17,20 @@ class smallChicken extends MovableObject {
 
     constructor() {
         super().loadImage(this.IMAGES_WALKING[0]);
-        this.initializePosition();
-        this.loadImages(this.IMAGES_WALKING);
         this.speed = 2.5;
-        this.otherDirection = Math.random() < 0.5; // Zufällige Richtung
+        this.x = this.getValidXPosition();
+        MovableObject.placedEnemies.push(this.x);
+        this.loadImages(this.IMAGES_WALKING);
+        this.otherDirection = Math.random() < 0.5;
         this.setRandomDirectionChangeTime();
         this.animate();
     }
 
-    animate() {
-        this.setupMovementAnimation();
-        this.setupWalkingAnimation();
-    }
-
-    setupMovementAnimation() {
-        setInterval(() => {
-            if (!this.isDead && (!this.world || !this.world.isPaused)) {
-                this.handleMovement();
-            }
-        }, 1000 / 60);
-    }
-
-    setupWalkingAnimation() {
-        setInterval(() => {
-            if (!this.isDead && (!this.world || !this.world.isPaused)) {
-                this.playAnimation(this.IMAGES_WALKING);
-            }
-        }, 200);
-    }
-
     die() {
         if (!this.isDead) {
-            this.markAsDead();
+            this.isDead = true;
             this.loadImage(this.IMAGE_DEAD);
             this.speed = 0;
         }
-    }
-
-    markAsDead() {
-        this.isDead = true;
     }
 }

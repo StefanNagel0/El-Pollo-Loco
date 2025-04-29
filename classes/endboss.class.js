@@ -6,6 +6,8 @@ class Endboss extends MovableObject {
     speed = 8;
     attackSpeed = 18;
     isAlerted = false;
+    isFighting = false;
+    isWalking = false;
     isHurt = false;
     isDying = false;
     isAttacking = false;
@@ -21,7 +23,6 @@ class Endboss extends MovableObject {
     restDuration = 0;
     lastAttackTime = 0;
     followDistance = 200;
-
     IMAGES_WALKING = [
         '../assets/img/4_enemie_boss_chicken/1_walk/G1.png',
         '../assets/img/4_enemie_boss_chicken/1_walk/G2.png',
@@ -29,24 +30,16 @@ class Endboss extends MovableObject {
         '../assets/img/4_enemie_boss_chicken/1_walk/G4.png'
     ];
     IMAGES_ALERT = [
-        '../assets/img/4_enemie_boss_chicken/2_alert/G5.png',
-        '../assets/img/4_enemie_boss_chicken/2_alert/G6.png',
-        '../assets/img/4_enemie_boss_chicken/2_alert/G7.png',
-        '../assets/img/4_enemie_boss_chicken/2_alert/G8.png',
-        '../assets/img/4_enemie_boss_chicken/2_alert/G9.png',
-        '../assets/img/4_enemie_boss_chicken/2_alert/G10.png',
-        '../assets/img/4_enemie_boss_chicken/2_alert/G11.png',
-        '../assets/img/4_enemie_boss_chicken/2_alert/G12.png'
+        '../assets/img/4_enemie_boss_chicken/2_alert/G5.png', '../assets/img/4_enemie_boss_chicken/2_alert/G6.png',
+        '../assets/img/4_enemie_boss_chicken/2_alert/G7.png', '../assets/img/4_enemie_boss_chicken/2_alert/G8.png',
+        '../assets/img/4_enemie_boss_chicken/2_alert/G9.png', '../assets/img/4_enemie_boss_chicken/2_alert/G10.png',
+        '../assets/img/4_enemie_boss_chicken/2_alert/G11.png', '../assets/img/4_enemie_boss_chicken/2_alert/G12.png'
     ];
     IMAGES_ATTACK = [
-        '../assets/img/4_enemie_boss_chicken/3_attack/G13.png',
-        '../assets/img/4_enemie_boss_chicken/3_attack/G14.png',
-        '../assets/img/4_enemie_boss_chicken/3_attack/G15.png',
-        '../assets/img/4_enemie_boss_chicken/3_attack/G16.png',
-        '../assets/img/4_enemie_boss_chicken/3_attack/G17.png',
-        '../assets/img/4_enemie_boss_chicken/3_attack/G18.png',
-        '../assets/img/4_enemie_boss_chicken/3_attack/G19.png',
-        '../assets/img/4_enemie_boss_chicken/3_attack/G20.png'
+        '../assets/img/4_enemie_boss_chicken/3_attack/G13.png', '../assets/img/4_enemie_boss_chicken/3_attack/G14.png',
+        '../assets/img/4_enemie_boss_chicken/3_attack/G15.png', '../assets/img/4_enemie_boss_chicken/3_attack/G16.png',
+        '../assets/img/4_enemie_boss_chicken/3_attack/G17.png', '../assets/img/4_enemie_boss_chicken/3_attack/G18.png',
+        '../assets/img/4_enemie_boss_chicken/3_attack/G19.png', '../assets/img/4_enemie_boss_chicken/3_attack/G20.png'
     ];
     IMAGES_HURT = [
         '../assets/img/4_enemie_boss_chicken/4_hurt/G21.png',
@@ -61,236 +54,155 @@ class Endboss extends MovableObject {
 
     constructor() {
         super().loadImage(this.IMAGES_ALERT[0]);
-        this.loadAllImages();
+        this.loadImages(this.IMAGES_ALERT);
+        this.loadImages(this.IMAGES_WALKING);
+        this.loadImages(this.IMAGES_HURT);
+        this.loadImages(this.IMAGES_DEAD);
+        this.loadImages(this.IMAGES_ATTACK);
         this.x = 5500;
         this.energy = 200;
         this.animate();
         this.setRandomAttackCooldown();
     }
 
-    loadAllImages() {
-        this.loadImages(this.IMAGES_ALERT);
-        this.loadImages(this.IMAGES_WALKING);
-        this.loadImages(this.IMAGES_HURT);
-        this.loadImages(this.IMAGES_DEAD);
-        this.loadImages(this.IMAGES_ATTACK);
-    }
-
     setRandomAttackCooldown() {
-        this.attackCooldown = new Date().getTime() + 2000 + Math.random() * 2000;
+        this.attackCooldown = new Date().getTime() + (2000 + Math.random() * 2000);
     }
 
     animate() {
-        this.setupAnimationIntervals();
-        this.setupDistanceCheck();
+        setInterval(() => this.updateAnimationState(), 200);
+        setInterval(() => this.updateAIState(), 1000 / 60);
     }
 
-    setupAnimationIntervals() {
-        setInterval(() => {
-            if (this.isDead()) {
-                this.handleDeathAnimation();
-            } else if (this.isHurt) {
-                this.handleHurtAnimation();
-            } else if (this.isAttacking) {
-                this.playAnimation(this.IMAGES_ATTACK);
-            } else if (this.isAlerted && this.shouldShowAlertAnimation()) {
-                this.playAnimation(this.IMAGES_ALERT);
-            } else if (this.isCharging || this.isResting) {
-                this.playAnimation(this.IMAGES_WALKING);
-            } else if (this.isWalking) {
-                this.playAnimation(this.IMAGES_WALKING);
-            }
-        }, 200);
+    updateAnimationState() {
+        if (this.isDead()) this.playDeathAnimation();
+        else if (this.isHurt) this.playHurtAnimation();
+        else if (this.isAttacking) this.playAnimation(this.IMAGES_ATTACK);
+        else if (this.isCharging || this.isResting) this.playAnimation(this.IMAGES_WALKING);
+        else if (this.isWalking) this.playAnimation(this.IMAGES_WALKING);
+        else if (this.isAlerted) this.playAnimation(this.IMAGES_ALERT);
     }
 
-    shouldShowAlertAnimation() {
-        return this.speed === 0;
-    }
-
-    setupDistanceCheck() {
-        setInterval(() => {
-            if (this.world && this.world.character && !this.isDead() && !this.isHurt) {
-                this.checkCharacterDistance();
-            }
-        }, 1000 / 60);
-    }
-
-    handleDeathAnimation() {
-        if (!this.isDying) {
-            this.startDeathState();
-        }
+    playDeathAnimation() {
+        if (!this.isDying) this.setDyingState();
         this.playAnimation(this.IMAGES_DEAD);
     }
 
-    startDeathState() {
-        this.isDying = true;
-        this.speed = 0;
-        this.isWalking = false;
-        this.isAttacking = false;
-        this.isCharging = false;
-        this.isResting = false;
-        this.isHurt = false;
-    }
-
-    handleHurtAnimation() {
+    playHurtAnimation() {
         this.playAnimation(this.IMAGES_HURT);
-        if (this.isHurtDurationOver()) {
-            this.isHurt = false;
-        }
-    }
-
-    isHurtDurationOver() {
         const timeSinceHurt = new Date().getTime() - this.lastHurtTime;
-        return timeSinceHurt > this.hurtDuration;
+        if (timeSinceHurt > this.hurtDuration) this.isHurt = false;
     }
 
-    checkCharacterDistance() {
-        if (!this.world || !this.world.character) {
-            console.warn('World or character is not defined for Endboss');
-            return;
-        }
-
+    updateAIState() {
+        if (!this.world?.character || this.isDead() || this.isHurt) return;
         const characterX = this.world.character.x;
-        const distance = this.x - characterX;
-        const distanceAbs = Math.abs(distance);
-        if (distanceAbs < this.alertDistance && !this.isAlerted) {
-            this.alert();
-        }
-
-        if (this.isAlerted) {
-            this.handleAlertState(characterX, distance);
-        }
+        const distanceAbs = Math.abs(this.x - characterX);
+        this.checkAlert(distanceAbs);
+        if (this.isAlerted) this.handleAlertedBehavior(characterX, distanceAbs);
     }
 
-    handleAlertState(characterX, distance) {
+    checkAlert(distanceAbs) {
+        if (distanceAbs < this.alertDistance && !this.isAlerted) this.alert();
+    }
+
+    handleAlertedBehavior(characterX, distanceAbs) {
         const now = new Date().getTime();
-        if (this.shouldStartCharging(now)) {
-            this.startChargingState();
-            return;
-        }
-        if (this.isCharging) {
-            this.handleChargingState(characterX);
-        } else if (this.isAttacking) {
-            this.handleAttackingState(now);
-        } else if (this.isResting) {
-            this.handleRestingState(characterX, distance, now);
-        } else if (this.isTooCloseToCharacter(distance)) {
-            this.stopAndAlert();
-        } else {
-            this.resumeMovement();
-        }
-    }
-    
-    shouldStartCharging(now) {
-        return !this.isCharging && !this.isAttacking && !this.isResting && now >= this.attackCooldown;
-    }
-    
-    isTooCloseToCharacter(distance) {
-        return Math.abs(distance) <= this.followDistance;
-    }
-    
-    stopAndAlert() {
-        if (this.speed !== 0) {
-            this._oldSpeed = this.speed;
-        }
-        this.speed = 0;
-        this.isWalking = false;
-        this.isCharging = false;
-        this.isResting = false;
-    }
-    
-    resumeMovement() {
-        if (this.speed === 0 && this._oldSpeed) {
-            this.speed = this._oldSpeed;
-        }
+        if (this.isCharging) this.handleCharging(characterX, now);
+        else if (this.isAttacking) this.handleAttacking(now);
+        else if (this.isResting) this.handleResting(characterX, now);
+        else this.handleIdleOrWalking(characterX, distanceAbs, now);
     }
 
-    handleChargingState(characterX) {
-        if (this.x > characterX + 100) {
-            this.otherDirection = true;
-            this.x -= this.attackSpeed;
-        } else if (this.x < characterX - 100) {
-            this.otherDirection = false;
-            this.x += this.attackSpeed;
-        } else {
-            this.startAttack();
-        }
+    handleCharging(characterX, now) {
+        const targetXLeft = characterX + 100;
+        const targetXRight = characterX - 100;
+        if (this.x > targetXLeft) this.moveTowards(characterX, this.attackSpeed, true);
+        else if (this.x < targetXRight) this.moveTowards(characterX, this.attackSpeed, false);
+        else this.transitionToAttack(now);
     }
 
-    handleAttackingState(now) {
-        const timeSinceAttack = now - this.lastAttackTime;
-        if (timeSinceAttack > this.attackDuration) {
-            this.startRestingState(now);
-        }
+    moveTowards(targetX, speed, moveLeft) {
+        this.otherDirection = moveLeft;
+        this.x += moveLeft ? -speed : speed;
     }
 
-    handleRestingState(characterX, distance, now) {
-        if (Math.abs(distance) <= this.followDistance) {
-            if (this.speed !== 0) {
-                this._oldSpeed = this.speed;
-            }
-            this.speed = 0;
-            this.isWalking = false;
-            this.isCharging = false;
-            this.isResting = false;
-            return;
-        }
-        if (Math.abs(distance) < this.followDistance) {
-            this.moveAwayFromCharacter(characterX);
-        } else {
-            this.moveTowardsCharacter(characterX);
-        }
-        if (now - this.lastAttackTime > this.restDuration) {
-            this.startChargingState();
-        }
-    }
-
-    moveAwayFromCharacter(characterX) {
-        if (this.x < characterX) {
-            this.x -= this.speed;
-        } else {
-            this.x += this.speed;
-        }
-    }
-
-    moveTowardsCharacter(characterX) {
-        if (this.x < characterX) {
-            this.x += this.speed;
-        } else {
-            this.x -= this.speed;
-        }
-    }
-
-    startAttack() {
+    transitionToAttack(now) {
         this.isCharging = false;
         this.isAttacking = true;
-        this.lastAttackTime = new Date().getTime();
-        setTimeout(() => {
-            if (this.isAttacking) {
-                this.attackCharacter();
-            }
-        }, 450);
+        this.lastAttackTime = now;
+        this.attackCharacter();
     }
 
     attackCharacter() {
-        if (this.world.character && !this.world.character.isHurt()) {
-            this.world.character.hit();
-            this.world.character.energy -= this.damage;
-            this.world.statusBar.setEnergyPercentage(this.world.character.energy);
+        const character = this.world?.character;
+        if (character && !character.isHurt()) {
+            character.hit();
+            character.energy -= this.damage;
+            this.world.statusBar.setEnergyPercentage(character.energy);
         }
     }
 
-    startRestingState(now) {
+    handleAttacking(now) {
+        const timeSinceAttack = now - this.lastAttackTime;
+        if (timeSinceAttack > this.attackDuration) this.transitionToResting(now);
+    }
+
+    transitionToResting(now) {
         this.isAttacking = false;
         this.isResting = true;
         this.restDuration = 2000 + Math.random() * 2000;
         this.lastAttackTime = now;
-        this.setRandomAttackCooldown();
     }
 
-    startChargingState() {
+    handleResting(characterX, now) {
+        this.followCharacter(characterX, this.speed);
+        const timeSinceAttack = now - this.lastAttackTime;
+        if (timeSinceAttack > this.restDuration) this.endResting();
+    }
+
+    endResting() {
         this.isResting = false;
+        this.setRandomAttackCooldown();
+        this.lastDirection = null;
+    }
+
+    handleIdleOrWalking(characterX, distanceAbs, now) {
+        if (now >= this.attackCooldown && distanceAbs < 600) this.startAttack();
+        else if (this.isWalking) this.followCharacter(characterX, this.speed);
+        else if (!this.isWalking) this.tryStartWalking();
+    }
+
+    followCharacter(characterX, speed) {
+        const distanceToCharacter = Math.abs(this.x - characterX);
+        const deadZone = 80;
+        let isMoving = false;
+        if (distanceToCharacter < this.followDistance) isMoving = this.moveAway(characterX, speed);
+        else if (distanceToCharacter > this.followDistance + 100) isMoving = this.moveCloser(characterX, speed, deadZone);
+        if (!isMoving && distanceToCharacter <= this.followDistance && this.isWalking) this.isWalking = false;
+    }
+
+    moveAway(characterX, speed) {
+        if (this.x > characterX) this.moveTowards(characterX, speed, false); // Move right
+        else this.moveTowards(characterX, speed, true); // Move left
+        return true;
+    }
+
+    moveCloser(characterX, speed, deadZone) {
+        if (this.x > characterX + deadZone) this.moveTowards(characterX, speed, true); // Move left
+        else if (this.x < characterX - deadZone) this.moveTowards(characterX, speed, false); // Move right
+        else return false; // Inside deadzone
+        return true;
+    }
+
+    tryStartWalking() {
+        setTimeout(() => this.startWalking(), 500);
+    }
+
+    startAttack() {
         this.isCharging = true;
+        this.isAttacking = false;
+        this.isResting = false;
     }
 
     alert() {
@@ -298,146 +210,132 @@ class Endboss extends MovableObject {
         this.showHealthBar = true;
     }
 
+    startWalking() {
+        this.isWalking = true;
+    }
+
     hit() {
         super.hit();
-        if (this.isDead()) {
-            this.speed = 0;
-        }
+        if (this.isDead()) this.speed = 0;
     }
 
     die() {
         if (this.isDying) return;
-        this.prepareDeath();
+        this.setDyingState();
         setTimeout(() => {
-            this.handleGameWonSound();
-            this.showWonScreen();
+            this.handleDeathSoundAndMusic();
+            this.showGameWonScreen();
         }, 300);
     }
 
-    prepareDeath() {
+    setDyingState() {
         this.energy = 0;
         this.speed = 0;
         this.isDying = true;
         this.showHealthBar = false;
+        this.isWalking = false;
+        this.isAttacking = false;
+        this.isCharging = false;
+        this.isResting = false;
+        this.isHurt = false;
     }
 
-    handleGameWonSound() {
+    handleDeathSoundAndMusic() {
         try {
-            const ui = this.world?.userInterface, src = '../assets/audio/game_won.mp3';
-            if (!ui) return new Audio(src).play().catch(() => {});
-            this.pauseBackgroundMusic();
-            const sound = Object.assign(new Audio(src), { volume: 1.0 });
-            ui.registerAudioWithCategory(sound, 'music');
-            const resume = () => this.resumeBackgroundMusic();
-            if (!ui.isMuted) {
-                sound.addEventListener('ended', resume);
-                sound.play().catch(resume);
-            } else setTimeout(resume, 2000);
-        } catch {
-            setTimeout(() => this.world?.userInterface?.backgroundMusic && this.resumeBackgroundMusic(), 2000);
-        }
+            const ui = this.world?.userInterface;
+            if (ui?.backgroundMusic) {
+                const wasPlaying = !ui.backgroundMusic.paused;
+                const wasMuted = ui.backgroundMusic.muted;
+                ui.backgroundMusic.pause();
+                this.playGameWonSound(ui, wasPlaying, wasMuted);
+            } else this.playGameWonSoundFallback();
+        } catch (error) {/* ignore */ }
     }
 
-    pauseBackgroundMusic() {
-        try {
-            if (!this.world?.userInterface?.backgroundMusic) {
-                return;
+    playGameWonSound(ui, wasPlaying, wasMuted) {
+        const gameWonSound = new Audio('../assets/audio/game_won.mp3');
+        gameWonSound.volume = 1.0;
+        ui.registerAudioWithCategory(gameWonSound, 'music');
+        gameWonSound.addEventListener('ended', () => {
+            if (wasPlaying && !ui.isMuted) {
+                ui.backgroundMusic.muted = wasMuted;
+                ui.backgroundMusic.play();
             }
-            const bgMusic = this.world.userInterface.backgroundMusic;
-            this.wasPlaying = !bgMusic.paused;
-            this.wasMuted = bgMusic.muted;
-            bgMusic.pause();
-        } catch (error) {
-            console.error('Fehler beim Pausieren der Hintergrundmusik:', error);
-        }
+        });
+        gameWonSound.play().catch(() => {
+            if (wasPlaying && !ui.isMuted) {
+                ui.backgroundMusic.muted = wasMuted;
+                ui.backgroundMusic.play();
+            }
+        });
     }
 
-    resumeBackgroundMusic() {
-        try {
-            if (!this.world?.userInterface?.backgroundMusic) {
-                return;
-            }
-            const bgMusic = this.world.userInterface.backgroundMusic;
-            if (this.wasPlaying && !this.world.userInterface.isMuted) {
-                bgMusic.muted = this.wasMuted;
-                bgMusic.play()
-                    .catch(error => console.error('Fehler beim Fortsetzen der Hintergrundmusik:', error));
-            }
-        } catch (error) {
-            console.error('Fehler beim Fortsetzen der Hintergrundmusik:', error);
-        }
+    playGameWonSoundFallback() {
+        const gameWonSound = new Audio('../assets/audio/game_won.mp3');
+        gameWonSound.play();
     }
 
-    showWonScreen() {
+    showGameWonScreen() {
         setTimeout(() => {
-            if (!window.wonScreen) {
-                window.wonScreen = new Won();
-            }
+            if (!window.wonScreen) window.wonScreen = new Won();
             window.wonScreen.show();
         }, 1000);
     }
 
     hitWithBottle() {
-        this.applyDamage(40);
-        this.isHurt = true;
-        this.lastHurtTime = new Date().getTime();
-        this.playHurtSound();
+        this.energy -= 40;
+        if (this.energy < 0) this.energy = 0;
+        this.triggerHurtState();
         if (this.isDead()) this.die();
     }
 
-    applyDamage(damage) {
-        this.energy = Math.max(0, this.energy - damage);
+    triggerHurtState() {
+        this.isHurt = true;
+        this.lastHurtTime = new Date().getTime();
+        this.playHurtSound();
     }
 
     playHurtSound() {
-        if (this.world?.userInterface) {
+        const ui = this.world?.userInterface;
+        if (ui) {
             const hurtSound = new Audio('../assets/audio/Endboss_hurt.mp3');
-            this.world.userInterface.registerAudioWithCategory(hurtSound, 'enemies');
-            if (!this.world.userInterface.isMuted) hurtSound.play();
+            ui.registerAudioWithCategory(hurtSound, 'enemies');
+            if (!ui.isMuted) hurtSound.play();
         }
     }
 
     drawHealthBar(ctx) {
-        if (this.showHealthBar && this.energy > 0) {
-            const { barX, barY, barWidth, barHeight } = this.getHealthBarDimensions();
-            this.drawHealthBarBackground(ctx, barX, barY, barWidth, barHeight);
-            this.drawHealthBarForeground(ctx, barX, barY, barWidth, barHeight);
-            this.drawHealthBarText(ctx, barX, barWidth, barY);
-        }
+        if (!this.showHealthBar || this.energy <= 0) return;
+        const { barX, barY, barWidth, barHeight } = this.calculateHealthBarPosition();
+        const healthPercentage = this.energy / 200;
+        const barColor = this.getHealthBarColor(healthPercentage);
+        this.drawHealthBarElements(ctx, barX, barY, barWidth, barHeight, healthPercentage, barColor);
     }
 
-    getHealthBarDimensions() {
-        const barWidth = this.world?.canvas ? this.world.canvas.width / 3 : 200;
-        const barHeight = 20;
-        const barX = (this.world.canvas.width - barWidth) / 2;
+    calculateHealthBarPosition() {
+        let barWidth = 200, barHeight = 20;
+        if (this.world?.canvas) barWidth = this.world.canvas.width / 3;
+        const barX = (this.world?.canvas?.width - barWidth) / 2 || 0;
         const barY = 20;
         return { barX, barY, barWidth, barHeight };
     }
 
-    drawHealthBarBackground(ctx, barX, barY, barWidth, barHeight) {
-        ctx.fillStyle = 'black';
-        ctx.fillRect(barX - 2, barY - 2, barWidth + 4, barHeight + 4);
-        ctx.fillStyle = 'grey';
-        ctx.fillRect(barX, barY, barWidth, barHeight);
-    }
-
-    drawHealthBarForeground(ctx, barX, barY, barWidth, barHeight) {
-        const healthPercentage = this.energy / 200;
-        const barColor = this.getHealthBarColor(healthPercentage);
-        ctx.fillStyle = barColor;
-        ctx.fillRect(barX, barY, barWidth * healthPercentage, barHeight);
-    }
-
-    getHealthBarColor(healthPercentage) {
-        if (healthPercentage > 0.75) return 'green';
-        if (healthPercentage > 0.25) return 'orange';
+    getHealthBarColor(percentage) {
+        if (percentage > 0.75) return 'green';
+        if (percentage > 0.25) return 'orange';
         return 'red';
     }
 
-    drawHealthBarText(ctx, barX, barWidth, barY) {
+    drawHealthBarElements(ctx, x, y, w, h, percentage, color) {
+        ctx.fillStyle = 'black';
+        ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
+        ctx.fillStyle = 'grey';
+        ctx.fillRect(x, y, w, h);
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, w * percentage, h);
         ctx.fillStyle = 'white';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('ENDBOSS', barX + barWidth / 2, barY - 5);
+        ctx.fillText('ENDBOSS', x + w / 2, y - 5);
     }
 }

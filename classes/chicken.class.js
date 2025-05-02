@@ -1,3 +1,9 @@
+/**
+ * Represents a standard chicken enemy in the game.
+ * Has health system, can be killed by stomping or with bottles.
+ * @class
+ * @extends MovableObject
+ */
 class Chicken extends MovableObject {
     y = 330;
     height = 100;
@@ -18,6 +24,9 @@ class Chicken extends MovableObject {
     ];
     IMAGE_DEAD = '../assets/img/3_enemies_chicken/chicken_normal/2_dead/dead.png';
 
+    /**
+     * Creates a new chicken with randomized position and movement patterns.
+     */
     constructor() {
         super().loadImage(this.IMAGES_WALKING[0]);
         this.speed = 2;
@@ -29,17 +38,28 @@ class Chicken extends MovableObject {
         this.animate();
     }
 
+    /**
+     * Handles the death of the chicken from different causes.
+     * @param {boolean} fromBottle - Whether the chicken was killed by a bottle
+     */
     die(fromBottle = false) {
         if (this.isDead) return;
         if (fromBottle) this.handleBottleHit();
         else this.handleStompHit();
     }
 
+    /**
+     * Handles the chicken being hit by a bottle, instantly killing it.
+     */
     handleBottleHit() {
         this.health = 0;
         this.markAsDead();
     }
 
+    /**
+     * Handles the chicken being stomped, reducing health and potentially killing it.
+     * If not killed, the chicken becomes faster and shows its health bar.
+     */
     handleStompHit() {
         this.health -= 1;
         if (this.health <= 0) this.markAsDead();
@@ -49,6 +69,9 @@ class Chicken extends MovableObject {
         }
     }
 
+    /**
+     * Marks the chicken as dead and updates its visual state.
+     */
     markAsDead() {
         this.isDead = true;
         this.loadImage(this.IMAGE_DEAD);
@@ -56,6 +79,10 @@ class Chicken extends MovableObject {
         this.showHealthBar = false;
     }
 
+    /**
+     * Draws the chicken's health bar when needed.
+     * @param {CanvasRenderingContext2D} ctx - The canvas rendering context
+     */
     drawHealthBar(ctx) {
         if (this.showHealthBar && this.health > 0) {
             let barWidth = 60, barHeight = 10;

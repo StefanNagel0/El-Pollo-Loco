@@ -96,8 +96,8 @@ class MainMenu {
     }
 
     transferUIState(targetUI) {
-        if (this.userInterface.backgroundMusic) {
-            targetUI.backgroundMusic = this.userInterface.backgroundMusic;
+        if (this.userInterface?.audioManager?.backgroundMusic) {
+            targetUI.audioManager.transferBackgroundMusic(this.userInterface.audioManager.backgroundMusic);
         }
         targetUI.isMuted = this.userInterface.isMuted;
         targetUI.updateSoundIcon();

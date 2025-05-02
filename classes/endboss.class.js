@@ -285,6 +285,10 @@ class Endboss extends MovableObject {
     hitWithBottle() {
         this.energy -= 40;
         if (this.energy < 0) this.energy = 0;
+        if (!this.isAlerted) {
+            this.alert();
+            this.startAttack();
+        }
         this.triggerHurtState();
         if (this.isDead()) this.die();
     }

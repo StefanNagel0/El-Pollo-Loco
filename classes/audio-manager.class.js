@@ -27,8 +27,7 @@ class AudioManager {
         }
         this.backgroundMusic = window.globalBackgroundMusic;
     }
-
-    // Neue Methode, die von Buttons aufgerufen wird
+    
     playBackgroundMusicAfterInteraction() {
         if (this.backgroundMusic && !this.isMuted) {
             this.backgroundMusic.play().catch(err => console.log('Musik konnte nicht gestartet werden:', err));

@@ -212,7 +212,6 @@ class World {
         const minDistance = 100;
         this.level.enemies.forEach((enemy1, index1) => {
             if (enemy1 instanceof Endboss) return;
-
             this.level.enemies.forEach((enemy2, index2) => {
                 if (this.shouldCheckEnemies(enemy1, enemy2, index1, index2)) {
                     this.handleEnemyProximity(enemy1, enemy2);
@@ -231,7 +230,6 @@ class World {
     handleEnemyProximity(enemy1, enemy2) {
         const distanceX = Math.abs(enemy1.x - enemy2.x);
         const distanceY = Math.abs(enemy1.y - enemy2.y);
-
         if (distanceX < 100 && distanceY < enemy1.height / 2) {
             enemy1.otherDirection = !enemy1.otherDirection;
             enemy2.otherDirection = !enemy2.otherDirection;
@@ -314,9 +312,11 @@ class World {
 
     calculateCooldownCirclePosition() {
         const circleRadius = 25;
-        const padding = 10;
-        const offsetX = this.userInterface.settingsIconX + this.userInterface.settingsIconWidth / 2;
-        const offsetY = this.userInterface.settingsIconY + this.userInterface.settingsIconHeight + padding + circleRadius;
+        const padding = 28;
+        const bottleStatusBarY = this.statusBar.y_bottles;
+        const bottleStatusBarHeight = this.statusBar.height;
+        const offsetX = circleRadius + padding;
+        const offsetY = bottleStatusBarY + bottleStatusBarHeight + padding;
         return {
             x: offsetX,
             y: offsetY,
@@ -369,18 +369,13 @@ class World {
 
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
         this.drawGameWorld();
-        
-        // Ersetze drawUIElements durch direkten Code
         this.statusBar.draw(this.ctx);  
         this.userInterface.drawIcons();
         this.drawEndbossHealthBar();
-        
         if (this.throwCooldown > 0) {
             this.drawCooldownCircle();
         }
-        
         let self = this;
         requestAnimationFrame(function() {
             self.draw();
@@ -453,7 +448,6 @@ class World {
     handleObjectDirection(mo, beforeDraw) {
         const shouldFlip = (mo instanceof Character && mo.otherDirection) ||
             ((mo instanceof Chicken || mo instanceof smallChicken || mo instanceof Endboss) && !mo.otherDirection);
-
         if (shouldFlip) {
             beforeDraw ? this.flipImage(mo) : this.flipImageBack(mo);
         }

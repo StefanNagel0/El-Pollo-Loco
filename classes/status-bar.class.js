@@ -73,7 +73,9 @@ class StatusBar extends DrawableObject {
 
     setCoinsCount(count) {
         this.current_coins = count;
-        this.percentage_coins = Math.min(count * 20, 100);
+        const coinsPerLevel = 45 / 5;
+        const level = Math.min(Math.floor(count / coinsPerLevel), 5);
+        this.percentage_coins = level * 20;
         this.updateStatusBars();
     }
 

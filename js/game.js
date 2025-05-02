@@ -27,6 +27,7 @@ function handleDirectStart() {
         mainMenuElement.classList.add('d-none');
         mainMenuElement.style.display = 'none';
     }
+    initLevel1();
     initGame();
     window.world.isPaused = false;
 }
@@ -43,7 +44,6 @@ function showMainMenu() {
 function initGame() {
     world = new World(canvas, keyboard);
     window.world = world;
-    window.world.isPaused = true;
 }
 
 const KEY_ACTIONS = {

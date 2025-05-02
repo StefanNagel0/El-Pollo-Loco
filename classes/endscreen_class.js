@@ -1,4 +1,12 @@
+/**
+ * Creates and manages the Game Over screen display.
+ * Shows a random game over image and provides restart options.
+ * @class
+ */
 class Endscreen {
+    /**
+     * Initializes a new Endscreen instance with default settings.
+     */
     constructor() {
         this.container = null;
         this.gameOverImages = [
@@ -10,11 +18,18 @@ class Endscreen {
         this.selectedImage = this.getRandomGameOverImage();
     }
 
+    /**
+     * Selects a random game over image from the available options.
+     * @returns {string} The path to the randomly selected image
+     */
     getRandomGameOverImage() {
         const randomIndex = Math.floor(Math.random() * this.gameOverImages.length);
         return this.gameOverImages[randomIndex];
     }
 
+    /**
+     * Displays the game over screen and pauses the game.
+     */
     show() {
         if (window.world) {
             window.world.isPaused = true;
@@ -29,6 +44,9 @@ class Endscreen {
         this.adjustPosition();
     }
 
+    /**
+     * Hides enemies by moving them off-screen while saving their original positions.
+     */
     hideEnemies() {
         if (window.world?.level?.enemies) {
             window.world.level.enemies.forEach(enemy => {
@@ -38,6 +56,9 @@ class Endscreen {
         }
     }
 
+    /**
+     * Creates the complete game over screen with image and buttons.
+     */
     createGameOverScreen() {
         this.createContainer();
         const gameOverImage = this.createImageElement();
@@ -46,12 +67,19 @@ class Endscreen {
         document.body.appendChild(this.container);
     }
 
+    /**
+     * Creates the main container element for the game over screen.
+     */
     createContainer() {
         this.container = document.createElement('div');
         this.container.id = 'game-over-screen';
         this.container.classList.add('d-none');
     }
 
+    /**
+     * Creates the image element displaying the game over message.
+     * @returns {HTMLImageElement} The created image element
+     */
     createImageElement() {
         const img = document.createElement('img');
         img.src = this.selectedImage;
@@ -60,6 +88,10 @@ class Endscreen {
         return img;
     }
 
+    /**
+     * Creates a container with the game over screen buttons.
+     * @returns {HTMLDivElement} The button container element
+     */
     createButtonContainer() {
         const container = document.createElement('div');
         container.classList.add('game-over-buttons');
@@ -70,6 +102,12 @@ class Endscreen {
         return container;
     }
 
+    /**
+     * Creates a button with specified text and click handler.
+     * @param {string} text - The text to display on the button
+     * @param {Function} onClick - The event handler to call when the button is clicked
+     * @returns {HTMLButtonElement} The created button element
+     */
     createButton(text, onClick) {
         const button = document.createElement('button');
         button.textContent = text;
@@ -78,11 +116,19 @@ class Endscreen {
         return button;
     }
 
+    /**
+     * Adds the created elements to the container.
+     * @param {HTMLImageElement} image - The game over image element
+     * @param {HTMLDivElement} buttons - The buttons container element
+     */
     appendElementsToContainer(image, buttons) {
         this.container.appendChild(image);
         this.container.appendChild(buttons);
     }
 
+    /**
+     * Adjusts the position of the game over screen to match the canvas position.
+     */
     adjustPosition() {
         const canvas = document.getElementById('canvas');
         if (canvas && this.container) {
@@ -95,6 +141,10 @@ class Endscreen {
         }
     }
 
+    /**
+     * Handles restarting the game when the restart button is clicked.
+     * Sets flags in localStorage and reloads the page.
+     */
     restartGame() {
         this.hide();
         const timestamp = new Date().getTime();
@@ -103,11 +153,17 @@ class Endscreen {
         setTimeout(() => window.location.reload(), 50);
     }
 
+    /**
+     * Returns to the main menu by reloading the page.
+     */
     backToMainMenu() {
         this.hide();
         window.location.reload();
     }
 
+    /**
+     * Hides the game over screen.
+     */
     hide() {
         if (this.container) {
             this.container.classList.remove('show');

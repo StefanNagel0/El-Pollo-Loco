@@ -243,8 +243,13 @@ class Character extends MovableObject {
     }
 
     handleIdleState() {
-        if (this.sleepSound) { this.sleepSound.pause(); this.sleepSound = null; }
-        if (this.idleAnimationInterval >= 30) {
+        if (this.sleepSound) { 
+            this.sleepSound.pause(); 
+            this.sleepSound = null; 
+        }
+        
+        // Nur kurz warten (3 Frames statt 30)
+        if (this.idleAnimationInterval >= 3) {
             this.playAnimation(this.IMAGES_IDLE);
             this.idleAnimationInterval = 0;
         }

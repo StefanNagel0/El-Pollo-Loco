@@ -7,7 +7,6 @@ function init() {
     canvas = document.getElementById("canvas");
     initializeUIElements();
     const directStart = localStorage.getItem('elPolloLoco_startGame') === 'true';
-    
     if (directStart) {
         handleDirectStart();
     } else {
@@ -24,12 +23,10 @@ function handleDirectStart() {
     localStorage.removeItem('elPolloLoco_startGame');
     localStorage.removeItem('elPolloLoco_restartTimestamp');
     const mainMenuElement = document.getElementById('main-menu');
-    
     if (mainMenuElement) {
         mainMenuElement.classList.add('d-none');
         mainMenuElement.style.display = 'none';
     }
-    
     initGame();
     window.world.isPaused = false;
 }

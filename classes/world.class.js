@@ -369,9 +369,41 @@ class World {
 
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.drawOptimizedGameWorld();
-        this.drawUIElements();
-        requestAnimationFrame(() => this.draw());
+
+        this.drawGameWorld();
+        
+        // Ersetze drawUIElements durch direkten Code
+        this.statusBar.draw(this.ctx);  
+        this.userInterface.drawIcons();
+        this.drawEndbossHealthBar();
+        
+        if (this.throwCooldown > 0) {
+            this.drawCooldownCircle();
+        }
+        
+        let self = this;
+        requestAnimationFrame(function() {
+            self.draw();
+        });
+    }
+
+    drawGameWorld() {
+        this.ctx.translate(this.camera_x, 0);
+        this.addObjectsToMap(this.level.backgroundObjects);
+        this.addToMap(this.character);
+        this.addObjectsToMap(this.level.clouds);
+        this.addObjectsToMap(this.level.enemies);
+        this.addObjectsToMap(this.level.coins); 
+        this.addObjectsToMap(this.level.bottles);
+        this.addObjectsToMap(this.throwableObjects); 
+        this.ctx.translate(-this.camera_x, 0);
+    }
+
+    drawEndbossHealthBar() {
+        const endboss = this.level.enemies.find(enemy => enemy instanceof Endboss);
+        if (endboss && endboss.showHealthBar) {
+            endboss.drawHealthBar(this.ctx);
+        }
     }
 
     drawOptimizedGameWorld() {

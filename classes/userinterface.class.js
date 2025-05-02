@@ -38,7 +38,6 @@ class UserInterface extends DrawableObject {
         this.settingsIcon.src = '../assets/img/ui_images/settings.svg';
         this.fullscreenIcon = new Image();
         this.fullscreenIcon.src = '../assets/img/ui_images/fullscreen.svg';
-        
         this.initializeIconDimensions(canvas);
     }
 
@@ -47,12 +46,10 @@ class UserInterface extends DrawableObject {
         this.soundIconY = 10;
         this.soundIconWidth = 40;
         this.soundIconHeight = 40;
-        
         this.settingsIconX = canvas.width - 50;
         this.settingsIconY = 10;
         this.settingsIconWidth = 40;
         this.settingsIconHeight = 40;
-        
         this.fullscreenIconX = canvas.width - 50;
         this.fullscreenIconY = canvas.height - 50;
         this.fullscreenIconWidth = 40;
@@ -78,13 +75,11 @@ class UserInterface extends DrawableObject {
     setupFullscreenHandler() {
         document.addEventListener('fullscreenchange', () => {
             this.isFullscreen = !!document.fullscreenElement;
-            
             if (this.isFullscreen) {
                 document.body.classList.add('fullscreen');
             } else {
                 document.body.classList.remove('fullscreen');
             }
-            
             this.updateFullscreenIcon();
         });
     }
@@ -93,16 +88,16 @@ class UserInterface extends DrawableObject {
         this.backgroundMusic = new Audio('../assets/audio/background.mp3');
         this.backgroundMusic.loop = true;
         this.registerAudioWithCategory(this.backgroundMusic, 'music');
-        
+
         setTimeout(() => {
-            if (!this.isMuted) this.backgroundMusic.play().catch(() => {});
+            if (!this.isMuted) this.backgroundMusic.play().catch(() => { });
         }, 500);
     }
 
     setupErrorHandlers() {
-        this.soundIcon.onerror = () => {};
-        this.settingsIcon.onerror = () => {};
-        this.fullscreenIcon.onerror = () => {};
+        this.soundIcon.onerror = () => { };
+        this.settingsIcon.onerror = () => { };
+        this.fullscreenIcon.onerror = () => { };
     }
 
     updateIconPositions() {
@@ -111,7 +106,6 @@ class UserInterface extends DrawableObject {
         const marginRight = 60;
         const marginTop = 10;
         const marginBottom = 10;
-        
         this.soundIconX = canvasWidth - this.soundIconWidth - marginRight;
         this.soundIconY = marginTop;
         this.settingsIconX = canvasWidth - this.settingsIconWidth - 10;
@@ -149,7 +143,6 @@ class UserInterface extends DrawableObject {
         const isSmallScreen = window.innerWidth < 720;
         const isLandscape = window.innerHeight < window.innerWidth;
         const shouldDisplayFullscreenIcon = !(isSmallScreen && isLandscape);
-        
         if (shouldDisplayFullscreenIcon) {
             this.ctx.save();
             if (this.fullscreenIconHovered) {
@@ -161,15 +154,15 @@ class UserInterface extends DrawableObject {
     }
 
     applyHoverEffect(x, y, width, height) {
-        this.ctx.translate(x + width/2, y + height/2);
+        this.ctx.translate(x + width / 2, y + height / 2);
         this.ctx.scale(1.1, 1.1);
-        this.ctx.translate(-(x + width/2), -(y + height/2));
+        this.ctx.translate(-(x + width / 2), -(y + height / 2));
     }
 
     applyRotationEffect(x, y, width, height) {
-        this.ctx.translate(x + width/2, y + height/2);
-        this.ctx.rotate(Math.PI/2);
-        this.ctx.translate(-(x + width/2), -(y + height/2));
+        this.ctx.translate(x + width / 2, y + height / 2);
+        this.ctx.rotate(Math.PI / 2);
+        this.ctx.translate(-(x + width / 2), -(y + height / 2));
     }
 
     addMouseListeners() {
@@ -200,15 +193,15 @@ class UserInterface extends DrawableObject {
         const rect = this.canvas.getBoundingClientRect();
         const canvasAspectRatio = this.canvas.width / this.canvas.height;
         const rectAspectRatio = rect.width / rect.height;
-        
-        return this.isFullscreen 
+
+        return this.isFullscreen
             ? this.getFullscreenCoordinates(event, rect, canvasAspectRatio, rectAspectRatio)
             : this.getNormalCoordinates(event, rect);
     }
 
     getFullscreenCoordinates(event, rect, canvasAspectRatio, rectAspectRatio) {
         let visibleWidth, visibleHeight, offsetX = 0, offsetY = 0;
-        
+
         if (rectAspectRatio > canvasAspectRatio) {
             visibleHeight = rect.height;
             visibleWidth = visibleHeight * canvasAspectRatio;
@@ -218,7 +211,7 @@ class UserInterface extends DrawableObject {
             visibleHeight = visibleWidth / canvasAspectRatio;
             offsetY = (rect.height - visibleHeight) / 2;
         }
-        
+
         return {
             x: ((event.clientX - rect.left - offsetX) / visibleWidth) * this.canvas.width,
             y: ((event.clientY - rect.top - offsetY) / visibleHeight) * this.canvas.height
@@ -265,8 +258,8 @@ class UserInterface extends DrawableObject {
     }
 
     isPointInRect(x, y, rectX, rectY, rectWidth, rectHeight, tolerance = 0) {
-        return x >= (rectX - tolerance) && x <= (rectX + rectWidth + tolerance) && 
-               y >= (rectY - tolerance) && y <= (rectY + rectHeight + tolerance);
+        return x >= (rectX - tolerance) && x <= (rectX + rectWidth + tolerance) &&
+            y >= (rectY - tolerance) && y <= (rectY + rectHeight + tolerance);
     }
 
     toggleFullscreen() {
@@ -275,19 +268,16 @@ class UserInterface extends DrawableObject {
         } else {
             this.exitFullscreen();
         }
-        
         this.updateFullscreenIcon();
         this.scheduleIconPositionUpdate();
     }
 
     enterFullscreen() {
         const element = document.documentElement;
-        
         if (element.requestFullscreen) element.requestFullscreen();
         else if (element.mozRequestFullScreen) element.mozRequestFullScreen();
         else if (element.webkitRequestFullscreen) element.webkitRequestFullscreen();
         else if (element.msRequestFullscreen) element.msRequestFullscreen();
-        
         this.isFullscreen = true;
         document.body.classList.add('fullscreen');
     }
@@ -297,13 +287,12 @@ class UserInterface extends DrawableObject {
         else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
         else if (document.msExitFullscreen) document.msExitFullscreen();
-        
         this.isFullscreen = false;
         document.body.classList.remove('fullscreen');
     }
 
     updateFullscreenIcon() {
-        this.fullscreenIcon.src = this.isFullscreen 
+        this.fullscreenIcon.src = this.isFullscreen
             ? '../assets/img/ui_images/fullscreen_exit.svg'
             : '../assets/img/ui_images/fullscreen.svg';
     }
@@ -311,12 +300,10 @@ class UserInterface extends DrawableObject {
     scheduleIconPositionUpdate() {
         this.updateIconPositions();
         this.updateIconHitboxes();
-        
         setTimeout(() => {
             this.updateIconPositions();
             this.updateIconHitboxes();
         }, 100);
-        
         setTimeout(() => {
             this.updateIconPositions();
             this.updateIconHitboxes();
@@ -327,7 +314,6 @@ class UserInterface extends DrawableObject {
         const rect = this.canvas.getBoundingClientRect();
         const canvasRenderWidth = this.canvas.width;
         const canvasRenderHeight = this.canvas.height;
-        
         this.canvasScaleX = canvasRenderWidth / rect.width;
         this.canvasScaleY = canvasRenderHeight / rect.height;
     }
@@ -346,12 +332,10 @@ class UserInterface extends DrawableObject {
         this.enemiesSlider = document.getElementById('enemies-volume');
         this.objectsSlider = document.getElementById('objects-volume');
         this.musicSlider = document.getElementById('music-volume');
-        
         this.characterValue = document.getElementById('character-volume-value');
         this.enemiesValue = document.getElementById('enemies-volume-value');
         this.objectsValue = document.getElementById('objects-volume-value');
         this.musicValue = document.getElementById('music-volume-value');
-        
         this.exitGameBtn = document.getElementById('exit-game');
         this.closeSettingsBtn = document.getElementById('close-settings');
         this.returnToGameBtn = document.getElementById('return-to-game');
@@ -362,11 +346,9 @@ class UserInterface extends DrawableObject {
         if (this.closeXBtn) {
             this.closeXBtn.addEventListener('click', () => this.closeSettings());
         }
-        
         if (this.returnToGameBtn) {
             this.returnToGameBtn.addEventListener('click', () => this.closeSettings());
         }
-        
         if (this.closeSettingsBtn) {
             this.closeSettingsBtn.addEventListener('click', () => this.closeSettings());
         }
@@ -377,17 +359,14 @@ class UserInterface extends DrawableObject {
             this.characterSlider.value = this.characterVolume;
             this.characterValue.textContent = this.characterVolume;
         }
-        
         if (this.enemiesSlider && this.enemiesValue) {
             this.enemiesSlider.value = this.enemiesVolume;
             this.enemiesValue.textContent = this.enemiesVolume;
         }
-        
         if (this.objectsSlider && this.objectsValue) {
             this.objectsSlider.value = this.objectsVolume;
             this.objectsValue.textContent = this.objectsVolume;
         }
-        
         if (this.musicSlider && this.musicValue) {
             this.musicSlider.value = this.musicVolume;
             this.musicValue.textContent = this.musicVolume;
@@ -418,7 +397,7 @@ class UserInterface extends DrawableObject {
                 this.showCustomConfirm(() => window.location.reload());
             });
         }
-        
+
         this.legalNoticeBtn = document.getElementById('legal-notice-btn');
         if (this.legalNoticeBtn) {
             this.legalNoticeBtn.addEventListener('click', () => {
@@ -436,7 +415,6 @@ class UserInterface extends DrawableObject {
     pauseGameAndShowExitButton() {
         if (this.canvas && window.world) {
             window.world.isPaused = true;
-            
             const exitGameBtn = document.getElementById('exit-game');
             if (exitGameBtn) {
                 exitGameBtn.style.display = 'block';
@@ -459,10 +437,8 @@ class UserInterface extends DrawableObject {
         const gameContent = document.getElementById('game-content');
         const howToPlayContent = document.getElementById('how-to-play-content');
         const audioContent = document.getElementById('audio-content');
-        
         [gameTab, howToPlayTab, audioTab].forEach(tab => tab?.classList.remove('active'));
         [gameContent, howToPlayContent, audioContent].forEach(content => content?.classList.add('d-none'));
-        
         gameTab?.classList.add('active');
         gameContent?.classList.remove('d-none');
     }
@@ -470,13 +446,11 @@ class UserInterface extends DrawableObject {
     positionAndShowOverlay() {
         const settingsOverlay = document.getElementById('settings-overlay');
         const canvasRect = this.canvas.getBoundingClientRect();
-        
         settingsOverlay.style.top = `${canvasRect.top}px`;
         settingsOverlay.style.left = `${canvasRect.left}px`;
         settingsOverlay.style.width = `${canvasRect.width}px`;
         settingsOverlay.style.height = `${canvasRect.height}px`;
         settingsOverlay.style.transform = 'none';
-        
         settingsOverlay.classList.add('show');
         settingsOverlay.classList.remove('d-none');
     }
@@ -500,7 +474,6 @@ class UserInterface extends DrawableObject {
         if (settingsOverlay) {
             settingsOverlay.classList.remove('show');
             settingsOverlay.classList.add('d-none');
-            
             setTimeout(() => {
                 if (settingsOverlay) settingsOverlay.removeAttribute('style');
             }, 100);
@@ -530,14 +503,13 @@ class UserInterface extends DrawableObject {
     }
 
     updateVolume() {
-        ['character', 'enemies', 'objects', 'music'].forEach(category => 
+        ['character', 'enemies', 'objects', 'music'].forEach(category =>
             this.updateCategoryVolume(category));
     }
 
     toggleSound() {
         this.isMuted = !this.isMuted;
         localStorage.setItem('elPolloLoco_isMuted', this.isMuted);
-
         if (this.isMuted) {
             this.updateSoundIcon();
             this.muteAllSounds();
@@ -551,8 +523,8 @@ class UserInterface extends DrawableObject {
 
     updateSoundIcon() {
         if (this.soundIcon) {
-            this.soundIcon.src = this.isMuted 
-                ? '../assets/img/ui_images/sound_off.svg' 
+            this.soundIcon.src = this.isMuted
+                ? '../assets/img/ui_images/sound_off.svg'
                 : '../assets/img/ui_images/sound_on.svg';
         }
     }
@@ -567,13 +539,10 @@ class UserInterface extends DrawableObject {
 
     registerAudioWithCategory(audio, category) {
         if (!(audio instanceof Audio) || this.audioInstances.includes(audio)) return;
-        
         this.audioInstances.push(audio);
         const categoryVolume = this.getVolumeForCategory(category);
         audio.volume = categoryVolume;
-        
         if (this.isMuted) audio.muted = true;
-        
         if (category && this.audioCategories[category] && !this.audioCategories[category].includes(audio)) {
             this.audioCategories[category].push(audio);
         }
@@ -581,8 +550,7 @@ class UserInterface extends DrawableObject {
 
     getVolumeForCategory(category) {
         if (!category || !this.audioCategories[category]) return 0.5;
-        
-        switch(category) {
+        switch (category) {
             case 'character': return this.characterVolume / 10;
             case 'enemies': return this.enemiesVolume / 10;
             case 'objects': return this.objectsVolume / 10;
@@ -600,10 +568,8 @@ class UserInterface extends DrawableObject {
     unmuteAllSounds() {
         this.audioInstances.forEach(audio => {
             if (!audio) return;
-            
             audio.muted = false;
             let categoryFound = false;
-            
             for (const category in this.audioCategories) {
                 if (this.audioCategories[category].includes(audio)) {
                     audio.volume = this.getVolumeForCategory(category);
@@ -611,16 +577,15 @@ class UserInterface extends DrawableObject {
                     break;
                 }
             }
-            
             if (!categoryFound) audio.volume = 0.5;
         });
     }
 
     updateCategoryVolume(category) {
         if (!this.audioCategories[category]) return;
-        
+
         const categoryVolume = this.getVolumeForCategory(category);
-        
+
         this.audioCategories[category].forEach(audio => {
             if (audio && !this.isMuted) audio.volume = categoryVolume;
         });
@@ -630,7 +595,6 @@ class UserInterface extends DrawableObject {
         const customConfirm = document.getElementById('custom-confirm');
         const yesBtn = document.getElementById('confirm-yes');
         const noBtn = document.getElementById('confirm-no');
-        
         this.setupCustomConfirmUI(customConfirm);
         this.setupCustomConfirmHandlers(customConfirm, yesBtn, noBtn, onConfirm);
     }
@@ -638,7 +602,6 @@ class UserInterface extends DrawableObject {
     setupCustomConfirmUI(customConfirm) {
         customConfirm.classList.remove('d-none');
         customConfirm.classList.add('show');
-        
         const canvasRect = this.canvas.getBoundingClientRect();
         customConfirm.style.top = `${canvasRect.top}px`;
         customConfirm.style.left = `${canvasRect.left}px`;
@@ -651,11 +614,9 @@ class UserInterface extends DrawableObject {
             this.hideCustomConfirm(customConfirm, yesBtn, noBtn, handleYes, handleNo);
             if (onConfirm) onConfirm();
         };
-        
         const handleNo = () => {
             this.hideCustomConfirm(customConfirm, yesBtn, noBtn, handleYes, handleNo);
         };
-        
         yesBtn.addEventListener('click', handleYes);
         noBtn.addEventListener('click', handleNo);
     }

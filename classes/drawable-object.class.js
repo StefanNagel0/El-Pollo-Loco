@@ -65,9 +65,12 @@ class DrawableObject {
     }
 
     drawRect(ctx, x, y, width, height, color, lineWidth) {
+        const originalColor = color; // Speichere Originalfarbe
+        const transparentColor = 'rgba(0, 0, 0, 0)';
+        
         ctx.beginPath();
         ctx.lineWidth = lineWidth;
-        ctx.strokeStyle = color;
+        ctx.strokeStyle = transparentColor; // Statt color
         ctx.rect(x, y, width, height);
         ctx.stroke();
     }

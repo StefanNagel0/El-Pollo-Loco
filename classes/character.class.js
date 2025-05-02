@@ -1,3 +1,9 @@
+/**
+ * Represents the main player character in the game.
+ * Handles movement, animations, collisions, and sound effects.
+ * @class
+ * @extends MovableObject
+ */
 class Character extends MovableObject {
     bottles = 0;
     x = 120;
@@ -78,6 +84,9 @@ class Character extends MovableObject {
     deathSoundPlayed = false;
     hurtSoundPlayed = false;
 
+    /**
+     * Creates a new character and initializes its properties and animations.
+     */
     constructor() {
         super().loadImage('../assets/img/2_character_pepe/1_idle/idle/I-1.png');
         this.loadImages(this.IMAGES_IDLE);
@@ -93,6 +102,9 @@ class Character extends MovableObject {
         this.animate();
     }
 
+    /**
+     * Sets up sound effects for the character.
+     */
     setupSounds() {
         this.runSound = new Audio('../assets/audio/character_run.mp3');
         this.runSound.loop = true;
@@ -101,28 +113,44 @@ class Character extends MovableObject {
         }
     }
 
+    /**
+     * Handles collecting a coin, updating the status bar and playing sound effects.
+     */
     collectCoin() {
         this.coins = (this.coins || 0) + 1;
         this.world.statusBar.setCoinsCount(this.coins);
         this.playObjectSound('../assets/audio/collect_coins.mp3');
     }
 
+    /**
+     * Handles collecting a bottle, updating the status bar and playing sound effects.
+     */
     collectBottle() {
         this.bottles = (this.bottles || 0) + 1;
         this.world.statusBar.setBottlesCount(this.bottles);
         this.playObjectSound('../assets/audio/collect_bottle.mp3');
     }
 
+    /**
+     * Makes the character jump and plays the corresponding sound effect.
+     * @override
+     */
     jump() {
         super.jump();
         this.playCharacterSound('../assets/audio/character_jump.mp3', false);
     }
 
+    /**
+     * Sets up animation intervals for the character.
+     */
     animate() {
         setInterval(() => this.handleMovementAndCamera(), 1000 / 60);
         setInterval(() => this.handleAnimationStates(), 50);
     }
 
+    /**
+     * Handles character movement and camera updates.
+     */
     handleMovementAndCamera() {
         if (!this.world?.isPaused) {
             this.previousY = this.y;
@@ -131,6 +159,9 @@ class Character extends MovableObject {
         }
     }
 
+    /**
+     * Processes keyboard input for character movement.
+     */
     handleInput() {
         if (this.world?.keyboard && !this.isDead()) {
             if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x - this.width) {
@@ -143,6 +174,9 @@ class Character extends MovableObject {
         }
     }
 
+    /**
+     * Updates the camera position based on character location.
+     */
     updateCameraPosition() {
         if (this.world) {
             let newCameraX = -this.x + 100;
@@ -152,14 +186,20 @@ class Character extends MovableObject {
         }
     }
 
+    /**
+     * Determines which animation to play based on character state.
+     */
     handleAnimationStates() {
         if (!this.world?.isPaused) {
-            if      (this.isDead()) this.handleDeathAnimation();
+            if (this.isDead()) this.handleDeathAnimation();
             else if (this.isHurt()) this.handleHurtAnimation();
-            else                    this.handleGroundedAnimations();
+            else this.handleGroundedAnimations();
         }
     }
 
+    /**
+     * Handles death animation sequence and triggers game over.
+     */
     handleDeathAnimation() {
         this.y += 10;
         if (!this.deathAnimationPlayed) {
@@ -173,10 +213,13 @@ class Character extends MovableObject {
             this.img = this.imageCache[this.IMAGES_DEAD[5]];
         }
         this.gameOverScreenShown || this.triggerGameOverSequence();
-        this.deathSoundPlayed    || this.playDeathSounds();
+        this.deathSoundPlayed || this.playDeathSounds();
         if (this.sleepSound) { this.sleepSound.pause(); this.sleepSound = null; }
     }
 
+    /**
+     * Triggers the game over sequence with appropriate timing.
+     */
     triggerGameOverSequence() {
         this.gameOverScreenShown = true;
         this.world?.userInterface?.backgroundMusic?.pause();
@@ -187,12 +230,18 @@ class Character extends MovableObject {
         }, 1700);
     }
 
+    /**
+     * Plays death-related sound effects with proper timing.
+     */
     playDeathSounds() {
         this.playCharacterSound('../assets/audio/character_death.mp3', false);
         this.deathSoundPlayed = true;
         setTimeout(() => this.playMusicSound('../assets/audio/game_lose.mp3'), 500);
     }
 
+    /**
+     * Handles the hurt animation sequence and related sound effects.
+     */
     handleHurtAnimation() {
         if (!this.hurtSoundPlayed) {
             this.playCharacterSound('../assets/audio/hurt.mp3', false);
@@ -202,6 +251,9 @@ class Character extends MovableObject {
         this.resetIdleState();
     }
 
+    /**
+     * Handles animations for when the character is grounded (not dead or hurt).
+     */
     handleGroundedAnimations() {
         this.hurtSoundPlayed = false;
         if (this.isAboveGround()) {
@@ -215,15 +267,16 @@ class Character extends MovableObject {
         }
     }
 
+    /**
+     * Manages idle and sleep states based on inactivity duration.
+     */
     handleIdleAndSleep() {
         this.idleAnimationInterval++;
         this.idleTime += 50;
-
         if (this.idleTime >= 6500 && !this.yawnPlayed) {
             this.playCharacterSound('../assets/audio/yawn.mp3', false);
             this.yawnPlayed = true;
         }
-
         if (this.idleTime >= 15000) {
             this.handleSleepState();
         } else {
@@ -231,6 +284,9 @@ class Character extends MovableObject {
         }
     }
 
+    /**
+     * Handles the sleeping animation and sound effects.
+     */
     handleSleepState() {
         this.sleepAnimationInterval++;
         if (this.sleepAnimationInterval >= 7.5) {
@@ -242,19 +298,23 @@ class Character extends MovableObject {
         }
     }
 
+    /**
+     * Handles the idle animation when the character is stationary.
+     */
     handleIdleState() {
-        if (this.sleepSound) { 
-            this.sleepSound.pause(); 
-            this.sleepSound = null; 
+        if (this.sleepSound) {
+            this.sleepSound.pause();
+            this.sleepSound = null;
         }
-        
-        // Nur kurz warten (3 Frames statt 30)
         if (this.idleAnimationInterval >= 3) {
             this.playAnimation(this.IMAGES_IDLE);
             this.idleAnimationInterval = 0;
         }
     }
 
+    /**
+     * Resets the idle state counters and cleans up related resources.
+     */
     resetIdleState() {
         this.idleTime = 0;
         this.idleAnimationInterval = 0;
@@ -266,18 +326,43 @@ class Character extends MovableObject {
         }
     }
 
+    /**
+     * Plays a sound effect categorized as character sound.
+     * @param {string} src - Path to the audio file
+     * @param {boolean} loop - Whether the sound should loop
+     * @returns {HTMLAudioElement} The created audio element
+     */
     playCharacterSound(src, loop = false) {
         return this.playSound(src, 'character', loop);
     }
 
+    /**
+     * Plays a sound effect categorized as object sound.
+     * @param {string} src - Path to the audio file
+     * @param {boolean} loop - Whether the sound should loop
+     * @returns {HTMLAudioElement} The created audio element
+     */
     playObjectSound(src, loop = false) {
         return this.playSound(src, 'objects', loop);
     }
 
+    /**
+     * Plays a sound effect categorized as music sound.
+     * @param {string} src - Path to the audio file
+     * @param {boolean} loop - Whether the sound should loop
+     * @returns {HTMLAudioElement} The created audio element
+     */
     playMusicSound(src, loop = false) {
         return this.playSound(src, 'music', loop);
     }
 
+    /**
+     * Generic method to play a sound effect with category-based volume control.
+     * @param {string} src - Path to the audio file
+     * @param {string} category - Audio category for volume control
+     * @param {boolean} loop - Whether the sound should loop
+     * @returns {HTMLAudioElement} The created audio element
+     */
     playSound(src, category, loop) {
         const sound = new Audio(src);
         sound.loop = loop;

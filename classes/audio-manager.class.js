@@ -201,7 +201,6 @@ class AudioManager {
                 }
             });
         }
-
         this.legalNoticeBtn = document.getElementById('legal-notice-btn');
         if (this.legalNoticeBtn) {
             this.legalNoticeBtn.addEventListener('click', () => {

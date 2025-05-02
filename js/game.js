@@ -1,12 +1,9 @@
-console.log('Game.js loaded');
-
 let canvas;
 let world;
 let keyboard = new Keyboard();
 let mainMenu;
 
 function init() {
-    console.log('Init function called');
     canvas = document.getElementById("canvas");
     initializeUIElements();
     const directStart = localStorage.getItem('elPolloLoco_startGame') === 'true';

@@ -20,12 +20,19 @@ class AudioManager {
     }
 
     initBackgroundMusic() {
-        this.backgroundMusic = new Audio('../assets/audio/background.mp3');
-        this.backgroundMusic.loop = true;
-        this.registerAudioWithCategory(this.backgroundMusic, 'music');
-        setTimeout(() => {
-            if (!this.isMuted) this.backgroundMusic.play().catch(() => {});
-        }, 500);
+        if (!window.globalBackgroundMusic) {
+            window.globalBackgroundMusic = new Audio('../assets/audio/background.mp3');
+            window.globalBackgroundMusic.loop = true;
+            this.registerAudioWithCategory(window.globalBackgroundMusic, 'music');
+        }
+        this.backgroundMusic = window.globalBackgroundMusic;
+    }
+
+    // Neue Methode, die von Buttons aufgerufen wird
+    playBackgroundMusicAfterInteraction() {
+        if (this.backgroundMusic && !this.isMuted) {
+            this.backgroundMusic.play().catch(err => console.log('Musik konnte nicht gestartet werden:', err));
+        }
     }
 
     playBackgroundMusic() {

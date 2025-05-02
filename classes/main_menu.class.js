@@ -74,6 +74,9 @@ class MainMenu {
 
     startGame() {
         this.hideMenuShowTitle();
+        if (this.userInterface?.audioManager) {
+            this.userInterface.audioManager.playBackgroundMusicAfterInteraction();
+        }
         initGame();
         this.initializeAndResumeGame();
         this.closeAllOverlays();

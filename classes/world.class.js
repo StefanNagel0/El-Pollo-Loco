@@ -26,10 +26,11 @@ class World {
     }
 
     initializeUI() {
-        if (window.mainMenu?.userInterface?.backgroundMusic) {
-            this.userInterface.backgroundMusic = window.mainMenu.userInterface.backgroundMusic;
-        }
         this.cooldownImage.src = '../assets/img/6_salsa_bottle/salsa_bottle.png';
+        if (window.mainMenu?.userInterface) {
+            this.userInterface.isMuted = window.mainMenu.userInterface.isMuted;
+            this.userInterface.updateSoundIcon();
+        }
     }
 
     setWorld() {

@@ -1,3 +1,9 @@
+/**
+ * Represents a small chicken enemy in the game.
+ * Smaller, faster variant of the standard chicken with unique behavior patterns.
+ * @class
+ * @extends MovableObject
+ */
 class smallChicken extends MovableObject {
     y = 350;
     height = 80;
@@ -15,6 +21,9 @@ class smallChicken extends MovableObject {
     ];
     IMAGE_DEAD = '../assets/img/3_enemies_chicken/chicken_small/2_dead/dead.png';
 
+    /**
+     * Creates a new small chicken with randomized position and movement patterns.
+     */
     constructor() {
         super().loadImage(this.IMAGES_WALKING[0]);
         this.speed = 2.5;
@@ -26,6 +35,10 @@ class smallChicken extends MovableObject {
         this.animate();
     }
 
+    /**
+     * Handles the death of the small chicken.
+     * Changes appearance and stops movement.
+     */
     die() {
         if (!this.isDead) {
             this.isDead = true;

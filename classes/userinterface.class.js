@@ -1,4 +1,15 @@
+/**
+ * Represents the user interface for the El Pollo Loco game.
+ * Manages UI elements like sound controls, settings overlay, and fullscreen mode.
+ * @class
+ * @extends DrawableObject
+ */
 class UserInterface extends DrawableObject {
+
+    /**
+     * Creates a new UserInterface with the specified canvas.
+     * @param {HTMLCanvasElement} canvas - The canvas element for drawing the UI
+     */
     constructor(canvas) {
         super();
         this.initializeBasicProperties(canvas);
@@ -7,6 +18,10 @@ class UserInterface extends DrawableObject {
         this.setupInitialState();
     }
 
+    /**
+     * Initializes the basic properties of the UI.
+     * @param {HTMLCanvasElement} canvas - The canvas element for the UI
+     */
     initializeBasicProperties(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
@@ -17,6 +32,10 @@ class UserInterface extends DrawableObject {
         this.isFullscreen = false;
     }
 
+    /**
+     * Initializes the UI icons.
+     * @param {HTMLCanvasElement} canvas - The canvas element for the UI
+     */
     initializeIcons(canvas) {
         this.soundIcon = new Image();
         this.soundIcon.src = this.isMuted ? '../assets/img/ui_images/sound_off.svg' : '../assets/img/ui_images/sound_on.svg';
@@ -27,6 +46,10 @@ class UserInterface extends DrawableObject {
         this.initializeIconDimensions(canvas);
     }
 
+    /**
+     * Sets the initial dimensions and positions of UI icons.
+     * @param {HTMLCanvasElement} canvas - The canvas element for the UI
+     */
     initializeIconDimensions(canvas) {
         this.soundIconX = canvas.width - 100;
         this.soundIconY = 10;
@@ -42,6 +65,9 @@ class UserInterface extends DrawableObject {
         this.fullscreenIconHeight = 40;
     }
 
+    /**
+     * Sets up the initial state of the UI, including event listeners and settings.
+     */
     setupInitialState() {
         this.addMouseListeners();
         setTimeout(() => this.initSettingsAndOverlay(), 100);
@@ -52,12 +78,18 @@ class UserInterface extends DrawableObject {
         window.addEventListener('resize', () => this.scheduleIconPositionUpdate());
     }
 
+    /**
+     * Initializes the settings overlay.
+     */
     initSettingsAndOverlay() {
         this.audioManager.initSettingsOverlay();
         const overlay = document.getElementById('settings-overlay');
         if (overlay) overlay.classList.add('d-none');
     }
 
+    /**
+     * Sets up the fullscreen change event handler.
+     */
     setupFullscreenHandler() {
         document.addEventListener('fullscreenchange', () => {
             this.isFullscreen = !!document.fullscreenElement;
@@ -70,12 +102,18 @@ class UserInterface extends DrawableObject {
         });
     }
 
+    /**
+     * Sets up error handlers for icons to prevent uncaught exceptions.
+     */
     setupErrorHandlers() {
         this.soundIcon.onerror = () => {};
         this.settingsIcon.onerror = () => {};
         this.fullscreenIcon.onerror = () => {};
     }
 
+    /**
+     * Updates the positions of UI icons based on canvas dimensions.
+     */
     updateIconPositions() {
         const canvasWidth = this.canvas.width;
         const canvasHeight = this.canvas.height;
@@ -90,6 +128,9 @@ class UserInterface extends DrawableObject {
         this.fullscreenIconY = canvasHeight - this.fullscreenIconHeight - marginBottom;
     }
 
+    /**
+     * Draws all UI icons on the canvas.
+     */
     drawIcons() {
         this.updateIconPositions();
         this.drawSoundIcon();
@@ -97,6 +138,9 @@ class UserInterface extends DrawableObject {
         this.drawFullscreenIconIfNeeded();
     }
 
+    /**
+     * Draws the sound icon with hover effect if applicable.
+     */
     drawSoundIcon() {
         this.ctx.save();
         if (this.soundIconHovered) {
@@ -106,6 +150,9 @@ class UserInterface extends DrawableObject {
         this.ctx.restore();
     }
 
+    /**
+     * Draws the settings icon with rotation effect if hovered.
+     */
     drawSettingsIcon() {
         this.ctx.save();
         if (this.settingsIconHovered) {
@@ -115,6 +162,9 @@ class UserInterface extends DrawableObject {
         this.ctx.restore();
     }
 
+    /**
+     * Draws the fullscreen icon if appropriate for the current screen size.
+     */
     drawFullscreenIconIfNeeded() {
         const isSmallScreen = window.innerWidth < 720;
         const isLandscape = window.innerHeight < window.innerWidth;
@@ -129,35 +179,63 @@ class UserInterface extends DrawableObject {
         }
     }
 
+    /**
+     * Applies a hover scale effect to an icon.
+     * @param {number} x - X-coordinate of the icon
+     * @param {number} y - Y-coordinate of the icon
+     * @param {number} width - Width of the icon
+     * @param {number} height - Height of the icon
+     */
     applyHoverEffect(x, y, width, height) {
         this.ctx.translate(x + width / 2, y + height / 2);
         this.ctx.scale(1.1, 1.1);
         this.ctx.translate(-(x + width / 2), -(y + height / 2));
     }
 
+    /**
+     * Applies a rotation effect to an icon.
+     * @param {number} x - X-coordinate of the icon
+     * @param {number} y - Y-coordinate of the icon
+     * @param {number} width - Width of the icon
+     * @param {number} height - Height of the icon
+     */
     applyRotationEffect(x, y, width, height) {
         this.ctx.translate(x + width / 2, y + height / 2);
         this.ctx.rotate(Math.PI / 2);
         this.ctx.translate(-(x + width / 2), -(y + height / 2));
     }
 
+    /**
+     * Adds mouse event listeners to the canvas.
+     */
     addMouseListeners() {
         this.canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));
         this.canvas.addEventListener('click', (event) => this.handleMouseClick(event));
         this.canvas.addEventListener('mouseout', () => this.handleMouseOut());
     }
 
+    /**
+     * Handles mouse movement over the canvas.
+     * @param {MouseEvent} event - The mouse event
+     */
     handleMouseMove(event) {
         const relativePos = this.calculateRelativeCoordinates(event);
         this.checkIconHoverStates(relativePos.x, relativePos.y);
         this.updateCursor();
     }
 
+    /**
+     * Handles mouse clicks on the canvas.
+     * @param {MouseEvent} event - The mouse event
+     */
     handleMouseClick(event) {
         const relativePos = this.calculateRelativeCoordinates(event);
         this.checkIconClick(relativePos.x, relativePos.y);
     }
 
+    /**
+     * Handles mouse out events for the canvas.
+     */
     handleMouseOut() {
         this.soundIconHovered = false;
         this.settingsIconHovered = false;
@@ -165,6 +243,11 @@ class UserInterface extends DrawableObject {
         this.canvas.style.cursor = 'default';
     }
 
+    /**
+     * Calculates coordinates relative to the canvas based on mouse position.
+     * @param {MouseEvent} event - The mouse event
+     * @returns {Object} The calculated x and y coordinates relative to the canvas
+     */
     calculateRelativeCoordinates(event) {
         const rect = this.canvas.getBoundingClientRect();
         const canvasAspectRatio = this.canvas.width / this.canvas.height;
@@ -174,6 +257,14 @@ class UserInterface extends DrawableObject {
             : this.getNormalCoordinates(event, rect);
     }
 
+    /**
+     * Calculates mouse coordinates when in fullscreen mode.
+     * @param {MouseEvent} event - The mouse event
+     * @param {DOMRect} rect - The canvas bounding rectangle
+     * @param {number} canvasAspectRatio - The canvas aspect ratio
+     * @param {number} rectAspectRatio - The canvas element's aspect ratio
+     * @returns {Object} The calculated x and y coordinates
+     */
     getFullscreenCoordinates(event, rect, canvasAspectRatio, rectAspectRatio) {
         let visibleWidth, visibleHeight, offsetX = 0, offsetY = 0;
         if (rectAspectRatio > canvasAspectRatio) {
@@ -185,13 +276,18 @@ class UserInterface extends DrawableObject {
             visibleHeight = visibleWidth / canvasAspectRatio;
             offsetY = (rect.height - visibleHeight) / 2;
         }
-
         return {
             x: ((event.clientX - rect.left - offsetX) / visibleWidth) * this.canvas.width,
             y: ((event.clientY - rect.top - offsetY) / visibleHeight) * this.canvas.height
         };
     }
 
+    /**
+     * Calculates mouse coordinates in normal (non-fullscreen) mode.
+     * @param {MouseEvent} event - The mouse event
+     * @param {DOMRect} rect - The canvas bounding rectangle
+     * @returns {Object} The calculated x and y coordinates
+     */
     getNormalCoordinates(event, rect) {
         return {
             x: (event.clientX - rect.left) / rect.width * this.canvas.width,
@@ -199,6 +295,11 @@ class UserInterface extends DrawableObject {
         };
     }
 
+    /**
+     * Checks if any icons are being hovered over.
+     * @param {number} x - Mouse x-coordinate relative to canvas
+     * @param {number} y - Mouse y-coordinate relative to canvas
+     */
     checkIconHoverStates(x, y) {
         const tolerance = 10;
         this.soundIconHovered = this.isPointInRect(x, y, this.soundIconX, this.soundIconY, this.soundIconWidth, this.soundIconHeight, tolerance);
@@ -206,10 +307,18 @@ class UserInterface extends DrawableObject {
         this.fullscreenIconHovered = this.isPointInRect(x, y, this.fullscreenIconX, this.fullscreenIconY, this.fullscreenIconWidth, this.fullscreenIconHeight, tolerance);
     }
 
+    /**
+     * Updates the cursor style based on icon hover states.
+     */
     updateCursor() {
         this.canvas.style.cursor = (this.soundIconHovered || this.settingsIconHovered || this.fullscreenIconHovered) ? 'pointer' : 'default';
     }
 
+    /**
+     * Checks if an icon has been clicked and triggers the appropriate action.
+     * @param {number} x - Mouse x-coordinate relative to canvas
+     * @param {number} y - Mouse y-coordinate relative to canvas
+     */
     checkIconClick(x, y) {
         const tolerance = 10;
         if (this.isPointInRect(x, y, this.soundIconX, this.soundIconY, this.soundIconWidth, this.soundIconHeight, tolerance)) {
@@ -221,6 +330,12 @@ class UserInterface extends DrawableObject {
         }
     }
 
+    /**
+     * Checks if the fullscreen icon has been clicked and toggles fullscreen if appropriate.
+     * @param {number} x - Mouse x-coordinate relative to canvas
+     * @param {number} y - Mouse y-coordinate relative to canvas
+     * @param {number} tolerance - Click detection tolerance in pixels
+     */
     checkFullscreenClick(x, y, tolerance) {
         const isSmallScreen = window.innerWidth < 720;
         const isLandscape = window.innerHeight < window.innerWidth;
@@ -230,11 +345,25 @@ class UserInterface extends DrawableObject {
         }
     }
 
+    /**
+     * Determines if a point is within a rectangle with optional tolerance.
+     * @param {number} x - Point x-coordinate
+     * @param {number} y - Point y-coordinate
+     * @param {number} rectX - Rectangle x-coordinate
+     * @param {number} rectY - Rectangle y-coordinate
+     * @param {number} rectWidth - Rectangle width
+     * @param {number} rectHeight - Rectangle height
+     * @param {number} tolerance - Additional tolerance around the rectangle
+     * @returns {boolean} True if the point is within the rectangle
+     */
     isPointInRect(x, y, rectX, rectY, rectWidth, rectHeight, tolerance = 0) {
         return x >= (rectX - tolerance) && x <= (rectX + rectWidth + tolerance) &&
             y >= (rectY - tolerance) && y <= (rectY + rectHeight + tolerance);
     }
 
+    /**
+     * Toggles between fullscreen and normal display mode.
+     */
     toggleFullscreen() {
         if (!document.fullscreenElement) {
             this.enterFullscreen();
@@ -245,6 +374,9 @@ class UserInterface extends DrawableObject {
         this.scheduleIconPositionUpdate();
     }
 
+    /**
+     * Enters fullscreen mode.
+     */
     enterFullscreen() {
         const element = document.documentElement;
         if (element.requestFullscreen) element.requestFullscreen();
@@ -255,6 +387,9 @@ class UserInterface extends DrawableObject {
         document.body.classList.add('fullscreen');
     }
 
+    /**
+     * Exits fullscreen mode.
+     */
     exitFullscreen() {
         if (document.exitFullscreen) document.exitFullscreen();
         else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
@@ -264,12 +399,18 @@ class UserInterface extends DrawableObject {
         document.body.classList.remove('fullscreen');
     }
 
+    /**
+     * Updates the fullscreen icon based on current fullscreen state.
+     */
     updateFullscreenIcon() {
         this.fullscreenIcon.src = this.isFullscreen
             ? '../assets/img/ui_images/fullscreen_exit.svg'
             : '../assets/img/ui_images/fullscreen.svg';
     }
 
+    /**
+     * Schedules multiple updates to icon positions to ensure proper rendering after DOM changes.
+     */
     scheduleIconPositionUpdate() {
         this.updateIconPositions();
         this.updateIconHitboxes();
@@ -283,6 +424,9 @@ class UserInterface extends DrawableObject {
         }, 300);
     }
 
+    /**
+     * Updates the icon hitboxes based on canvas scaling.
+     */
     updateIconHitboxes() {
         const rect = this.canvas.getBoundingClientRect();
         const canvasRenderWidth = this.canvas.width;
@@ -291,12 +435,18 @@ class UserInterface extends DrawableObject {
         this.canvasScaleY = canvasRenderHeight / rect.height;
     }
 
+    /**
+     * Opens the settings overlay.
+     */
     openSettings() {
         this.pauseGameAndShowExitButton();
         this.activateDefaultTab();
         this.audioManager.positionAndShowOverlay();
     }
 
+    /**
+     * Pauses the game and shows the exit button.
+     */
     pauseGameAndShowExitButton() {
         if (this.canvas && window.world) {
             window.world.isPaused = true;
@@ -307,6 +457,9 @@ class UserInterface extends DrawableObject {
         }
     }
 
+    /**
+     * Activates the default tab in the settings menu.
+     */
     activateDefaultTab() {
         if (window.mainMenu) {
             window.mainMenu.switchTab('game');
@@ -315,6 +468,9 @@ class UserInterface extends DrawableObject {
         }
     }
 
+    /**
+     * Resets all tabs and activates the game tab.
+     */
     resetAndActivateGameTab() {
         const gameTab = document.getElementById('game-tab');
         const howToPlayTab = document.getElementById('how-to-play-tab');
@@ -328,11 +484,17 @@ class UserInterface extends DrawableObject {
         gameContent?.classList.remove('d-none');
     }
 
+    /**
+     * Closes the settings overlay and resumes the game.
+     */
     closeSettings() {
         this.resumeGame();
         this.audioManager.hideOverlay();
     }
 
+    /**
+     * Resumes the game after being paused.
+     */
     resumeGame() {
         if (window.world) {
             window.world.isPaused = false;
@@ -342,6 +504,9 @@ class UserInterface extends DrawableObject {
         }
     }
 
+    /**
+     * Toggles sound on/off and updates related states.
+     */
     toggleSound() {
         this.isMuted = !this.isMuted;
         localStorage.setItem('elPolloLoco_isMuted', this.isMuted);
@@ -356,6 +521,9 @@ class UserInterface extends DrawableObject {
         }
     }
 
+    /**
+     * Updates the sound icon based on current mute state.
+     */
     updateSoundIcon() {
         if (this.soundIcon) {
             this.soundIcon.src = this.isMuted
@@ -364,6 +532,10 @@ class UserInterface extends DrawableObject {
         }
     }
 
+    /**
+     * Shows a custom confirmation dialog.
+     * @param {Function} onConfirm - Callback function to execute when confirmed
+     */
     showCustomConfirm(onConfirm) {
         const customConfirm = document.getElementById('custom-confirm');
         const yesBtn = document.getElementById('confirm-yes');
@@ -372,6 +544,10 @@ class UserInterface extends DrawableObject {
         this.setupCustomConfirmHandlers(customConfirm, yesBtn, noBtn, onConfirm);
     }
 
+    /**
+     * Sets up the UI for the custom confirmation dialog.
+     * @param {HTMLElement} customConfirm - The confirmation dialog element
+     */
     setupCustomConfirmUI(customConfirm) {
         customConfirm.classList.remove('d-none');
         customConfirm.classList.add('show');
@@ -382,6 +558,13 @@ class UserInterface extends DrawableObject {
         customConfirm.style.height = `${canvasRect.height}px`;
     }
 
+    /**
+     * Sets up event handlers for the custom confirmation dialog buttons.
+     * @param {HTMLElement} customConfirm - The confirmation dialog element
+     * @param {HTMLElement} yesBtn - The "yes" button element
+     * @param {HTMLElement} noBtn - The "no" button element
+     * @param {Function} onConfirm - Function to call when confirmed
+     */
     setupCustomConfirmHandlers(customConfirm, yesBtn, noBtn, onConfirm) {
         const handleYes = () => {
             this.hideCustomConfirm(customConfirm, yesBtn, noBtn, handleYes, handleNo);
@@ -394,6 +577,14 @@ class UserInterface extends DrawableObject {
         noBtn.addEventListener('click', handleNo);
     }
 
+    /**
+     * Hides the custom confirmation dialog.
+     * @param {HTMLElement} customConfirm - The confirmation dialog element
+     * @param {HTMLElement} yesBtn - The "yes" button element
+     * @param {HTMLElement} noBtn - The "no" button element
+     * @param {Function} handleYes - The yes button event handler
+     * @param {Function} handleNo - The no button event handler
+     */
     hideCustomConfirm(customConfirm, yesBtn, noBtn, handleYes, handleNo) {
         customConfirm.classList.remove('show');
         customConfirm.classList.add('d-none');
@@ -401,17 +592,50 @@ class UserInterface extends DrawableObject {
         noBtn.removeEventListener('click', handleNo);
     }
 
+    /**
+     * Registers an audio element with the audio manager.
+     * @param {HTMLAudioElement} audio - The audio element to register
+     */
     registerAudio(audio) {
         this.audioManager.registerAudio(audio);
     }
 
+    /**
+     * Registers an audio element with the audio manager in a specific category.
+     * @param {HTMLAudioElement} audio - The audio element to register
+     * @param {string} category - The category to register the audio in
+     */
     registerAudioWithCategory(audio, category) {
         this.audioManager.registerAudioWithCategory(audio, category);
     }
 
+    /**
+     * Gets the current character sound volume.
+     * @returns {number} The character volume level
+     */
     get characterVolume() { return this.audioManager.characterVolume; }
+
+    /**
+     * Gets the current enemies sound volume.
+     * @returns {number} The enemies volume level
+     */
     get enemiesVolume() { return this.audioManager.enemiesVolume; }
+
+    /**
+     * Gets the current objects sound volume.
+     * @returns {number} The objects volume level
+     */
     get objectsVolume() { return this.audioManager.objectsVolume; }
+
+    /**
+     * Gets the current music volume.
+     * @returns {number} The music volume level
+     */
     get musicVolume() { return this.audioManager.musicVolume; }
+
+    /**
+     * Gets the background music audio element.
+     * @returns {HTMLAudioElement} The background music audio element
+     */
     get backgroundMusic() { return this.audioManager.backgroundMusic; }
 }

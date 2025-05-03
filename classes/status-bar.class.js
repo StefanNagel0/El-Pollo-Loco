@@ -1,3 +1,9 @@
+/**
+ * Represents the status bars display for the game.
+ * Shows the player's health, coins collected, and bottles collected.
+ * @class
+ * @extends DrawableObject
+ */
 class StatusBar extends DrawableObject {
     IMAGES_ENERGY = [
         '../assets/img/7_statusbars/1_statusbar/2_statusbar_health/green/0.png',
@@ -33,6 +39,9 @@ class StatusBar extends DrawableObject {
     current_bottles = 0;
     max_bottles = 10;
 
+    /**
+     * Creates a new StatusBar and initializes all status bars.
+     */
     constructor() {
         super();
         this.loadImages(this.IMAGES_ENERGY);
@@ -53,24 +62,40 @@ class StatusBar extends DrawableObject {
         this.updateStatusBars();
     }
 
+    /**
+     * Updates the energy percentage and current value.
+     * @param {number} percentage - The new energy percentage (0-100)
+     */
     setEnergyPercentage(percentage) {
         this.percentage_energy = percentage;
         this.current_energy = percentage;
         this.updateStatusBars();
     }
 
+    /**
+     * Updates the coins percentage and calculates the current count.
+     * @param {number} percentage - The new coins percentage (0-100)
+     */
     setCoinsPercentage(percentage) {
         this.percentage_coins = percentage;
         this.current_coins = Math.min(Math.ceil(percentage * 45 / 100), this.max_coins); 
         this.updateStatusBars(); 
     }
 
+    /**
+     * Updates the bottles percentage and calculates the current count.
+     * @param {number} percentage - The new bottles percentage (0-100)
+     */
     setBottlesPercentage(percentage) {
         this.percentage_bottles = percentage;
         this.current_bottles = Math.min(Math.ceil(percentage / 10), this.max_bottles); // 10 Flaschen maximal
         this.updateStatusBars();
     }
 
+    /**
+     * Sets the coin count directly and calculates the corresponding percentage.
+     * @param {number} count - The new coin count
+     */
     setCoinsCount(count) {
         this.current_coins = count;
         const coinsPerLevel = 45 / 5;
@@ -79,12 +104,19 @@ class StatusBar extends DrawableObject {
         this.updateStatusBars();
     }
 
+    /**
+     * Sets the bottles count directly and calculates the corresponding percentage.
+     * @param {number} count - The new bottles count
+     */
     setBottlesCount(count) {
         this.current_bottles = count;
         this.percentage_bottles = Math.min(count * 10, 100);
         this.updateStatusBars();
     }
 
+    /**
+     * Updates all status bar images based on current percentage values.
+     */
     updateStatusBars() {
         let path_energy = this.IMAGES_ENERGY[this.resolveImageIndex(this.percentage_energy)];
         let path_coins = this.IMAGES_COINS[this.resolveImageIndex(this.percentage_coins)];
@@ -100,6 +132,11 @@ class StatusBar extends DrawableObject {
         }
     }
 
+    /**
+     * Converts a percentage value to the corresponding image index.
+     * @param {number} percentage - The percentage value (0-100)
+     * @returns {number} The index of the corresponding image in the arrays
+     */
     resolveImageIndex(percentage) {
         if (percentage == 100) {
             return 5;
@@ -116,6 +153,11 @@ class StatusBar extends DrawableObject {
         }
     }
 
+    /**
+     * Draws all status bars and their text labels on the canvas.
+     * @param {CanvasRenderingContext2D} ctx - The canvas rendering context
+     * @override
+     */
     draw(ctx) {
         if (this.img_energy && this.img_energy.complete) {
             ctx.drawImage(this.img_energy, this.x_energy, this.y_energy, this.width, this.height);
@@ -131,6 +173,13 @@ class StatusBar extends DrawableObject {
         }
     }
 
+    /**
+     * Draws text labels for each status bar.
+     * @param {CanvasRenderingContext2D} ctx - The canvas rendering context
+     * @param {string} text - The text to draw
+     * @param {number} x - The x-coordinate position
+     * @param {number} y - The y-coordinate position
+     */
     drawStatusText(ctx, text, x, y) {
         ctx.font = '16px Arial';
         ctx.fillStyle = 'black';

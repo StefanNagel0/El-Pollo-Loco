@@ -1,3 +1,13 @@
+/**
+ * Script to handle mobile and UI interactions for El Pollo Loco game.
+ * Manages device orientation, mobile controls, and UI element behaviors.
+ * @file script.js
+ */
+
+/**
+ * Checks device orientation and adapts the UI accordingly.
+ * Shows rotation video on small screens in portrait mode and hides game elements.
+ */
 function checkOrientation() {
     const videoContainer = getOrCreateVideoContainer();
     const mainMenu = document.getElementById('main-menu');
@@ -11,6 +21,10 @@ function checkOrientation() {
     updateMobileControlsVisibility();
 }
 
+/**
+ * Gets the rotation video container or creates it if it doesn't exist.
+ * @returns {HTMLElement} The rotation video container element
+ */
 function getOrCreateVideoContainer() {
     let videoContainer = document.getElementById('rotation-video-container');
     if (!videoContainer) {
@@ -19,6 +33,10 @@ function getOrCreateVideoContainer() {
     return videoContainer;
 }
 
+/**
+ * Creates the rotation video container with a video element.
+ * @returns {HTMLElement} The newly created video container
+ */
 function createVideoContainer() {
     const videoContainer = document.createElement('div');
     videoContainer.id = 'rotation-video-container';
@@ -34,6 +52,12 @@ function createVideoContainer() {
     return videoContainer;
 }
 
+/**
+ * Handles UI adjustments for portrait mode on small screens.
+ * Shows the rotation video and hides game elements.
+ * @param {HTMLElement} videoContainer - The rotation video container element
+ * @param {HTMLElement} mainMenu - The main menu element
+ */
 function handlePortraitMode(videoContainer, mainMenu) {
     videoContainer.classList.add('show-rotation-video');
     if (mainMenu) mainMenu.classList.add('d-none');
@@ -43,6 +67,12 @@ function handlePortraitMode(videoContainer, mainMenu) {
     if (video) video.play().catch(e => {});
 }
 
+/**
+ * Handles UI adjustments for landscape mode.
+ * Hides the rotation video and shows game elements.
+ * @param {HTMLElement} videoContainer - The rotation video container element
+ * @param {HTMLElement} mainMenu - The main menu element
+ */
 function handleLandscapeMode(videoContainer, mainMenu) {
     videoContainer.classList.remove('show-rotation-video');
     if (mainMenu) mainMenu.classList.remove('d-none');
@@ -50,6 +80,10 @@ function handleLandscapeMode(videoContainer, mainMenu) {
     if (canvas) canvas.classList.remove('d-none');
 }
 
+/**
+ * Updates the visibility of mobile controls based on screen orientation and game state.
+ * Shows controls on small screens in landscape mode when the game is active.
+ */
 function updateMobileControlsVisibility() {
     const mobileControls = document.getElementById('mobile-controls');
     if (!mobileControls) return;
@@ -63,6 +97,11 @@ function updateMobileControlsVisibility() {
     }
 }
 
+/**
+ * Determines if the game is currently active.
+ * Game is active if world exists, is not paused, and no overlay screens are showing.
+ * @returns {boolean} True if the game is active and should show controls
+ */
 function isGameActive() {
     return window.world && 
         !window.world.isPaused && 
@@ -73,6 +112,10 @@ function isGameActive() {
         !document.getElementById('custom-confirm')?.classList.contains('show');
 }
 
+/**
+ * Initializes mobile control buttons and their event listeners.
+ * Sets up touch events for movement and action buttons.
+ */
 function initMobileControls() {
     setupButton('button-left', 'LEFT');
     setupButton('button-right', 'RIGHT');
@@ -81,6 +124,11 @@ function initMobileControls() {
     preventScrollOnMobileControls();
 }
 
+/**
+ * Sets up touch event handlers for a mobile control button.
+ * @param {string} buttonId - The ID of the button element to set up
+ * @param {string} keyAction - The keyboard action to trigger
+ */
 function setupButton(buttonId, keyAction) {
     const button = document.getElementById(buttonId);
     if (!button) return;
@@ -101,11 +149,20 @@ function setupButton(buttonId, keyAction) {
     }, { passive: false });
 }
 
+/**
+ * Updates the keyboard state in the game based on mobile control interactions.
+ * @param {string} keyAction - The keyboard action to update
+ * @param {boolean} isActive - Whether the action is active or not
+ */
 function updateKeyboardState(keyAction, isActive) {
     if (window.keyboard) window.keyboard[keyAction] = isActive;
     if (window.world && window.world.keyboard) window.world.keyboard[keyAction] = isActive;
 }
 
+/**
+ * Prevents page scrolling when interacting with mobile controls.
+ * Adds touchmove event handler to prevent default behavior.
+ */
 function preventScrollOnMobileControls() {
     const mobileControls = document.getElementById('mobile-controls');
     if (mobileControls) {
@@ -115,6 +172,10 @@ function preventScrollOnMobileControls() {
     }
 }
 
+/**
+ * Sets up observers for game state changes to update mobile controls visibility.
+ * Starts periodic checks and observes the world's paused state.
+ */
 function setupGameStateObserver() {
     const mobileControls = document.getElementById('mobile-controls');
     if (!mobileControls) return;
@@ -122,11 +183,19 @@ function setupGameStateObserver() {
     observeWorldPausedState();
 }
 
+/**
+ * Starts a periodic check of mobile controls visibility.
+ * Updates visibility immediately and then every 500ms.
+ */
 function startPeriodicVisibilityCheck() {
     updateMobileControlsVisibility();
     setInterval(updateMobileControlsVisibility, 500);
 }
 
+/**
+ * Observes changes to the world's paused state.
+ * Updates mobile controls visibility when the paused state changes.
+ */
 function observeWorldPausedState() {
     if (window.world) {
         const originalIsPaused = Object.getOwnPropertyDescriptor(window.world, 'isPaused');
@@ -142,6 +211,10 @@ function observeWorldPausedState() {
     }
 }
 
+/**
+ * Sets up event handlers for UI control elements.
+ * Initializes sound, settings, and fullscreen controls.
+ */
 function setupUIControls() {
     setupSoundIconControl();
     setupSettingsIconControl();
@@ -149,6 +222,10 @@ function setupUIControls() {
     setupFullscreenChangeDetection();
 }
 
+/**
+ * Sets up the sound icon toggle functionality.
+ * Adds click handler to toggle sound and update icon appearance.
+ */
 function setupSoundIconControl() {
     const soundIcon = document.getElementById('sound-icon');
     if (!soundIcon) return;
@@ -160,6 +237,10 @@ function setupSoundIconControl() {
     });
 }
 
+/**
+ * Updates the sound icon image based on current muted state.
+ * @param {HTMLElement} soundIcon - The sound icon element
+ */
 function updateSoundIconImage(soundIcon) {
     const img = soundIcon.querySelector('img');
     if (img) {
@@ -169,6 +250,10 @@ function updateSoundIconImage(soundIcon) {
     }
 }
 
+/**
+ * Sets up the settings icon functionality.
+ * Adds click handler to open the settings menu.
+ */
 function setupSettingsIconControl() {
     const settingsIcon = document.getElementById('settings-icon');
     if (!settingsIcon) return;
@@ -179,6 +264,10 @@ function setupSettingsIconControl() {
     });
 }
 
+/**
+ * Sets up the fullscreen icon toggle functionality.
+ * Adds click handler to toggle fullscreen mode and update icon appearance.
+ */
 function setupFullscreenIconControl() {
     const fullscreenIcon = document.getElementById('fullscreen-icon');
     if (!fullscreenIcon) return;
@@ -190,6 +279,10 @@ function setupFullscreenIconControl() {
     });
 }
 
+/**
+ * Updates the fullscreen icon image based on current fullscreen state.
+ * @param {HTMLElement} fullscreenIcon - The fullscreen icon element
+ */
 function updateFullscreenIconImage(fullscreenIcon) {
     const img = fullscreenIcon.querySelector('img');
     if (!img) return;
@@ -200,6 +293,10 @@ function updateFullscreenIconImage(fullscreenIcon) {
     }
 }
 
+/**
+ * Sets up detection of fullscreen state changes.
+ * Updates the fullscreen icon when fullscreen mode is toggled.
+ */
 function setupFullscreenChangeDetection() {
     document.addEventListener('fullscreenchange', () => {
         const fullscreenIcon = document.getElementById('fullscreen-icon');
@@ -214,6 +311,10 @@ function setupFullscreenChangeDetection() {
     });
 }
 
+/**
+ * Initializes all script functionality when the DOM is fully loaded.
+ * Sets up orientation checking, mobile controls, and UI elements.
+ */
 document.addEventListener('DOMContentLoaded', function() {
     checkOrientation();
     initMobileControls();

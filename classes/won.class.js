@@ -1,8 +1,21 @@
+/**
+ * Handles the victory screen displayed when the player wins the game.
+ * Creates and manages the UI elements for congratulating the player and offering next steps.
+ * @class
+ */
 class Won {
+    /**
+     * Container element for the victory screen.
+     * @type {HTMLElement|null}
+     */
     constructor() {
         this.container = null;
     }
 
+    /**
+     * Displays the victory screen and pauses the game.
+     * Creates the screen if it doesn't exist and positions it over the game canvas.
+     */
     show() {
         if (window.world) window.world.isPaused = true;
         if (!this.container) this.createWonScreen();
@@ -12,6 +25,10 @@ class Won {
         window.addEventListener('resize', this.adjustPosition.bind(this));
     }
 
+    /**
+     * Creates the complete victory screen with text and buttons.
+     * Assembles all components and adds them to the DOM.
+     */
     createWonScreen() {
         this.container = this.createContainer();
         const textContainer = this.createTextContent();
@@ -21,6 +38,10 @@ class Won {
         document.body.appendChild(this.container);
     }
 
+    /**
+     * Creates the main container element for the victory screen.
+     * @returns {HTMLDivElement} The created container element
+     */
     createContainer() {
         const container = document.createElement('div');
         container.id = 'game-won-screen';
@@ -28,6 +49,11 @@ class Won {
         return container;
     }
 
+    /**
+     * Creates the text content for the victory message.
+     * Includes a headline and congratulatory message.
+     * @returns {HTMLDivElement} The text container element
+     */
     createTextContent() {
         const textContainer = document.createElement('div');
         textContainer.classList.add('game-won-text');
@@ -40,6 +66,11 @@ class Won {
         return textContainer;
     }
 
+    /**
+     * Creates the container with buttons for next actions.
+     * Contains restart game and back to main menu options.
+     * @returns {HTMLDivElement} The button container element
+     */
     createButtonContainer() {
         const buttonContainer = document.createElement('div');
         buttonContainer.classList.add('game-won-buttons');
@@ -50,6 +81,12 @@ class Won {
         return buttonContainer;
     }
 
+    /**
+     * Creates a button with specified text and click handler.
+     * @param {string} text - The text to display on the button
+     * @param {Function} clickHandler - The event handler for button click
+     * @returns {HTMLButtonElement} The created button element
+     */
     createButton(text, clickHandler) {
         const button = document.createElement('button');
         button.textContent = text;
@@ -58,6 +95,10 @@ class Won {
         return button;
     }
 
+    /**
+     * Adjusts the position of the victory screen to match the canvas position.
+     * Ensures the screen is properly aligned when the window size changes.
+     */
     adjustPosition() {
         const canvas = document.getElementById('canvas');
         if (canvas && this.container) {
@@ -70,6 +111,10 @@ class Won {
         }
     }
 
+    /**
+     * Handles restarting the game when the restart button is clicked.
+     * Sets flags in localStorage and reloads the page to restart.
+     */
     restartGame() {
         this.hide();
         const timestamp = new Date().getTime();
@@ -78,11 +123,18 @@ class Won {
         setTimeout(() => window.location.reload(), 50);
     }
 
+    /**
+     * Returns to the main menu by reloading the page.
+     * Hides the victory screen first.
+     */
     backToMainMenu() {
         this.hide();
         window.location.reload();
     }
 
+    /**
+     * Hides the victory screen by removing display classes.
+     */
     hide() {
         if (this.container) {
             this.container.classList.remove('show');

@@ -1,3 +1,8 @@
+/**
+ * Represents the game world which manages all game elements and logic.
+ * Handles game loop, collisions, rendering, and object interactions.
+ * @class
+ */
 class World {
     character = new Character();
     level = level1;
@@ -12,7 +17,13 @@ class World {
     maxThrowCooldown = 2250;
     cooldownImage = new Image();
     isPaused = true;
-
+    
+    /**
+     * Creates a new game world with the specified canvas and keyboard.
+     * Sets up game elements, UI, and starts the game loop.
+     * @param {HTMLCanvasElement} canvas - The canvas to render the game on
+     * @param {Keyboard} keyboard - The keyboard input handler
+     */
     constructor(canvas, keyboard) {
         this.ctx = canvas.getContext('2d');
         this.canvas = canvas;
@@ -25,6 +36,10 @@ class World {
         this.character.previousY = this.character.y;
     }
 
+    /**
+     * Initializes the user interface and loads required assets.
+     * Transfers sound settings from the main menu if available.
+     */
     initializeUI() {
         this.cooldownImage.src = '../assets/img/6_salsa_bottle/salsa_bottle.png';
         if (window.mainMenu?.userInterface) {
@@ -33,6 +48,10 @@ class World {
         }
     }
 
+    /**
+     * Sets this world reference on all game objects.
+     * Allows objects to interact with the world and access shared properties.
+     */
     setWorld() {
         this.character.world = this;
         this.level.enemies.forEach(enemy => {
@@ -43,6 +62,10 @@ class World {
         });
     }
 
+    /**
+     * Starts the game loop that handles collisions and game logic.
+     * Runs at approximately 60fps when the game is not paused.
+     */
     run() {
         setInterval(() => {
             if (!this.isPaused) {
@@ -55,6 +78,10 @@ class World {
         }, 1000 / 60);
     }
 
+    /**
+     * Checks if the player is attempting to throw a bottle.
+     * Handles bottle throwing when conditions are met.
+     */
     checkThrowObjects() {
         if (this.keyboard.D && this.character.bottles > 0 && this.canThrow) {
             this.character.resetIdleState();
@@ -62,6 +89,10 @@ class World {
         }
     }
 
+    /**
+     * Creates and throws a bottle projectile.
+     * Updates UI and starts the throw cooldown.
+     */
     throwBottle() {
         const bottle = this.createBottle();
         this.throwableObjects.push(bottle);
@@ -70,6 +101,10 @@ class World {
         this.startThrowCooldown();
     }
 
+    /**
+     * Creates a new throwable bottle at the character's position.
+     * @returns {ThrowableObject} The created bottle object
+     */
     createBottle() {
         let bottle = new ThrowableObject(
             this.character.x + (this.character.otherDirection ? -50 : 100),
@@ -80,11 +115,17 @@ class World {
         return bottle;
     }
 
+    /**
+     * Decreases the character's bottle count and updates the UI.
+     */
     decreaseBottlesAndUpdateUI() {
         this.character.bottles--;
         this.statusBar.setBottlesCount(this.character.bottles);
     }
 
+    /**
+     * Plays the bottle throwing sound effect if sound is enabled.
+     */
     playThrowSound() {
         const throwSound = new Audio('../assets/audio/bottle_throw.mp3');
         this.userInterface.registerAudioWithCategory(throwSound, 'objects');
@@ -94,6 +135,10 @@ class World {
         }
     }
 
+    /**
+     * Starts the cooldown timer after throwing a bottle.
+     * Prevents rapid bottle throwing by enforcing a delay.
+     */
     startThrowCooldown() {
         this.canThrow = false;
         this.throwCooldown = this.maxThrowCooldown;
@@ -103,12 +148,20 @@ class World {
         }, this.maxThrowCooldown);
     }
 
+    /**
+     * Checks for all types of collisions in the game.
+     * Handles enemy, coin, and bottle pickup collisions.
+     */
     checkCollisions() {
         if (this.level.enemies) this.checkEnemyCollisions();
         if (this.level.coins) this.checkCoinCollisions();
         if (this.level.bottles) this.checkBottleCollisions();
     }
 
+    /**
+     * Checks for collisions between the character and enemies.
+     * Handles stomping enemies and taking damage from enemies.
+     */
     checkEnemyCollisions() {
         this.level.enemies.forEach((enemy, enemyIndex) => {
             if (this.isCharacterStompingEnemy(enemy)) {
@@ -121,6 +174,12 @@ class World {
         });
     }
 
+    /**
+     * Determines if the character is stomping on an enemy.
+     * Checks vertical positions and velocity to detect stomps.
+     * @param {MovableObject} enemy - The enemy to check
+     * @returns {boolean} True if the character is stomping the enemy
+     */
     isCharacterStompingEnemy(enemy) {
         const characterBottom = this.character.y + this.character.height - this.character.offset.bottom;
         const enemyTop = enemy.y + (enemy.offset?.top || 0);
@@ -131,6 +190,11 @@ class World {
             this.character.speedY < 0;
     }
 
+    /**
+     * Handles enemy stomping logic when the character jumps on an enemy.
+     * Makes the enemy die and bounces the character up.
+     * @param {MovableObject} enemy - The enemy being stomped
+     */
     handleEnemyStomp(enemy) {
         if (!(enemy instanceof Endboss) && !enemy.isDead) {
             enemy.die();
@@ -140,6 +204,9 @@ class World {
         }
     }
 
+    /**
+     * Plays the enemy stomp sound effect if sound is enabled.
+     */
     playStompSound() {
         const stompSound = new Audio('../assets/audio/stomp_enemie.mp3');
         this.userInterface.registerAudioWithCategory(stompSound, 'enemies');
@@ -149,6 +216,12 @@ class World {
         }
     }
 
+    /**
+     * Handles collision between character and enemy when not stomping.
+     * Applies damage to the character based on enemy type.
+     * @param {MovableObject} enemy - The enemy colliding with the character
+     * @param {number} enemyIndex - Index of the enemy in the enemies array
+     */
     handleEnemyCollision(enemy, enemyIndex) {
         if (!enemy.isDead) {
             const enemyId = enemy.constructor.name + '_' + enemyIndex;
@@ -159,6 +232,11 @@ class World {
         }
     }
 
+    /**
+     * Applies appropriate damage to the character based on enemy type.
+     * Updates the health bar accordingly.
+     * @param {MovableObject} enemy - The enemy dealing damage
+     */
     applyEnemyDamage(enemy) {
         if (enemy instanceof Endboss) {
             this.character.energy -= enemy.damage;
@@ -170,6 +248,11 @@ class World {
         }
     }
 
+    /**
+     * Removes an enemy from the collision tracking list when no longer colliding.
+     * @param {MovableObject} enemy - The enemy to remove from collision list
+     * @param {number} enemyIndex - Index of the enemy in the enemies array
+     */
     removeEnemyFromCollisionList(enemy, enemyIndex) {
         const enemyId = enemy.constructor.name + '_' + enemyIndex;
         const index = this.character.collidingEnemies.indexOf(enemyId);
@@ -178,6 +261,10 @@ class World {
         }
     }
 
+    /**
+     * Checks for collisions between the character and coins.
+     * Collects coins when detected and updates UI.
+     */
     checkCoinCollisions() {
         this.level.coins.forEach((coin, index) => {
             if (this.character.isPreciselyColiding(coin)) {
@@ -187,6 +274,10 @@ class World {
         });
     }
 
+    /**
+     * Checks for collisions between the character and bottle pickups.
+     * Collects bottles when detected and updates UI.
+     */
     checkBottleCollisions() {
         this.level.bottles.forEach((bottle) => {
             if (this.character.isColiding(bottle)) {
@@ -199,6 +290,12 @@ class World {
         });
     }
 
+    /**
+     * Schedules an enemy for removal after a delay.
+     * Used for animation timing after enemy death.
+     * @param {MovableObject} enemy - The enemy to remove
+     * @param {number} delay - Delay in milliseconds before removal
+     */
     scheduleEnemyRemoval(enemy, delay) {
         setTimeout(() => {
             const enemyIndex = this.level.enemies.indexOf(enemy);
@@ -208,6 +305,10 @@ class World {
         }, delay);
     }
 
+    /**
+     * Checks distances between enemies to prevent them from overlapping.
+     * Makes enemies change direction when they get too close to each other.
+     */
     checkEnemyDistances() {
         if (this.isPaused) return;
         const minDistance = 100;
@@ -221,6 +322,15 @@ class World {
         });
     }
 
+    /**
+     * Determines if two enemies should be checked for proximity.
+     * Skips checks for end boss, dead enemies, and same enemy.
+     * @param {MovableObject} enemy1 - First enemy to check
+     * @param {MovableObject} enemy2 - Second enemy to check
+     * @param {number} index1 - Index of first enemy
+     * @param {number} index2 - Index of second enemy
+     * @returns {boolean} True if the enemies should be checked for proximity
+     */
     shouldCheckEnemies(enemy1, enemy2, index1, index2) {
         return index1 !== index2 &&
             !(enemy2 instanceof Endboss) &&
@@ -228,6 +338,12 @@ class World {
             !enemy2.isDead;
     }
 
+    /**
+     * Handles enemy proximity by making them change directions.
+     * Pushes enemies apart when they get too close to each other.
+     * @param {MovableObject} enemy1 - First enemy in proximity
+     * @param {MovableObject} enemy2 - Second enemy in proximity
+     */
     handleEnemyProximity(enemy1, enemy2) {
         const distanceX = Math.abs(enemy1.x - enemy2.x);
         const distanceY = Math.abs(enemy1.y - enemy2.y);
@@ -246,6 +362,10 @@ class World {
         }
     }
 
+    /**
+     * Checks for collisions between thrown bottles and enemies.
+     * Handles enemy damage and bottle breaking effects.
+     */
     checkCollisionsWithBottles() {
         if (this.throwableObjects.length > 0 && this.level.enemies) {
             this.throwableObjects.forEach((bottle, bottleIndex) => {
@@ -256,6 +376,12 @@ class World {
         }
     }
 
+    /**
+     * Checks collision between a specific bottle and enemy.
+     * Handles bottle breaking and enemy damage when collision occurs.
+     * @param {ThrowableObject} bottle - The thrown bottle to check
+     * @param {MovableObject} enemy - The enemy to check for collision
+     */
     checkBottleEnemyCollision(bottle, enemy) {
         const enemyIsDead = enemy instanceof Endboss ? enemy.isDead() : enemy.isDead;
         if (bottle.isColiding(enemy) && !enemyIsDead && !bottle.isBroken) {
@@ -269,6 +395,11 @@ class World {
         }
     }
 
+    /**
+     * Applies damage to an enemy hit by a bottle.
+     * Handles end boss differently than regular enemies.
+     * @param {MovableObject} enemy - The enemy hit by a bottle
+     */
     handleEnemyHitByBottle(enemy) {
         if (enemy instanceof Endboss) {
             enemy.hitWithBottle();
@@ -277,6 +408,9 @@ class World {
         }
     }
 
+    /**
+     * Plays the bottle breaking sound effect if sound is enabled.
+     */
     playBottleBreakSound() {
         const breakSound = new Audio('../assets/audio/bottle_break.mp3');
         this.userInterface.registerAudioWithCategory(breakSound, 'objects');
@@ -286,6 +420,13 @@ class World {
         }
     }
 
+    /**
+     * Schedules an object for removal from an array after a delay.
+     * Used for animation timing and cleanup.
+     * @param {Object} object - The object to remove
+     * @param {Array} array - The array to remove the object from
+     * @param {number} delay - Delay in milliseconds before removal
+     */
     scheduleObjectRemoval(object, array, delay) {
         setTimeout(() => {
             const index = array.indexOf(object);
@@ -295,6 +436,10 @@ class World {
         }, delay);
     }
 
+    /**
+     * Updates the bottle throw cooldown timer.
+     * Decreases the cooldown timer during each game loop iteration.
+     */
     updateCooldown() {
         if (this.throwCooldown > 0) {
             this.throwCooldown -= (1000 / 60);
@@ -302,6 +447,10 @@ class World {
         }
     }
 
+    /**
+     * Draws the cooldown circle indicator for bottle throws.
+     * Shows a circular progress indicator with the remaining time.
+     */
     drawCooldownCircle() {
         if (this.throwCooldown <= 0) return;
         const circleData = this.calculateCooldownCirclePosition();
@@ -311,6 +460,10 @@ class World {
         this.drawRemainingTime(circleData);
     }
 
+    /**
+     * Calculates position and dimensions for the cooldown circle.
+     * @returns {Object} Circle position, radius, and progress data
+     */
     calculateCooldownCirclePosition() {
         const circleRadius = 25;
         const padding = 28;
@@ -326,6 +479,10 @@ class World {
         };
     }
 
+    /**
+     * Draws the background circle for the cooldown indicator.
+     * @param {Object} data - Circle position and dimension data
+     */
     drawBackgroundCircle(data) {
         this.ctx.beginPath();
         this.ctx.arc(data.x, data.y, data.radius, 0, 2 * Math.PI);
@@ -333,6 +490,11 @@ class World {
         this.ctx.fill();
     }
 
+    /**
+     * Draws the progress circle overlay for the cooldown indicator.
+     * Shows a decreasing segment as the cooldown progresses.
+     * @param {Object} data - Circle position and progress data
+     */
     drawProgressCircle(data) {
         this.ctx.beginPath();
         this.ctx.moveTo(data.x, data.y);
@@ -347,6 +509,10 @@ class World {
         this.ctx.fill();
     }
 
+    /**
+     * Draws the bottle image in the center of the cooldown circle.
+     * @param {Object} data - Circle position and dimension data
+     */
     drawBottleImage(data) {
         if (this.cooldownImage.complete) {
             const bottleSize = data.radius * 2.4;
@@ -360,6 +526,10 @@ class World {
         }
     }
 
+    /**
+     * Draws the remaining time text below the cooldown circle.
+     * @param {Object} data - Circle position and countdown data
+     */
     drawRemainingTime(data) {
         const remainingTime = (this.throwCooldown / 1000).toFixed(1);
         this.ctx.font = 'bold 16px Arial';
@@ -368,6 +538,10 @@ class World {
         this.ctx.fillText(remainingTime + 's', data.x, data.y + data.radius + 15);
     }
 
+    /**
+     * Main draw function that renders the game world on each animation frame.
+     * Clears the canvas and draws all game elements in proper order.
+     */
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawGameWorld();
@@ -383,6 +557,10 @@ class World {
         });
     }
 
+    /**
+     * Draws the game world elements with camera translation.
+     * Renders background, character, and game objects in proper order.
+     */
     drawGameWorld() {
         this.ctx.translate(this.camera_x, 0);
         this.addObjectsToMap(this.level.backgroundObjects);
@@ -395,6 +573,9 @@ class World {
         this.ctx.translate(-this.camera_x, 0);
     }
 
+    /**
+     * Draws the end boss health bar at the top of the screen when visible.
+     */
     drawEndbossHealthBar() {
         const endboss = this.level.enemies.find(enemy => enemy instanceof Endboss);
         if (endboss && endboss.showHealthBar) {
@@ -402,6 +583,10 @@ class World {
         }
     }
 
+    /**
+     * Draws only the game objects currently visible on screen.
+     * Performance optimization function for large levels.
+     */
     drawOptimizedGameWorld() {
         this.ctx.translate(this.camera_x, 0);
         const visibleObjects = this.getVisibleObjects(this.level.backgroundObjects);
@@ -419,6 +604,11 @@ class World {
         this.ctx.translate(-this.camera_x, 0);
     }
 
+    /**
+     * Filters objects to only those visible within current camera view.
+     * @param {Array<MovableObject>} objects - Array of game objects to filter
+     * @returns {Array<MovableObject>} Array containing only visible objects
+     */
     getVisibleObjects(objects) {
         if (!objects || !Array.isArray(objects)) return [];
         const buffer = 150;
@@ -431,6 +621,10 @@ class World {
         });
     }
 
+    /**
+     * Adds an array of objects to the map by calling addToMap for each object.
+     * @param {Array<MovableObject>} objects - Array of objects to add to the map
+     */
     addObjectsToMap(objects) {
         if (!objects || !Array.isArray(objects)) return;
         objects.forEach((o) => {
@@ -438,6 +632,10 @@ class World {
         });
     }
 
+    /**
+     * Adds a single object to the map, handling direction flipping if needed.
+     * @param {MovableObject} mo - The object to add to the map
+     */
     addToMap(mo) {
         this.handleObjectDirection(mo, true);
         mo.draw(this.ctx);
@@ -446,6 +644,12 @@ class World {
         this.handleObjectDirection(mo, false);
     }
 
+    /**
+     * Handles flipping objects based on their direction.
+     * Applies canvas transformations before and after drawing.
+     * @param {MovableObject} mo - The object to handle direction for
+     * @param {boolean} beforeDraw - Whether this is called before or after drawing
+     */
     handleObjectDirection(mo, beforeDraw) {
         const shouldFlip = (mo instanceof Character && mo.otherDirection) ||
             ((mo instanceof Chicken || mo instanceof smallChicken || mo instanceof Endboss) && !mo.otherDirection);
@@ -454,12 +658,22 @@ class World {
         }
     }
 
+    /**
+     * Draws additional elements for specific object types.
+     * Currently draws health bars for chickens when needed.
+     * @param {MovableObject} mo - The object to draw additional elements for
+     */
     drawAdditionalElements(mo) {
         if (mo instanceof Chicken && mo.showHealthBar) {
             mo.drawHealthBar(this.ctx);
         }
     }
 
+    /**
+     * Flips an image horizontally by applying canvas transformations.
+     * Used before drawing objects facing the opposite direction.
+     * @param {MovableObject} mo - The object to flip
+     */
     flipImage(mo) {
         this.ctx.save();
         this.ctx.translate(mo.width, 0);
@@ -467,6 +681,10 @@ class World {
         mo.x = mo.x * -1;
     }
 
+    /**
+     * Restores the canvas state after drawing a flipped object.
+     * @param {MovableObject} mo - The object that was flipped
+     */
     flipImageBack(mo) {
         mo.x = mo.x * -1;
         this.ctx.restore();

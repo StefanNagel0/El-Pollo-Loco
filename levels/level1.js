@@ -1,5 +1,16 @@
+/**
+ * Defines and initializes level 1 of El Pollo Loco.
+ * Contains the level layout, enemies, background elements, and collectible items.
+ * @file level1.js
+ */
+
 let level1;
 
+/**
+ * Initializes the first level of the game.
+ * Creates all enemies, clouds, background objects, coins and bottles.
+ * Sets up the entire game world environment for level 1.
+ */
 function initLevel1() {
     
 level1 = new Level(

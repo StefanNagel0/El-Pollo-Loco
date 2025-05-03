@@ -1,3 +1,10 @@
+/**
+ * Represents a throwable object in the game.
+ * These are projectiles that can be thrown by the player to damage enemies.
+ * Features trajectory physics, collision detection, and breaking animations.
+ * @class
+ * @extends MovableObject
+ */
 class ThrowableObject extends MovableObject {
     isBroken = false;
     moveInterval = null;
@@ -11,6 +18,13 @@ class ThrowableObject extends MovableObject {
         '../assets/img/6_salsa_bottle/bottle_rotation/bottle_splash/6_bottle_splash.png'
     ];
 
+    /**
+     * Creates a new throwable object at the specified position and direction.
+     * Automatically starts the throwing motion.
+     * @param {number} x - The initial x-coordinate
+     * @param {number} y - The initial y-coordinate
+     * @param {boolean} otherDirection - The direction to throw (true for left, false for right)
+     */
     constructor(x, y, otherDirection) {
         super();
         this.x = x;
@@ -23,6 +37,11 @@ class ThrowableObject extends MovableObject {
         this.throw();
     }
 
+    /**
+     * Initiates the throwing motion of the object.
+     * Sets initial vertical speed and applies gravity.
+     * Creates an interval to handle horizontal movement and ground collision.
+     */
     throw() {
         this.speedY = 30;
         this.applyGravity();
@@ -34,6 +53,10 @@ class ThrowableObject extends MovableObject {
         }, 25);
     }
 
+    /**
+     * Handles the breaking of the throwable object.
+     * Sets the broken state, stops movement, and plays break animation and sound.
+     */
     break() {
         if (this.isBroken) return;
         this.isBroken = true;
@@ -42,6 +65,9 @@ class ThrowableObject extends MovableObject {
         this.playBreakSound();
     }
 
+    /**
+     * Stops all movement of the object by clearing intervals and resetting speed.
+     */
     stopMovement() {
         this.speedY = 0;
         if (this.moveInterval) {
@@ -50,6 +76,9 @@ class ThrowableObject extends MovableObject {
         }
     }
 
+    /**
+     * Plays the breaking animation sequence.
+     */
     playBreakAnimation() {
         let i = 0;
         let breakInterval = setInterval(() => {
@@ -62,6 +91,10 @@ class ThrowableObject extends MovableObject {
         }, 50);
     }
 
+    /**
+     * Plays the sound effect for breaking.
+     * Uses the game's audio system if available.
+     */
     playBreakSound() {
         if (!this.world || !this.world.userInterface) return;
         const breakSound = new Audio('../assets/audio/bottle_break.mp3');

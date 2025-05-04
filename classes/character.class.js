@@ -144,8 +144,12 @@ class Character extends MovableObject {
      * Sets up animation intervals for the character.
      */
     animate() {
-        setInterval(() => this.handleMovementAndCamera(), 1000 / 60);
-        setInterval(() => this.handleAnimationStates(), 50);
+        this.animationIntervals.push(
+            setInterval(() => this.handleMovementAndCamera(), 1000 / 60)
+        );
+        this.animationIntervals.push(
+            setInterval(() => this.handleAnimationStates(), 50)
+        );
     }
 
     /**

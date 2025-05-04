@@ -17,7 +17,9 @@ class World {
     maxThrowCooldown = 2250;
     cooldownImage = new Image();
     isPaused = true;
-    gameEnded = false; // Neue Eigenschaft zum Nachverfolgen des Spielendes
+    gameEnded = false;
+    intervals = [];
+    animationFrameId = null;
     
     /**
      * Creates a new game world with the specified canvas and keyboard.
@@ -26,8 +28,7 @@ class World {
      * @param {Keyboard} keyboard - The keyboard input handler
      */
     constructor(canvas, keyboard) {
-        this.ctx = canvas.getContext('2d');
-        this.canvas = canvas;
+        this.setupCanvas(canvas);
         this.keyboard = keyboard;
         this.userInterface = new UserInterface(canvas);
         this.initializeUI();
@@ -35,6 +36,15 @@ class World {
         this.setWorld();
         this.run();
         this.character.previousY = this.character.y;
+    }
+
+    /**
+     * Sets up the canvas context and assigns it to the world.
+     * @param {HTMLCanvasElement} canvas - The canvas to render the game on
+     */
+    setupCanvas(canvas) {
+        this.ctx = canvas.getContext('2d');
+        this.canvas = canvas;
     }
 
     /**
@@ -68,7 +78,7 @@ class World {
      * Runs at approximately 60fps when the game is not paused.
      */
     run() {
-        setInterval(() => {
+        const interval = setInterval(() => {
             if (!this.isPaused) {
                 this.checkThrowObjects();
                 this.checkCollisions();
@@ -77,6 +87,7 @@ class World {
                 this.updateCooldown();
             }
         }, 1000 / 60);
+        this.intervals.push(interval);
     }
 
     /**
@@ -312,14 +323,22 @@ class World {
      */
     checkEnemyDistances() {
         if (this.isPaused) return;
-        const minDistance = 100;
         this.level.enemies.forEach((enemy1, index1) => {
             if (enemy1 instanceof Endboss) return;
-            this.level.enemies.forEach((enemy2, index2) => {
-                if (this.shouldCheckEnemies(enemy1, enemy2, index1, index2)) {
-                    this.handleEnemyProximity(enemy1, enemy2);
-                }
-            });
+            this.checkEnemyDistancesForSingleEnemy(enemy1, index1);
+        });
+    }
+
+    /**
+     * Checks distances between a single enemy and all other enemies.
+     * @param {MovableObject} enemy1 - The enemy to check distances for
+     * @param {number} index1 - Index of the enemy in the enemies array
+     */
+    checkEnemyDistancesForSingleEnemy(enemy1, index1) {
+        this.level.enemies.forEach((enemy2, index2) => {
+            if (this.shouldCheckEnemies(enemy1, enemy2, index1, index2)) {
+                this.handleEnemyProximity(enemy1, enemy2);
+            }
         });
     }
 
@@ -349,18 +368,27 @@ class World {
         const distanceX = Math.abs(enemy1.x - enemy2.x);
         const distanceY = Math.abs(enemy1.y - enemy2.y);
         if (distanceX < 100 && distanceY < enemy1.height / 2) {
-            enemy1.otherDirection = !enemy1.otherDirection;
-            enemy2.otherDirection = !enemy2.otherDirection;
-            if (enemy1.x < enemy2.x) {
-                enemy1.x -= 10;
-                enemy2.x += 10;
-            } else {
-                enemy1.x += 10;
-                enemy2.x -= 10;
-            }
-            enemy1.setRandomDirectionChangeTime();
-            enemy2.setRandomDirectionChangeTime();
+            this.adjustEnemyDirections(enemy1, enemy2);
         }
+    }
+
+    /**
+     * Adjusts the directions of two enemies to prevent overlap.
+     * @param {MovableObject} enemy1 - First enemy to adjust
+     * @param {MovableObject} enemy2 - Second enemy to adjust
+     */
+    adjustEnemyDirections(enemy1, enemy2) {
+        enemy1.otherDirection = !enemy1.otherDirection;
+        enemy2.otherDirection = !enemy2.otherDirection;
+        if (enemy1.x < enemy2.x) {
+            enemy1.x -= 10;
+            enemy2.x += 10;
+        } else {
+            enemy1.x += 10;
+            enemy2.x -= 10;
+        }
+        enemy1.setRandomDirectionChangeTime();
+        enemy2.setRandomDirectionChangeTime();
     }
 
     /**
@@ -369,12 +397,20 @@ class World {
      */
     checkCollisionsWithBottles() {
         if (this.throwableObjects.length > 0 && this.level.enemies) {
-            this.throwableObjects.forEach((bottle, bottleIndex) => {
-                this.level.enemies.forEach((enemy, enemyIndex) => {
-                    this.checkBottleEnemyCollision(bottle, enemy);
-                });
+            this.throwableObjects.forEach(bottle => {
+                this.checkBottleCollisionsWithEnemies(bottle);
             });
         }
+    }
+
+    /**
+     * Checks for collisions between a bottle and all enemies.
+     * @param {ThrowableObject} bottle - The thrown bottle to check
+     */
+    checkBottleCollisionsWithEnemies(bottle) {
+        this.level.enemies.forEach(enemy => {
+            this.checkBottleEnemyCollision(bottle, enemy);
+        });
     }
 
     /**
@@ -386,13 +422,23 @@ class World {
     checkBottleEnemyCollision(bottle, enemy) {
         const enemyIsDead = enemy instanceof Endboss ? enemy.isDead() : enemy.isDead;
         if (bottle.isColiding(enemy) && !enemyIsDead && !bottle.isBroken) {
-            bottle.break();
-            this.handleEnemyHitByBottle(enemy);
-            this.playBottleBreakSound();
-            this.scheduleObjectRemoval(bottle, this.throwableObjects, 300);
-            if (!(enemy instanceof Endboss) || enemy.isDead()) {
-                this.scheduleEnemyRemoval(enemy, 500);
-            }
+            this.handleBottleEnemyImpact(bottle, enemy);
+        }
+    }
+
+    /**
+     * Handles the impact of a bottle on an enemy.
+     * Breaks the bottle and applies damage to the enemy.
+     * @param {ThrowableObject} bottle - The bottle that hit the enemy
+     * @param {MovableObject} enemy - The enemy hit by the bottle
+     */
+    handleBottleEnemyImpact(bottle, enemy) {
+        bottle.break();
+        this.handleEnemyHitByBottle(enemy);
+        this.playBottleBreakSound();
+        this.scheduleObjectRemoval(bottle, this.throwableObjects, 300);
+        if (!(enemy instanceof Endboss) || enemy.isDead()) {
+            this.scheduleEnemyRemoval(enemy, 500);
         }
     }
 
@@ -470,11 +516,9 @@ class World {
         const padding = 28;
         const bottleStatusBarY = this.statusBar.y_bottles;
         const bottleStatusBarHeight = this.statusBar.height;
-        const offsetX = circleRadius + padding;
-        const offsetY = bottleStatusBarY + bottleStatusBarHeight + padding;
         return {
-            x: offsetX,
-            y: offsetY,
+            x: circleRadius + padding,
+            y: bottleStatusBarY + bottleStatusBarHeight + padding,
             radius: circleRadius,
             progress: this.throwCooldown / this.maxThrowCooldown
         };
@@ -546,16 +590,24 @@ class World {
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawGameWorld();
+        this.drawUIElements();
+        const self = this;
+        this.animationFrameId = requestAnimationFrame(function() {
+            self.draw();
+        });
+    }
+
+    /**
+     * Draws the UI elements including status bar and icons.
+     * Also draws the cooldown circle if a throw is on cooldown.
+     */
+    drawUIElements() {
         this.statusBar.draw(this.ctx);  
         this.userInterface.drawIcons();
         this.drawEndbossHealthBar();
         if (this.throwCooldown > 0) {
             this.drawCooldownCircle();
         }
-        let self = this;
-        requestAnimationFrame(function() {
-            self.draw();
-        });
     }
 
     /**
@@ -582,44 +634,6 @@ class World {
         if (endboss && endboss.showHealthBar) {
             endboss.drawHealthBar(this.ctx);
         }
-    }
-
-    /**
-     * Draws only the game objects currently visible on screen.
-     * Performance optimization function for large levels.
-     */
-    drawOptimizedGameWorld() {
-        this.ctx.translate(this.camera_x, 0);
-        const visibleObjects = this.getVisibleObjects(this.level.backgroundObjects);
-        this.addObjectsToMap(visibleObjects);
-        this.addToMap(this.character);
-        const visibleClouds = this.getVisibleObjects(this.level.clouds);
-        this.addObjectsToMap(visibleClouds);
-        const visibleEnemies = this.getVisibleObjects(this.level.enemies);
-        this.addObjectsToMap(visibleEnemies);
-        const visibleCoins = this.getVisibleObjects(this.level.coins);
-        this.addObjectsToMap(visibleCoins);
-        const visibleBottles = this.getVisibleObjects(this.level.bottles);
-        this.addObjectsToMap(visibleBottles);
-        this.addObjectsToMap(this.throwableObjects);
-        this.ctx.translate(-this.camera_x, 0);
-    }
-
-    /**
-     * Filters objects to only those visible within current camera view.
-     * @param {Array<MovableObject>} objects - Array of game objects to filter
-     * @returns {Array<MovableObject>} Array containing only visible objects
-     */
-    getVisibleObjects(objects) {
-        if (!objects || !Array.isArray(objects)) return [];
-        const buffer = 150;
-        const leftEdge = -this.camera_x - buffer;
-        const rightEdge = leftEdge + this.canvas.width + 2 * buffer;
-        return objects.filter(obj => {
-            const objRightEdge = obj.x + obj.width;
-            const objLeftEdge = obj.x;
-            return objRightEdge > leftEdge && objLeftEdge < rightEdge;
-        });
     }
 
     /**
@@ -652,11 +666,19 @@ class World {
      * @param {boolean} beforeDraw - Whether this is called before or after drawing
      */
     handleObjectDirection(mo, beforeDraw) {
-        const shouldFlip = (mo instanceof Character && mo.otherDirection) ||
-            ((mo instanceof Chicken || mo instanceof smallChicken || mo instanceof Endboss) && !mo.otherDirection);
-        if (shouldFlip) {
+        if (this.shouldFlipObject(mo)) {
             beforeDraw ? this.flipImage(mo) : this.flipImageBack(mo);
         }
+    }
+
+    /**
+     * Determines if an object should be flipped based on its direction.
+     * @param {MovableObject} mo - The object to check
+     * @returns {boolean} True if the object should be flipped
+     */
+    shouldFlipObject(mo) {
+        return (mo instanceof Character && mo.otherDirection) ||
+            ((mo instanceof Chicken || mo instanceof smallChicken || mo instanceof Endboss) && !mo.otherDirection);
     }
 
     /**
@@ -700,9 +722,125 @@ class World {
         if (this.gameEnded) {
             return false;
         }
-        
         this.gameEnded = true;
         this.isPaused = true;
         return true;
+    }
+
+    /**
+     * starts an interval and stores its ID for later cleanup.
+     * @param {Function} callback - the function to call on each interval
+     * @param {number} interval - the interval time in milliseconds
+     * @returns {number} the Intervall-ID
+     */
+    startInterval(callback, interval) {
+        const id = setInterval(callback, interval);
+        this.intervals.push(id);
+        return id;
+    }
+
+    /**
+     * clears all intervals registered in the world.
+     */
+    cleanup() {
+        this.stopAnimations();
+        this.clearIntervals();
+        this.cleanupGameObjects();
+        this.stopAudio();
+        this.removeEventListeners();
+    }
+    
+    /**
+     * Stops the animation frame loop.
+     */
+    stopAnimations() {
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+        }
+    }
+    
+    /**
+     * Clears all intervals registered in the world.
+     */
+    clearIntervals() {
+        if (this.intervals && this.intervals.length > 0) {
+            this.intervals.forEach(interval => clearInterval(interval));
+            this.intervals = [];
+        }
+    }
+    
+    /**
+     * Cleans up all game objects including character, enemies, clouds, and throwable objects.
+     */
+    cleanupGameObjects() {
+        this.cleanupCharacter();
+        this.cleanupEnemies();
+        this.cleanupClouds();
+        this.cleanupThrowableObjects();
+    }
+    
+    /**
+     * Cleans up the character's animations.
+     */
+    cleanupCharacter() {
+        if (this.character) {
+            this.character.cleanupAnimations();
+        }
+    }
+    
+    /**
+     * Cleans up all enemies' animations.
+     */
+    cleanupEnemies() {
+        if (this.level && this.level.enemies) {
+            this.level.enemies.forEach(enemy => {
+                if (typeof enemy.cleanupAnimations === 'function') {
+                    enemy.cleanupAnimations();
+                }
+            });
+        }
+    }
+    
+    /**
+     * Cleans up all clouds' animations.
+     */
+    cleanupClouds() {
+        if (this.level && this.level.clouds) {
+            this.level.clouds.forEach(cloud => {
+                if (typeof cloud.cleanupAnimations === 'function') {
+                    cloud.cleanupAnimations();
+                }
+            });
+        }
+    }
+    
+    /**
+     * Cleans up all throwable objects' animations.
+     */
+    cleanupThrowableObjects() {
+        if (this.throwableObjects) {
+            this.throwableObjects.forEach(obj => {
+                if (typeof obj.cleanupAnimations === 'function') {
+                    obj.cleanupAnimations();
+                }
+            });
+        }
+    }
+    
+    /**
+     * Stops the background music.
+     */
+    stopAudio() {
+        if (this.userInterface?.audioManager) {
+            this.userInterface.audioManager.pauseBackgroundMusic();
+        }
+    }
+    
+    /**
+     * Removes all event listeners.
+     */
+    removeEventListeners() {
+        window.removeEventListener('resize', this.handleResize);
     }
 }

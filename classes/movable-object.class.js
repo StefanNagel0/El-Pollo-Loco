@@ -24,13 +24,37 @@ class MovableObject extends DrawableObject {
     maxXSpawnRange = 500;
     minDirectionChangeDelay = 1000;
     maxDirectionChangeDelay = 4000;
-    
+    animationIntervals = [];
+
+    /**
+     * Startet ein Intervall und registriert es zur späteren Bereinigung
+     * @param {Function} callback - Die auszuführende Funktion
+     * @param {number} interval - Das Zeitintervall in Millisekunden
+     * @returns {number} Die Intervall-ID
+     */
+    startAnimationInterval(callback, interval) {
+        const id = setInterval(callback, interval);
+        this.animationIntervals.push(id);
+        return id;
+    }
+
+    /**
+     * Bereinigt alle Animation-Intervalle dieses Objekts
+     */
+    cleanupAnimations() {
+        if (this.animationIntervals && Array.isArray(this.animationIntervals)) {
+            this.animationIntervals.forEach(interval => clearInterval(interval));
+            this.animationIntervals = [];
+        }
+    }
+
     /**
      * Applies gravity to the object, making it fall when not on the ground.
      * Sets up an interval that continuously updates vertical position.
      */
     applyGravity() {
-        setInterval(() => {
+        // Wichtig: Intervall speichern statt einfach nur setInterval aufrufen
+        const gravityInterval = setInterval(() => {
             if (!this.world || !this.world.isPaused) {
                 if (this.isAboveGround() || this.speedY > 0) {
                     this.y -= this.speedY;
@@ -38,6 +62,9 @@ class MovableObject extends DrawableObject {
                 }
             }
         }, 1000 / 60);
+        
+        // Zum Tracking hinzufügen
+        this.animationIntervals.push(gravityInterval);
     }
 
     /**
@@ -238,5 +265,16 @@ class MovableObject extends DrawableObject {
     performMovement() {
         if (this.otherDirection) this.moveLeft();
         else this.moveRight();
+    }
+
+    /**
+     * Register an audio element with the audio manager.
+     * @param {HTMLAudioElement} audio - The audio element to register
+     * @param {string} category - The category to register the audio under
+     */
+    registerAudioWithManager(audio, category) {
+        if (audio && this.world?.userInterface?.audioManager) {
+            this.world.userInterface.audioManager.registerAudioWithCategory(audio, category);
+        }
     }
 }

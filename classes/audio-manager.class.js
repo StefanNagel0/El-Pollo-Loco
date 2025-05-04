@@ -57,10 +57,19 @@ class AudioManager {
 
     /**
      * Plays the background music if not muted.
+     * Handles volume correctly based on current settings.
      */
     playBackgroundMusic() {
-        if (this.backgroundMusic && !this.isMuted) {
-            this.backgroundMusic.play().catch(() => {});
+        if (this.backgroundMusic) {
+            // Korrekte Lautstärke setzen
+            const musicVolume = this.getVolumeForCategory('music');
+            this.backgroundMusic.volume = musicVolume;
+            
+            // Abspielen, wenn nicht stumm
+            if (!this.isMuted) {
+                this.backgroundMusic.play().catch(() => {
+                });
+            }
         }
     }
 
@@ -180,14 +189,17 @@ class AudioManager {
      * @param {string} category - The category of audio elements
      */
     setupSliderListener(slider, volumeProperty, valueDisplay, category) {
-        if (slider) {
-            slider.addEventListener('input', () => {
-                this[volumeProperty] = parseInt(slider.value);
-                valueDisplay.textContent = this[volumeProperty];
-                this.updateCategoryVolume(category);
-                localStorage.setItem(`elPolloLoco_${volumeProperty}`, this[volumeProperty]);
-            });
-        }
+        if (!slider) return;
+        slider.addEventListener('input', () => this.handleSliderInput(slider, volumeProperty, valueDisplay, category));
+        slider.addEventListener('change', () => this.updateCategoryVolume(category));
+    }
+
+    handleSliderInput(slider, volumeProperty, valueDisplay, category) {
+        const newValue = parseInt(slider.value);
+        this[volumeProperty] = newValue;
+        if (valueDisplay) valueDisplay.textContent = newValue;
+        localStorage.setItem(`elPolloLoco_${volumeProperty}`, newValue);
+        this.updateCategoryVolume(category);
     }
 
     /**
@@ -360,7 +372,89 @@ class AudioManager {
         if (!this.audioCategories[category]) return;
         const categoryVolume = this.getVolumeForCategory(category);
         this.audioCategories[category].forEach(audio => {
-            if (audio && !this.isMuted) audio.volume = categoryVolume;
+            if (audio) audio.volume = this.isMuted ? 0 : categoryVolume;
         });
+    }
+
+    /**
+     * Initialisiert die Event-Listener und Werte für die neu erstellten Lautstärkeregler.
+     * Sollte nach einem Spielneustart aufgerufen werden.
+     */
+    reinitializeAudioElements() {
+        this.resetAudioReferences();
+        this.audioCategories = this.createEmptyCategoryArrays();
+        this.audioInstances = [];
+        this.getSettingsElements();
+        this.initializeVolumeSliders();
+        this.setupVolumeListeners();
+        if (this.backgroundMusic) {
+            this.registerAudioWithCategory(this.backgroundMusic, 'music');
+        }
+        this.registerAllGameAudio();
+        this.updateVolume();
+    }
+
+    resetAudioReferences() {
+        this.characterSlider = this.enemiesSlider = this.objectsSlider = this.musicSlider = null;
+        this.characterValue = this.enemiesValue = this.objectsValue = this.musicValue = null;
+    }
+
+    createEmptyCategoryArrays() {
+        return {
+            character: [],
+            enemies: [],
+            objects: [],
+            music: []
+        };
+    }
+
+    registerAllGameAudio() {
+        if (!window.world) return;
+        this.registerCharacterAudio();
+        this.registerEnemyAudio();
+        this.registerObjectAudio();
+    }
+
+    registerCharacterAudio() {
+        if (window.world.character?.audioJump) {
+            this.registerAudioWithCategory(window.world.character.audioJump, 'character');
+        }
+        if (window.world.character?.audioHurt) {
+            this.registerAudioWithCategory(window.world.character.audioHurt, 'character');
+        }
+    }
+
+    registerEnemyAudio() {
+        if (!window.world.level?.enemies) return;
+        window.world.level.enemies.forEach(enemy => {
+            if (enemy.audio) this.registerAudioWithCategory(enemy.audio, 'enemies');
+        });
+    }
+
+    registerObjectAudio() {
+        this.registerAudioElements(window.world.level?.coins, 'objects');
+        this.registerAudioElements(window.world.level?.bottles, 'objects');
+        this.registerAudioElements(window.world.throwableObjects, 'objects');
+    }
+
+    registerAudioElements(collection, category) {
+        if (!collection) return;
+        collection.forEach(item => {
+            if (item.audio) this.registerAudioWithCategory(item.audio, category);
+        });
+    }
+
+    /**
+     * Initialisiert alle Audio-Elemente im Spiel und registriert sie.
+     * Wird beim erstmaligen Spielstart aufgerufen.
+     */
+    initializeGameAudio() {
+        this.audioCategories = this.createEmptyCategoryArrays();
+        this.audioInstances = [];
+        if (this.backgroundMusic) {
+            this.registerAudioWithCategory(this.backgroundMusic, 'music');
+        }
+        this.registerAllGameAudio();
+        this.updateVolume();
     }
 }

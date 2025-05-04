@@ -4,6 +4,8 @@
  * @file script.js
  */
 
+window.scriptIntervals = window.scriptIntervals || [];
+
 /**
  * Checks device orientation and adapts the UI accordingly.
  * Shows rotation video on small screens in portrait mode and hides game elements.
@@ -185,11 +187,10 @@ function setupGameStateObserver() {
 
 /**
  * Starts a periodic check of mobile controls visibility.
- * Updates visibility immediately and then every 500ms.
  */
 function startPeriodicVisibilityCheck() {
     updateMobileControlsVisibility();
-    setInterval(updateMobileControlsVisibility, 500);
+    safeSetInterval(updateMobileControlsVisibility, 500);
 }
 
 /**
@@ -309,6 +310,25 @@ function setupFullscreenChangeDetection() {
                 : '../assets/img/ui_images/fullscreen.svg';
         }
     });
+}
+
+/**
+ * starts a safe setInterval that cleans up on page unload.
+ */
+function safeSetInterval(callback, interval) {
+    const id = setInterval(callback, interval);
+    window.scriptIntervals.push(id);
+    return id;
+}
+
+/**
+ * cleans up all script intervals on page unload.
+ */
+function cleanupScriptIntervals() {
+    if (window.scriptIntervals && window.scriptIntervals.length > 0) {
+        window.scriptIntervals.forEach(id => clearInterval(id));
+        window.scriptIntervals = [];
+    }
 }
 
 /**

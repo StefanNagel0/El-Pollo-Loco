@@ -12,9 +12,29 @@ let level1;
  * Sets up the entire game world environment for level 1.
  */
 function initLevel1() {
-    
-level1 = new Level(
-    [
+    try {
+        resetStaticVariables();
+        level1 = new Level(
+            createEnemies(),
+            createClouds(),
+            createBackgroundObjects(),
+            Coin.generateCoins(45),
+            createBottles()
+        );
+    } catch (error) {
+        window.location.reload();
+        throw error;
+    }
+}
+
+function resetStaticVariables() {
+    if (typeof MovableObject !== 'undefined' && MovableObject.placedObjects) {
+        MovableObject.placedObjects = [];
+    }
+}
+
+function createEnemies() {
+    return [
         new Chicken(),
         new Chicken(),
         new Chicken(),
@@ -22,94 +42,45 @@ level1 = new Level(
         new smallChicken(),
         new smallChicken(),
         new Endboss(),
-    ],
-    [
-        new Cloud('../assets/img/5_background/layers/4_clouds/1.png', 100),
-        new Cloud('../assets/img/5_background/layers/4_clouds/2.png', 800),
-        new Cloud('../assets/img/5_background/layers/4_clouds/1.png', 1600),
-        new Cloud('../assets/img/5_background/layers/4_clouds/2.png', 2400),
-        new Cloud('../assets/img/5_background/layers/4_clouds/1.png', 3200),
-        new Cloud('../assets/img/5_background/layers/4_clouds/2.png', 4000),
-        new Cloud('../assets/img/5_background/layers/4_clouds/1.png', 4800),
-        new Cloud('../assets/img/5_background/layers/4_clouds/2.png', 5600),
-        new Cloud('../assets/img/5_background/layers/4_clouds/1.png', 6400),
-        new Cloud('../assets/img/5_background/layers/4_clouds/2.png', 7200),
-        new Cloud('../assets/img/5_background/layers/4_clouds/1.png', 8000),
-        new Cloud('../assets/img/5_background/layers/4_clouds/2.png', 8800),
-    ],
-    [
-        new BackgroundObject('../assets/img/5_background/layers/air.png', -719,),
-        new BackgroundObject('../assets/img/5_background/layers/3_third_layer/2.png', -719),
-        new BackgroundObject('../assets/img/5_background/layers/2_second_layer/2.png', -719),
-        new BackgroundObject('../assets/img/5_background/layers/1_first_layer/2.png', -719),
+    ];
+}
 
-        new BackgroundObject('../assets/img/5_background/layers/air.png', 0),
-        new BackgroundObject('../assets/img/5_background/layers/3_third_layer/1.png', 0),
-        new BackgroundObject('../assets/img/5_background/layers/2_second_layer/1.png', 0),
-        new BackgroundObject('../assets/img/5_background/layers/1_first_layer/1.png', 0),
-        new BackgroundObject('../assets/img/5_background/layers/air.png', 719,),
-        new BackgroundObject('../assets/img/5_background/layers/3_third_layer/2.png', 719),
-        new BackgroundObject('../assets/img/5_background/layers/2_second_layer/2.png', 719),
-        new BackgroundObject('../assets/img/5_background/layers/1_first_layer/2.png', 719),
+function createClouds() {
+    const clouds = [];
+    const cloudImages = ['../assets/img/5_background/layers/4_clouds/1.png', '../assets/img/5_background/layers/4_clouds/2.png'];
+    for (let i = 0; i < 12; i++) {
+        const imageIndex = i % 2;
+        const xPosition = i * 800 + 100;
+        clouds.push(new Cloud(cloudImages[imageIndex], xPosition));
+    }
+    return clouds;
+}
 
-        new BackgroundObject('../assets/img/5_background/layers/air.png', 719 *2),
-        new BackgroundObject('../assets/img/5_background/layers/3_third_layer/1.png', 719 *2),
-        new BackgroundObject('../assets/img/5_background/layers/2_second_layer/1.png', 719 *2),
-        new BackgroundObject('../assets/img/5_background/layers/1_first_layer/1.png', 719 *2),
-        new BackgroundObject('../assets/img/5_background/layers/air.png', 719 *3,),
-        new BackgroundObject('../assets/img/5_background/layers/3_third_layer/2.png', 719 *3),
-        new BackgroundObject('../assets/img/5_background/layers/2_second_layer/2.png', 719 *3),
-        new BackgroundObject('../assets/img/5_background/layers/1_first_layer/2.png', 719 *3),
-        
-        new BackgroundObject('../assets/img/5_background/layers/air.png', 719 *4),
-        new BackgroundObject('../assets/img/5_background/layers/3_third_layer/1.png', 719 *4),
-        new BackgroundObject('../assets/img/5_background/layers/2_second_layer/1.png', 719 *4),
-        new BackgroundObject('../assets/img/5_background/layers/1_first_layer/1.png', 719 *4),
-        new BackgroundObject('../assets/img/5_background/layers/air.png', 719 *5,),
-        new BackgroundObject('../assets/img/5_background/layers/3_third_layer/2.png', 719 *5),
-        new BackgroundObject('../assets/img/5_background/layers/2_second_layer/2.png', 719 *5),
-        new BackgroundObject('../assets/img/5_background/layers/1_first_layer/2.png', 719 *5),
+function createBottles() {
+    const bottles = [];
+    for (let i = 0; i < 10; i++) {
+        bottles.push(new Bottles());
+    }
+    return bottles;
+}
 
-        new BackgroundObject('../assets/img/5_background/layers/air.png', 719 *6),
-        new BackgroundObject('../assets/img/5_background/layers/3_third_layer/1.png', 719 *6),
-        new BackgroundObject('../assets/img/5_background/layers/2_second_layer/1.png', 719 *6),
-        new BackgroundObject('../assets/img/5_background/layers/1_first_layer/1.png', 719 *6),
-        new BackgroundObject('../assets/img/5_background/layers/air.png', 719 *7,),
-        new BackgroundObject('../assets/img/5_background/layers/3_third_layer/2.png', 719 *7),
-        new BackgroundObject('../assets/img/5_background/layers/2_second_layer/2.png', 719 *7),
-        new BackgroundObject('../assets/img/5_background/layers/1_first_layer/2.png', 719 *7),
+function createBackgroundObjects() {
+    const backgrounds = [];
+    const tileWidth = 719;
+    backgrounds.push(...createBackgroundSection(-1, tileWidth));
+    for (let i = 0; i <= 11; i++) {
+        backgrounds.push(...createBackgroundSection(i, tileWidth));
+    }
+    return backgrounds;
+}
 
-        new BackgroundObject('../assets/img/5_background/layers/air.png', 719 *8),
-        new BackgroundObject('../assets/img/5_background/layers/3_third_layer/1.png', 719 *8),
-        new BackgroundObject('../assets/img/5_background/layers/2_second_layer/1.png', 719 *8),
-        new BackgroundObject('../assets/img/5_background/layers/1_first_layer/1.png', 719 *8),
-        new BackgroundObject('../assets/img/5_background/layers/air.png', 719 *9,),
-        new BackgroundObject('../assets/img/5_background/layers/3_third_layer/2.png', 719 *9),
-        new BackgroundObject('../assets/img/5_background/layers/2_second_layer/2.png', 719 *9),
-        new BackgroundObject('../assets/img/5_background/layers/1_first_layer/2.png', 719 *9),
-
-        new BackgroundObject('../assets/img/5_background/layers/air.png', 719 *10),
-        new BackgroundObject('../assets/img/5_background/layers/3_third_layer/1.png', 719 *10),
-        new BackgroundObject('../assets/img/5_background/layers/2_second_layer/1.png', 719 *10),
-        new BackgroundObject('../assets/img/5_background/layers/1_first_layer/1.png', 719 *10),
-        new BackgroundObject('../assets/img/5_background/layers/air.png', 719 *11,),
-        new BackgroundObject('../assets/img/5_background/layers/3_third_layer/2.png', 719 *11),
-        new BackgroundObject('../assets/img/5_background/layers/2_second_layer/2.png', 719 *11),
-        new BackgroundObject('../assets/img/5_background/layers/1_first_layer/2.png', 719 *11),
-    ],
-    Coin.generateCoins(45),
-    [
-        new Bottles(),
-        new Bottles(),
-        new Bottles(),
-        new Bottles(),
-        new Bottles(),
-        new Bottles(),
-        new Bottles(),
-        new Bottles(),
-        new Bottles(),
-        new Bottles()
-    ]
-
-);
+function createBackgroundSection(index, width) {
+    const section = [];
+    const x = index * width;
+    const layerType = index % 2 === 0 ? 1 : 2;
+    section.push(new BackgroundObject(`../assets/img/5_background/layers/air.png`, x));
+    section.push(new BackgroundObject(`../assets/img/5_background/layers/3_third_layer/${layerType}.png`, x));
+    section.push(new BackgroundObject(`../assets/img/5_background/layers/2_second_layer/${layerType}.png`, x));
+    section.push(new BackgroundObject(`../assets/img/5_background/layers/1_first_layer/${layerType}.png`, x));
+    return section;
 }

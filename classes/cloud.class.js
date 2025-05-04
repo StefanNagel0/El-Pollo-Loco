@@ -25,8 +25,24 @@ class Cloud extends MovableObject {
      * Creates the effect of clouds drifting across the sky.
      */
     animate() {
-        setInterval(() => {
-            this.moveLeft();     
-        }, 1000 / 60); 
+        // Intervall speichern statt einfach nur setInterval verwenden
+        this.animationIntervals = this.animationIntervals || [];
+        this.animationIntervals.push(
+            setInterval(() => {
+                this.moveLeft();     
+            }, 1000 / 60)
+        ); 
+    }
+
+    /**
+     * Clear all Animation-Intervalle of this object.
+     * This is important to avoid memory leaks and ensure proper cleanup.
+     * It should be called when the object is no longer needed or when the game is paused.
+     */
+    cleanupAnimations() {
+        if (this.animationIntervals) {
+            this.animationIntervals.forEach(interval => clearInterval(interval));
+            this.animationIntervals = [];
+        }
     }
 }

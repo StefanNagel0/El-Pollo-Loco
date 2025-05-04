@@ -100,14 +100,117 @@ class Won {
 
     /**
      * Handles restarting the game when the restart button is clicked.
-     * Sets flags in localStorage and reloads the page to restart.
      */
     restartGame() {
+        if (window._inRestart === true) return;
         this.hide();
-        const timestamp = new Date().getTime();
-        localStorage.setItem('elPolloLoco_startGame', 'true');
-        localStorage.setItem('elPolloLoco_restartTimestamp', timestamp.toString());
-        setTimeout(() => window.location.reload(), 50);
+        try {
+            window._inRestart = true;
+            this.cleanupWorld();
+            this.disableButtons();
+            this.resetStaticVariables();
+            this.resetGlobalReferences();
+            this.startRestartSequence();
+        } catch (e) {
+            window.location.reload();
+        }
+    }
+
+    cleanupWorld() {
+        if (window.world) {
+            window.world.cleanup();
+            window.world = null;
+        }
+    }
+
+    disableButtons() {
+        document.querySelectorAll('.game-button').forEach(button => {
+            button.disabled = true;
+        });
+    }
+
+    resetStaticVariables() {
+        if (typeof MovableObject !== 'undefined' && MovableObject.placedObjects) {
+            MovableObject.placedObjects = [];
+        }
+        this.removeElement('settings-overlay');
+        this.removeElement('custom-confirm');
+    }
+
+    removeElement(id) {
+        const element = document.getElementById(id);
+        if (element) element.remove();
+    }
+
+    resetGlobalReferences() {
+        window.gameOverScreen = null;
+        window.wonScreen = null;
+    }
+
+    startRestartSequence() {
+        setTimeout(() => {
+            this.initializeLevel();
+        }, 200);
+    }
+
+    initializeLevel() {
+        try {
+            initLevel1();
+            setTimeout(() => this.initializeGame(), 100);
+        } catch (levelError) {
+            window.location.reload();
+        }
+    }
+
+    initializeGame() {
+        try {
+            initGame();
+            if (window.world) {
+                this.finalizeRestart();
+            }
+        } catch (gameError) {
+            window.location.reload();
+        }
+    }
+
+    finalizeRestart() {
+        if (window.world?.userInterface) {
+            this.initUI();
+        }
+        window.world.isPaused = false;
+        this.initAudio();
+        window._inRestart = false;
+    }
+
+    initUI() {
+        setTimeout(() => {
+            window.world.userInterface.reinitializeUI();
+            setTimeout(() => this.initAudioElements(), 200);
+        }, 200);
+    }
+
+    initAudioElements() {
+        if (window.world?.userInterface?.audioManager) {
+            window.world.userInterface.audioManager.reinitializeAudioElements();
+        }
+    }
+
+    initAudio() {
+        if (window.world.userInterface?.audioManager) {
+            window.world.userInterface.audioManager.initBackgroundMusic();
+            window.world.userInterface.audioManager.playBackgroundMusic();
+        }
+    }
+
+    /**
+     * Cleans up the old world instance before creating a new one.
+     */
+    cleanupOldWorld() {
+        if (window.world) {
+            window.world.cleanup();
+            window.removeEventListener('resize', window.world.adjustPosition);
+            window.world = null;
+        }
     }
 
     /**
@@ -126,6 +229,14 @@ class Won {
         if (this.container) {
             this.container.classList.remove('show');
             this.container.classList.add('d-none');
+            setTimeout(() => this.removeContainer(), 50);
+        }
+    }
+
+    removeContainer() {
+        if (this.container && this.container.parentNode) {
+            this.container.parentNode.removeChild(this.container);
+            this.container = null;
         }
     }
 }

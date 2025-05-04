@@ -84,7 +84,61 @@ class UserInterface extends DrawableObject {
     initSettingsAndOverlay() {
         this.audioManager.initSettingsOverlay();
         const overlay = document.getElementById('settings-overlay');
-        if (overlay) overlay.classList.add('d-none');
+        if (overlay) {
+            overlay.classList.add('d-none');
+            this.setupOverlayButtons();
+        }
+    }
+
+    /**
+     * Sets up event listeners for the settings overlay buttons.
+     */
+    setupOverlayButtons() {
+        const buttons = {
+            'close-x': () => this.closeSettings(),
+            'return-to-game': () => this.closeSettings(),
+            'exit-game': () => this.showCustomConfirm(() => window.location.reload()),
+            'game-tab': () => this.switchTab('game'),
+            'how-to-play-tab': () => this.switchTab('howToPlay'),
+            'audio-tab': () => this.switchTab('audio')
+        };
+        Object.entries(buttons).forEach(([id, handler]) => {
+            const element = document.getElementById(id);
+            if (element) element.addEventListener('click', handler);
+        });
+    }
+
+    /**
+     * Switches between different tabs in the settings overlay.
+     * @param {string} tabName - The name of the tab to switch to ('game', 'howToPlay', or 'audio')
+     */
+    switchTab(tabName) {
+        const tabs = {
+            game: ['game-tab', 'game-content'],
+            howToPlay: ['how-to-play-tab', 'how-to-play-content'],
+            audio: ['audio-tab', 'audio-content']
+        };
+        this.resetAllTabs();
+        if (tabs[tabName]) {
+            const tabId = document.getElementById(tabs[tabName][0]);
+            const contentId = document.getElementById(tabs[tabName][1]);
+            if (tabId) tabId.classList.add('active');
+            if (contentId) contentId.classList.remove('d-none');
+        }
+    }
+
+    /**
+     * Resets all tabs and their content to the default state.
+     */
+    resetAllTabs() {
+        ['game-tab', 'how-to-play-tab', 'audio-tab'].forEach(id => {
+            const tab = document.getElementById(id);
+            if (tab) tab.classList.remove('active');
+        });
+        ['game-content', 'how-to-play-content', 'audio-content'].forEach(id => {
+            const content = document.getElementById(id);
+            if (content) content.classList.add('d-none');
+        });
     }
 
     /**
@@ -93,11 +147,7 @@ class UserInterface extends DrawableObject {
     setupFullscreenHandler() {
         document.addEventListener('fullscreenchange', () => {
             this.isFullscreen = !!document.fullscreenElement;
-            if (this.isFullscreen) {
-                document.body.classList.add('fullscreen');
-            } else {
-                document.body.classList.remove('fullscreen');
-            }
+            document.body.classList.toggle('fullscreen', this.isFullscreen);
             this.updateFullscreenIcon();
         });
     }
@@ -209,9 +259,17 @@ class UserInterface extends DrawableObject {
      * Adds mouse event listeners to the canvas.
      */
     addMouseListeners() {
-        this.canvas.addEventListener('mousemove', (event) => this.handleMouseMove(event));
-        this.canvas.addEventListener('click', (event) => this.handleMouseClick(event));
-        this.canvas.addEventListener('mouseout', () => this.handleMouseOut());
+        if (this._handleMouseMove) {
+            this.canvas.removeEventListener('mousemove', this._handleMouseMove);
+            this.canvas.removeEventListener('click', this._handleMouseClick);
+            this.canvas.removeEventListener('mouseout', this._handleMouseOut);
+        }
+        this._handleMouseMove = (event) => this.handleMouseMove(event);
+        this._handleMouseClick = (event) => this.handleMouseClick(event);
+        this._handleMouseOut = () => this.handleMouseOut();
+        this.canvas.addEventListener('mousemove', this._handleMouseMove);
+        this.canvas.addEventListener('click', this._handleMouseClick);
+        this.canvas.addEventListener('mouseout', this._handleMouseOut);
     }
 
     /**
@@ -472,16 +530,11 @@ class UserInterface extends DrawableObject {
      * Resets all tabs and activates the game tab.
      */
     resetAndActivateGameTab() {
+        this.resetAllTabs();
         const gameTab = document.getElementById('game-tab');
-        const howToPlayTab = document.getElementById('how-to-play-tab');
-        const audioTab = document.getElementById('audio-tab');
         const gameContent = document.getElementById('game-content');
-        const howToPlayContent = document.getElementById('how-to-play-content');
-        const audioContent = document.getElementById('audio-content');
-        [gameTab, howToPlayTab, audioTab].forEach(tab => tab?.classList.remove('active'));
-        [gameContent, howToPlayContent, audioContent].forEach(content => content?.classList.add('d-none'));
-        gameTab?.classList.add('active');
-        gameContent?.classList.remove('d-none');
+        if (gameTab) gameTab.classList.add('active');
+        if (gameContent) gameContent.classList.remove('d-none');
     }
 
     /**
@@ -511,14 +564,28 @@ class UserInterface extends DrawableObject {
         this.isMuted = !this.isMuted;
         localStorage.setItem('elPolloLoco_isMuted', this.isMuted);
         if (this.isMuted) {
-            this.updateSoundIcon();
-            this.audioManager.muteAllSounds();
-            this.audioManager.pauseBackgroundMusic();
+            this.muteSound();
         } else {
-            this.updateSoundIcon();
-            this.audioManager.unmuteAllSounds();
-            this.audioManager.playBackgroundMusic();
+            this.unmuteSound();
         }
+    }
+    
+    /**
+     * Mutes all sounds and updates the sound icon.
+     */
+    muteSound() {
+        this.updateSoundIcon();
+        this.audioManager.muteAllSounds();
+        this.audioManager.pauseBackgroundMusic();
+    }
+    
+    /**
+     * Unmutes all sounds and updates the sound icon.
+     */
+    unmuteSound() {
+        this.updateSoundIcon();
+        this.audioManager.unmuteAllSounds();
+        this.audioManager.playBackgroundMusic();
     }
 
     /**
@@ -638,4 +705,53 @@ class UserInterface extends DrawableObject {
      * @returns {HTMLAudioElement} The background music audio element
      */
     get backgroundMusic() { return this.audioManager.backgroundMusic; }
+
+    /**
+     * Sets the background music audio element.
+     * @param {HTMLAudioElement} audio - The background music audio element
+     */
+    reinitializeUI() {
+        this.reloadIcons();
+        this.reregisterEventListeners();
+        this.updateUIElements();
+    }
+    
+    /**
+     * Reloads the UI icons.
+     */
+    reloadIcons() {
+        this.soundIcon = new Image();
+        this.soundIcon.src = this.isMuted ? '../assets/img/ui_images/sound_off.svg' : '../assets/img/ui_images/sound_on.svg';
+        this.settingsIcon = new Image();
+        this.settingsIcon.src = '../assets/img/ui_images/settings.svg';
+        this.fullscreenIcon = new Image();
+        this.fullscreenIcon.src = this.isFullscreen ? '../assets/img/ui_images/fullscreen_exit.svg' : '../assets/img/ui_images/fullscreen.svg';
+    }
+    
+    /**
+     * Reregisters the event listeners for the canvas.
+     */
+    reregisterEventListeners() {
+        this.canvas.removeEventListener('mousemove', this._handleMouseMove);
+        this.canvas.removeEventListener('click', this._handleMouseClick);
+        this.canvas.removeEventListener('mouseout', this._handleMouseOut);
+        this._handleMouseMove = (event) => this.handleMouseMove(event);
+        this._handleMouseClick = (event) => this.handleMouseClick(event);
+        this._handleMouseOut = () => this.handleMouseOut();
+        this.canvas.addEventListener('mousemove', this._handleMouseMove);
+        this.canvas.addEventListener('click', this._handleMouseClick);
+        this.canvas.addEventListener('mouseout', this._handleMouseOut);
+    }
+    
+    /**
+     * Updates the UI elements.
+     */
+    updateUIElements() {
+        this.updateIconPositions();
+        this.updateIconHitboxes();
+        this.initSettingsAndOverlay();
+        if (this.audioManager) {
+            this.audioManager.reinitializeAudioElements();
+        }
+    }
 }

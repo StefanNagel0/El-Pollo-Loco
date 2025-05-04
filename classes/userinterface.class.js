@@ -14,7 +14,10 @@ class UserInterface extends DrawableObject {
         super();
         this.initializeBasicProperties(canvas);
         this.audioManager = new AudioManager(canvas);
-        this.initializeIcons(canvas);
+        this.iconManager = new UIIconManager(canvas, {
+            isMuted: this.isMuted,
+            isFullscreen: false
+        });
         this.setupInitialState();
     }
 
@@ -26,43 +29,7 @@ class UserInterface extends DrawableObject {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.isMuted = localStorage.getItem('elPolloLoco_isMuted') === 'true';
-        this.soundIconHovered = false;
-        this.settingsIconHovered = false;
-        this.fullscreenIconHovered = false;
         this.isFullscreen = false;
-    }
-
-    /**
-     * Initializes the UI icons.
-     * @param {HTMLCanvasElement} canvas - The canvas element for the UI
-     */
-    initializeIcons(canvas) {
-        this.soundIcon = new Image();
-        this.soundIcon.src = this.isMuted ? '../assets/img/ui_images/sound_off.svg' : '../assets/img/ui_images/sound_on.svg';
-        this.settingsIcon = new Image();
-        this.settingsIcon.src = '../assets/img/ui_images/settings.svg';
-        this.fullscreenIcon = new Image();
-        this.fullscreenIcon.src = '../assets/img/ui_images/fullscreen.svg';
-        this.initializeIconDimensions(canvas);
-    }
-
-    /**
-     * Sets the initial dimensions and positions of UI icons.
-     * @param {HTMLCanvasElement} canvas - The canvas element for the UI
-     */
-    initializeIconDimensions(canvas) {
-        this.soundIconX = canvas.width - 100;
-        this.soundIconY = 10;
-        this.soundIconWidth = 40;
-        this.soundIconHeight = 40;
-        this.settingsIconX = canvas.width - 50;
-        this.settingsIconY = 10;
-        this.settingsIconWidth = 40;
-        this.settingsIconHeight = 40;
-        this.fullscreenIconX = canvas.width - 50;
-        this.fullscreenIconY = canvas.height - 50;
-        this.fullscreenIconWidth = 40;
-        this.fullscreenIconHeight = 40;
     }
 
     /**
@@ -74,7 +41,6 @@ class UserInterface extends DrawableObject {
         if (this.isMuted) this.audioManager.muteAllSounds();
         this.setupFullscreenHandler();
         this.audioManager.initBackgroundMusic();
-        this.setupErrorHandlers();
         window.addEventListener('resize', () => this.scheduleIconPositionUpdate());
     }
 
@@ -148,111 +114,8 @@ class UserInterface extends DrawableObject {
         document.addEventListener('fullscreenchange', () => {
             this.isFullscreen = !!document.fullscreenElement;
             document.body.classList.toggle('fullscreen', this.isFullscreen);
-            this.updateFullscreenIcon();
+            this.iconManager.updateFullscreenIcon(this.isFullscreen);
         });
-    }
-
-    /**
-     * Sets up error handlers for icons to prevent uncaught exceptions.
-     */
-    setupErrorHandlers() {
-        this.soundIcon.onerror = () => {};
-        this.settingsIcon.onerror = () => {};
-        this.fullscreenIcon.onerror = () => {};
-    }
-
-    /**
-     * Updates the positions of UI icons based on canvas dimensions.
-     */
-    updateIconPositions() {
-        const canvasWidth = this.canvas.width;
-        const canvasHeight = this.canvas.height;
-        const marginRight = 60;
-        const marginTop = 10;
-        const marginBottom = 10;
-        this.soundIconX = canvasWidth - this.soundIconWidth - marginRight;
-        this.soundIconY = marginTop;
-        this.settingsIconX = canvasWidth - this.settingsIconWidth - 10;
-        this.settingsIconY = marginTop;
-        this.fullscreenIconX = canvasWidth - this.fullscreenIconWidth - 10;
-        this.fullscreenIconY = canvasHeight - this.fullscreenIconHeight - marginBottom;
-    }
-
-    /**
-     * Draws all UI icons on the canvas.
-     */
-    drawIcons() {
-        this.updateIconPositions();
-        this.drawSoundIcon();
-        this.drawSettingsIcon();
-        this.drawFullscreenIconIfNeeded();
-    }
-
-    /**
-     * Draws the sound icon with hover effect if applicable.
-     */
-    drawSoundIcon() {
-        this.ctx.save();
-        if (this.soundIconHovered) {
-            this.applyHoverEffect(this.soundIconX, this.soundIconY, this.soundIconWidth, this.soundIconHeight);
-        }
-        this.ctx.drawImage(this.soundIcon, this.soundIconX, this.soundIconY, this.soundIconWidth, this.soundIconHeight);
-        this.ctx.restore();
-    }
-
-    /**
-     * Draws the settings icon with rotation effect if hovered.
-     */
-    drawSettingsIcon() {
-        this.ctx.save();
-        if (this.settingsIconHovered) {
-            this.applyRotationEffect(this.settingsIconX, this.settingsIconY, this.settingsIconWidth, this.settingsIconHeight);
-        }
-        this.ctx.drawImage(this.settingsIcon, this.settingsIconX, this.settingsIconY, this.settingsIconWidth, this.settingsIconHeight);
-        this.ctx.restore();
-    }
-
-    /**
-     * Draws the fullscreen icon if appropriate for the current screen size.
-     */
-    drawFullscreenIconIfNeeded() {
-        const isSmallScreen = window.innerWidth < 720;
-        const isLandscape = window.innerHeight < window.innerWidth;
-        const shouldDisplayFullscreenIcon = !(isSmallScreen && isLandscape);
-        if (shouldDisplayFullscreenIcon) {
-            this.ctx.save();
-            if (this.fullscreenIconHovered) {
-                this.applyHoverEffect(this.fullscreenIconX, this.fullscreenIconY, this.fullscreenIconWidth, this.fullscreenIconHeight);
-            }
-            this.ctx.drawImage(this.fullscreenIcon, this.fullscreenIconX, this.fullscreenIconY, this.fullscreenIconWidth, this.fullscreenIconHeight);
-            this.ctx.restore();
-        }
-    }
-
-    /**
-     * Applies a hover scale effect to an icon.
-     * @param {number} x - X-coordinate of the icon
-     * @param {number} y - Y-coordinate of the icon
-     * @param {number} width - Width of the icon
-     * @param {number} height - Height of the icon
-     */
-    applyHoverEffect(x, y, width, height) {
-        this.ctx.translate(x + width / 2, y + height / 2);
-        this.ctx.scale(1.1, 1.1);
-        this.ctx.translate(-(x + width / 2), -(y + height / 2));
-    }
-
-    /**
-     * Applies a rotation effect to an icon.
-     * @param {number} x - X-coordinate of the icon
-     * @param {number} y - Y-coordinate of the icon
-     * @param {number} width - Width of the icon
-     * @param {number} height - Height of the icon
-     */
-    applyRotationEffect(x, y, width, height) {
-        this.ctx.translate(x + width / 2, y + height / 2);
-        this.ctx.rotate(Math.PI / 2);
-        this.ctx.translate(-(x + width / 2), -(y + height / 2));
     }
 
     /**
@@ -278,7 +141,7 @@ class UserInterface extends DrawableObject {
      */
     handleMouseMove(event) {
         const relativePos = this.calculateRelativeCoordinates(event);
-        this.checkIconHoverStates(relativePos.x, relativePos.y);
+        this.iconManager.checkIconHoverStates(relativePos.x, relativePos.y);
         this.updateCursor();
     }
 
@@ -288,17 +151,35 @@ class UserInterface extends DrawableObject {
      */
     handleMouseClick(event) {
         const relativePos = this.calculateRelativeCoordinates(event);
-        this.checkIconClick(relativePos.x, relativePos.y);
+        const clickedIcon = this.iconManager.getClickedIcon(relativePos.x, relativePos.y);
+        
+        if (clickedIcon === 'sound') {
+            this.toggleSound();
+        } else if (clickedIcon === 'settings') {
+            this.openSettings();
+        } else if (clickedIcon === 'fullscreen') {
+            this.toggleFullscreen();
+        }
     }
 
     /**
      * Handles mouse out events for the canvas.
      */
     handleMouseOut() {
-        this.soundIconHovered = false;
-        this.settingsIconHovered = false;
-        this.fullscreenIconHovered = false;
+        this.iconManager.resetHoverStates();
         this.canvas.style.cursor = 'default';
+    }
+
+    /**
+     * Updates the cursor style based on icon hover states.
+     */
+    updateCursor() {
+        const isHovering = 
+            this.iconManager.soundIconHovered || 
+            this.iconManager.settingsIconHovered || 
+            this.iconManager.fullscreenIconHovered;
+            
+        this.canvas.style.cursor = isHovering ? 'pointer' : 'default';
     }
 
     /**
@@ -354,72 +235,6 @@ class UserInterface extends DrawableObject {
     }
 
     /**
-     * Checks if any icons are being hovered over.
-     * @param {number} x - Mouse x-coordinate relative to canvas
-     * @param {number} y - Mouse y-coordinate relative to canvas
-     */
-    checkIconHoverStates(x, y) {
-        const tolerance = 10;
-        this.soundIconHovered = this.isPointInRect(x, y, this.soundIconX, this.soundIconY, this.soundIconWidth, this.soundIconHeight, tolerance);
-        this.settingsIconHovered = this.isPointInRect(x, y, this.settingsIconX, this.settingsIconY, this.settingsIconWidth, this.settingsIconHeight, tolerance);
-        this.fullscreenIconHovered = this.isPointInRect(x, y, this.fullscreenIconX, this.fullscreenIconY, this.fullscreenIconWidth, this.fullscreenIconHeight, tolerance);
-    }
-
-    /**
-     * Updates the cursor style based on icon hover states.
-     */
-    updateCursor() {
-        this.canvas.style.cursor = (this.soundIconHovered || this.settingsIconHovered || this.fullscreenIconHovered) ? 'pointer' : 'default';
-    }
-
-    /**
-     * Checks if an icon has been clicked and triggers the appropriate action.
-     * @param {number} x - Mouse x-coordinate relative to canvas
-     * @param {number} y - Mouse y-coordinate relative to canvas
-     */
-    checkIconClick(x, y) {
-        const tolerance = 10;
-        if (this.isPointInRect(x, y, this.soundIconX, this.soundIconY, this.soundIconWidth, this.soundIconHeight, tolerance)) {
-            this.toggleSound();
-        } else if (this.isPointInRect(x, y, this.settingsIconX, this.settingsIconY, this.settingsIconWidth, this.settingsIconHeight, tolerance)) {
-            this.openSettings();
-        } else {
-            this.checkFullscreenClick(x, y, tolerance);
-        }
-    }
-
-    /**
-     * Checks if the fullscreen icon has been clicked and toggles fullscreen if appropriate.
-     * @param {number} x - Mouse x-coordinate relative to canvas
-     * @param {number} y - Mouse y-coordinate relative to canvas
-     * @param {number} tolerance - Click detection tolerance in pixels
-     */
-    checkFullscreenClick(x, y, tolerance) {
-        const isSmallScreen = window.innerWidth < 720;
-        const isLandscape = window.innerHeight < window.innerWidth;
-        const shouldDisplayFullscreenIcon = !(isSmallScreen && isLandscape);
-        if (shouldDisplayFullscreenIcon && this.isPointInRect(x, y, this.fullscreenIconX, this.fullscreenIconY, this.fullscreenIconWidth, this.fullscreenIconHeight, tolerance)) {
-            this.toggleFullscreen();
-        }
-    }
-
-    /**
-     * Determines if a point is within a rectangle with optional tolerance.
-     * @param {number} x - Point x-coordinate
-     * @param {number} y - Point y-coordinate
-     * @param {number} rectX - Rectangle x-coordinate
-     * @param {number} rectY - Rectangle y-coordinate
-     * @param {number} rectWidth - Rectangle width
-     * @param {number} rectHeight - Rectangle height
-     * @param {number} tolerance - Additional tolerance around the rectangle
-     * @returns {boolean} True if the point is within the rectangle
-     */
-    isPointInRect(x, y, rectX, rectY, rectWidth, rectHeight, tolerance = 0) {
-        return x >= (rectX - tolerance) && x <= (rectX + rectWidth + tolerance) &&
-            y >= (rectY - tolerance) && y <= (rectY + rectHeight + tolerance);
-    }
-
-    /**
      * Toggles between fullscreen and normal display mode.
      */
     toggleFullscreen() {
@@ -428,7 +243,7 @@ class UserInterface extends DrawableObject {
         } else {
             this.exitFullscreen();
         }
-        this.updateFullscreenIcon();
+        this.iconManager.updateFullscreenIcon(this.isFullscreen);
         this.scheduleIconPositionUpdate();
     }
 
@@ -458,39 +273,19 @@ class UserInterface extends DrawableObject {
     }
 
     /**
-     * Updates the fullscreen icon based on current fullscreen state.
-     */
-    updateFullscreenIcon() {
-        this.fullscreenIcon.src = this.isFullscreen
-            ? '../assets/img/ui_images/fullscreen_exit.svg'
-            : '../assets/img/ui_images/fullscreen.svg';
-    }
-
-    /**
      * Schedules multiple updates to icon positions to ensure proper rendering after DOM changes.
      */
     scheduleIconPositionUpdate() {
-        this.updateIconPositions();
-        this.updateIconHitboxes();
+        this.iconManager.updateIconPositions();
+        this.iconManager.updateIconHitboxes();
         setTimeout(() => {
-            this.updateIconPositions();
-            this.updateIconHitboxes();
+            this.iconManager.updateIconPositions();
+            this.iconManager.updateIconHitboxes();
         }, 100);
         setTimeout(() => {
-            this.updateIconPositions();
-            this.updateIconHitboxes();
+            this.iconManager.updateIconPositions();
+            this.iconManager.updateIconHitboxes();
         }, 300);
-    }
-
-    /**
-     * Updates the icon hitboxes based on canvas scaling.
-     */
-    updateIconHitboxes() {
-        const rect = this.canvas.getBoundingClientRect();
-        const canvasRenderWidth = this.canvas.width;
-        const canvasRenderHeight = this.canvas.height;
-        this.canvasScaleX = canvasRenderWidth / rect.width;
-        this.canvasScaleY = canvasRenderHeight / rect.height;
     }
 
     /**
@@ -574,7 +369,7 @@ class UserInterface extends DrawableObject {
      * Mutes all sounds and updates the sound icon.
      */
     muteSound() {
-        this.updateSoundIcon();
+        this.iconManager.updateSoundIcon(true);
         this.audioManager.muteAllSounds();
         this.audioManager.pauseBackgroundMusic();
     }
@@ -583,7 +378,7 @@ class UserInterface extends DrawableObject {
      * Unmutes all sounds and updates the sound icon.
      */
     unmuteSound() {
-        this.updateSoundIcon();
+        this.iconManager.updateSoundIcon(false);
         this.audioManager.unmuteAllSounds();
         this.audioManager.playBackgroundMusic();
     }
@@ -592,11 +387,7 @@ class UserInterface extends DrawableObject {
      * Updates the sound icon based on current mute state.
      */
     updateSoundIcon() {
-        if (this.soundIcon) {
-            this.soundIcon.src = this.isMuted
-                ? '../assets/img/ui_images/sound_off.svg'
-                : '../assets/img/ui_images/sound_on.svg';
-        }
+        this.iconManager.updateSoundIcon(this.isMuted);
     }
 
     /**
@@ -660,6 +451,13 @@ class UserInterface extends DrawableObject {
     }
 
     /**
+     * Draws all UI icons on the canvas.
+     */
+    drawIcons() {
+        this.iconManager.drawIcons();
+    }
+
+    /**
      * Registers an audio element with the audio manager.
      * @param {HTMLAudioElement} audio - The audio element to register
      */
@@ -707,25 +505,12 @@ class UserInterface extends DrawableObject {
     get backgroundMusic() { return this.audioManager.backgroundMusic; }
 
     /**
-     * Sets the background music audio element.
-     * @param {HTMLAudioElement} audio - The background music audio element
+     * Reinitializes the UI after changes.
      */
     reinitializeUI() {
-        this.reloadIcons();
+        this.iconManager.reloadIcons();
         this.reregisterEventListeners();
         this.updateUIElements();
-    }
-    
-    /**
-     * Reloads the UI icons.
-     */
-    reloadIcons() {
-        this.soundIcon = new Image();
-        this.soundIcon.src = this.isMuted ? '../assets/img/ui_images/sound_off.svg' : '../assets/img/ui_images/sound_on.svg';
-        this.settingsIcon = new Image();
-        this.settingsIcon.src = '../assets/img/ui_images/settings.svg';
-        this.fullscreenIcon = new Image();
-        this.fullscreenIcon.src = this.isFullscreen ? '../assets/img/ui_images/fullscreen_exit.svg' : '../assets/img/ui_images/fullscreen.svg';
     }
     
     /**
@@ -747,8 +532,8 @@ class UserInterface extends DrawableObject {
      * Updates the UI elements.
      */
     updateUIElements() {
-        this.updateIconPositions();
-        this.updateIconHitboxes();
+        this.iconManager.updateIconPositions();
+        this.iconManager.updateIconHitboxes();
         this.initSettingsAndOverlay();
         if (this.audioManager) {
             this.audioManager.reinitializeAudioElements();

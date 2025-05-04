@@ -15,25 +15,35 @@ body.fullscreen h1 {
     display: none;
 }
 
-canvas{
+canvas {
     background-color: black;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     display: block;
-    margin: 0 auto;
+    margin: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
-@media only screen and (max-width:720px) {
+@media only screen and (max-width: 720px) {
     canvas {
         width: 100%;
+        height: auto;
+        position: relative;
+        transform: none;
+        top: auto;
+        left: auto;
+        margin: 0 auto;
     }
-    body{
+    body {
         padding: 0;
         width: 100%;
     }
-    .header_h1{
+    .header_h1 {
         display: none;
     }
-    .menu-button{
+    .menu-button {
         bottom: 285px;
         position: sticky;
     }
@@ -42,11 +52,18 @@ canvas{
 @media only screen and (max-height: 480px) {
     canvas {
         height: 100vh;
+        width: auto;
     }
-    body{
+    
+    #main-menu {
+        height: 100vh;
+        width: auto;
+    }
+    
+    body {
         height: 100vh;
     }
-    .menu-buttons{
+    .menu-buttons {
         bottom: 285px;
     }
 }

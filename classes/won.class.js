@@ -21,8 +21,6 @@ class Won {
         if (!this.container) this.createWonScreen();
         this.container.classList.remove('d-none');
         this.container.classList.add('show');
-        this.adjustPosition();
-        window.addEventListener('resize', this.adjustPosition.bind(this));
     }
 
     /**
@@ -96,19 +94,8 @@ class Won {
     }
 
     /**
-     * Adjusts the position of the victory screen to match the canvas position.
-     * Ensures the screen is properly aligned when the window size changes.
      */
     adjustPosition() {
-        const canvas = document.getElementById('canvas');
-        if (canvas && this.container) {
-            const canvasRect = canvas.getBoundingClientRect();
-            this.container.style.position = 'absolute';
-            this.container.style.top = `${canvasRect.top}px`;
-            this.container.style.left = `${canvasRect.left}px`;
-            this.container.style.width = `${canvasRect.width}px`;
-            this.container.style.height = `${canvasRect.height}px`;
-        }
     }
 
     /**

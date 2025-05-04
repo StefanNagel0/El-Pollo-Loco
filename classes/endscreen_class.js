@@ -41,7 +41,6 @@ class Endscreen {
         this.container.classList.remove('d-none');
         this.container.classList.add('show');
         this.container.style.display = 'flex';
-        this.adjustPosition();
     }
 
     /**
@@ -127,18 +126,8 @@ class Endscreen {
     }
 
     /**
-     * Adjusts the position of the game over screen to match the canvas position.
      */
     adjustPosition() {
-        const canvas = document.getElementById('canvas');
-        if (canvas && this.container) {
-            const canvasRect = canvas.getBoundingClientRect();
-            this.container.style.position = 'absolute';
-            this.container.style.top = `${canvasRect.top}px`;
-            this.container.style.left = `${canvasRect.left}px`;
-            this.container.style.width = `${canvasRect.width}px`;
-            this.container.style.height = `${canvasRect.height}px`;
-        }
     }
 
     /**

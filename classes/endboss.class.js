@@ -408,6 +408,10 @@ class Endboss extends MovableObject {
      * Shows the game won screen after a delay.
      */
     showGameWonScreen() {
+        if (!this.world || !this.world.endGame('win')) {
+            return;
+        }
+        
         setTimeout(() => {
             if (!window.wonScreen) window.wonScreen = new Won();
             window.wonScreen.show();

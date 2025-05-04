@@ -221,6 +221,10 @@ class Character extends MovableObject {
      * Triggers the game over sequence with appropriate timing.
      */
     triggerGameOverSequence() {
+        if (this.gameOverScreenShown || (this.world && !this.world.endGame('lose'))) {
+            return;
+        }
+        
         this.gameOverScreenShown = true;
         this.world?.userInterface?.backgroundMusic?.pause();
         setTimeout(() => {

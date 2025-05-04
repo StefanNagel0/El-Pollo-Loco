@@ -17,6 +17,7 @@ class World {
     maxThrowCooldown = 2250;
     cooldownImage = new Image();
     isPaused = true;
+    gameEnded = false; // Neue Eigenschaft zum Nachverfolgen des Spielendes
     
     /**
      * Creates a new game world with the specified canvas and keyboard.
@@ -688,5 +689,20 @@ class World {
     flipImageBack(mo) {
         mo.x = mo.x * -1;
         this.ctx.restore();
+    }
+
+    /**
+     * Markiert das Spiel als beendet und verhindert weitere Endscreens.
+     * @param {string} endType - Art des Spielendes ('win' oder 'lose')
+     * @returns {boolean} True wenn das Spiel gerade beendet wurde, false wenn es bereits beendet war
+     */
+    endGame(endType) {
+        if (this.gameEnded) {
+            return false;
+        }
+        
+        this.gameEnded = true;
+        this.isPaused = true;
+        return true;
     }
 }

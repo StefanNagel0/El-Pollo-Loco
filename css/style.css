@@ -27,8 +27,6 @@ h1 {
     letter-spacing: 4px;
     text-shadow: 2px 5px 11px rgba(0, 0, 0, 0.7);
     margin-bottom: 20px;
-    position: absolute;
-    top: 305px;
 }
 
 #rotation-video-container {
@@ -168,8 +166,18 @@ h1 {
     transition: transform 0.2s ease;
 }
 
+.contentPosition{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    width: 100%;
+    height: 100vh;
+}
+
 @media (max-width: 720px) and (orientation: landscape) {
     #fullscreen-icon {
         display: none !important;
     }
 }
+

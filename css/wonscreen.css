@@ -25,6 +25,7 @@
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     margin-bottom: 20px;
     letter-spacing: 10px;
+    position: static;
 }
 
 .game-won-text p {

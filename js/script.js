@@ -134,21 +134,22 @@ function initMobileControls() {
 function setupButton(buttonId, keyAction) {
     const button = document.getElementById(buttonId);
     if (!button) return;
-    button.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        e.currentTarget.classList.add('active');
-        updateKeyboardState(keyAction, true);
-    }, { passive: false });
-    button.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        e.currentTarget.classList.remove('active');
-        updateKeyboardState(keyAction, false);
-    }, { passive: false });
-    button.addEventListener('touchcancel', (e) => {
-        e.preventDefault();
-        e.currentTarget.classList.remove('active');
-        updateKeyboardState(keyAction, false);
-    }, { passive: false });
+    
+    button.addEventListener('touchstart', e => handleTouch(e, keyAction, true), { passive: false });
+    button.addEventListener('touchend', e => handleTouch(e, keyAction, false), { passive: false });
+    button.addEventListener('touchcancel', e => handleTouch(e, keyAction, false), { passive: false });
+}
+
+/**
+ * Handles touch events for mobile control buttons.
+ * @param {Event} e - The touch event
+ * @param {string} keyAction - The keyboard action to trigger
+ * @param {boolean} isActive - Whether the button should be active
+ */
+function handleTouch(e, keyAction, isActive) {
+    e.preventDefault();
+    e.currentTarget.classList[isActive ? 'add' : 'remove']('active');
+    updateKeyboardState(keyAction, isActive);
 }
 
 /**

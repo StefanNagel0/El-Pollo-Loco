@@ -27,6 +27,8 @@ h1 {
     letter-spacing: 4px;
     text-shadow: 2px 5px 11px rgba(0, 0, 0, 0.7);
     margin-bottom: 20px;
+    position: absolute;
+    top: 305px;
 }
 
 #rotation-video-container {

@@ -29,19 +29,47 @@ class MainMenu {
      * Initializes references to DOM elements used by the menu.
      */
     initDOMReferences() {
+        this.initMainElements();
+        this.initTabElements();
+        this.initContentElements();
+        this.initControlElements();
+    }
+
+    /**
+     * Initializes main menu container elements.
+     */
+    initMainElements() {
         this.menuContainer = document.getElementById('main-menu');
-        this.startButton = document.getElementById('start-game');
-        this.settingsIcon = document.getElementById('menu-settings-icon');
         this.settingsOverlay = document.getElementById('settings-overlay');
-        this.closeSettingsBtn = document.getElementById('close-settings');
         this.gameTitle = document.querySelector('h1');
-        this.closeXBtn = document.getElementById('close-x');
+    }
+
+    /**
+     * Initializes tab selector elements.
+     */
+    initTabElements() {
         this.gameTab = document.getElementById('game-tab');
         this.howToPlayTab = document.getElementById('how-to-play-tab');
         this.audioTab = document.getElementById('audio-tab');
+    }
+
+    /**
+     * Initializes tab content containers.
+     */
+    initContentElements() {
         this.gameContent = document.getElementById('game-content');
         this.howToPlayContent = document.getElementById('how-to-play-content');
         this.audioContent = document.getElementById('audio-content');
+    }
+
+    /**
+     * Initializes control buttons and icons.
+     */
+    initControlElements() {
+        this.startButton = document.getElementById('start-game');
+        this.settingsIcon = document.getElementById('menu-settings-icon');
+        this.closeSettingsBtn = document.getElementById('close-settings');
+        this.closeXBtn = document.getElementById('close-x');
         this.returnToGameBtn = document.getElementById('return-to-game');
         this.exitGameBtn = document.getElementById('exit-game');
         this.soundIcon = document.getElementById('menu-sound-icon');

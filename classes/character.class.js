@@ -205,20 +205,42 @@ class Character extends MovableObject {
      * Handles death animation sequence and triggers game over.
      */
     handleDeathAnimation() {
-        this.y += 10;
+        this.y += 20;
+        this.updateDeathAnimationFrame();
+        this.handleDeathSounds();
+        if (!this.gameOverScreenShown && this.y > this.world.canvas.height + 300) {
+            this.triggerGameOverSequence();
+        }
+        this.fallingTime = (this.fallingTime || 0) + 50;
+    }
+
+    /**
+     * Updates the animation frame for the death sequence.
+     */
+    updateDeathAnimationFrame() {
         if (!this.deathAnimationPlayed) {
-            if (this.deathAnimationFrame < 6) {
+            if (this.deathAnimationFrame < this.IMAGES_DEAD.length) {
                 this.img = this.imageCache[this.IMAGES_DEAD[this.deathAnimationFrame++]];
             } else {
-                this.img = this.imageCache[this.IMAGES_DEAD[5]];
+                this.img = this.imageCache[this.IMAGES_DEAD[this.IMAGES_DEAD.length - 1]];
                 this.deathAnimationPlayed = true;
             }
         } else {
-            this.img = this.imageCache[this.IMAGES_DEAD[5]];
+            this.img = this.imageCache[this.IMAGES_DEAD[this.IMAGES_DEAD.length - 1]];
         }
-        this.gameOverScreenShown || this.triggerGameOverSequence();
-        this.deathSoundPlayed || this.playDeathSounds();
-        if (this.sleepSound) { this.sleepSound.pause(); this.sleepSound = null; }
+    }
+
+    /**
+     * Handles sound effects during death animation.
+     */
+    handleDeathSounds() {
+        if (!this.deathSoundPlayed) {
+            this.playDeathSounds();
+        }
+        if (this.sleepSound) { 
+            this.sleepSound.pause(); 
+            this.sleepSound = null; 
+        }
     }
 
     /**
@@ -231,11 +253,11 @@ class Character extends MovableObject {
         
         this.gameOverScreenShown = true;
         this.world?.userInterface?.backgroundMusic?.pause();
+        
         setTimeout(() => {
-            this.playMusicSound('../assets/audio/game_lose.mp3');
             if (!window.gameOverScreen) window.gameOverScreen = new Endscreen();
             window.gameOverScreen.show();
-        }, 1700);
+        }, 500); // Kürzeren Timeout verwenden, da wir bereits länger gewartet haben
     }
 
     /**

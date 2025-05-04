@@ -257,7 +257,7 @@ class Character extends MovableObject {
         setTimeout(() => {
             if (!window.gameOverScreen) window.gameOverScreen = new Endscreen();
             window.gameOverScreen.show();
-        }, 500); // Kürzeren Timeout verwenden, da wir bereits länger gewartet haben
+        }, 500);
     }
 
     /**

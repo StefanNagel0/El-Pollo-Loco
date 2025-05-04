@@ -267,7 +267,7 @@ class World {
      */
     checkCoinCollisions() {
         this.level.coins.forEach((coin, index) => {
-            if (this.character.isPreciselyColiding(coin)) {
+            if (this.character.isColiding(coin)) {
                 this.character.collectCoin();
                 this.level.coins.splice(index, 1);
             }

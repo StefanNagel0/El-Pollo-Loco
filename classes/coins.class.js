@@ -27,6 +27,12 @@ class Coin extends MovableObject {
         this.x = this.getValidXPosition();
         this.y = this.getRandomY();
         MovableObject.placedObjects.push(this.x);
+        this.offset = {
+            top: 30,
+            left: 30,
+            right: 30,
+            bottom: 30 
+        };
         this.animate();
     }
 

@@ -1,20 +1,23 @@
 <!DOCTYPE html>
 <html translate="no" lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google" content="notranslate">
     <title>El Polo Loco</title>
-    
+
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/overlay.css">
     <link rel="stylesheet" href="../css/main_menu.css">
-    <link rel="stylesheet" href="../css/canvas.css">     
+    <link rel="stylesheet" href="../css/canvas.css">
     <link rel="stylesheet" href="../css/endscreen.css">
     <link rel="stylesheet" href="../css/wonscreen.css">
-    <link rel="stylesheet" href="../css/standard.css">     
+    <link rel="stylesheet" href="../css/standard.css">
     <link rel="icon" href="../assets/img/6_salsa_bottle/1_salsa_bottle_on_ground.png">
 
+    <script src="../classes/world-cooldown-manager.class.js"></script>
+    <script src="../classes/world-cleanup-manager.class.js"></script>
     <script src="../classes/world.class.js"></script>
     <script src="../classes/collision-handler.class.js"></script>
     <script src="../classes/main_menu.class.js"></script>
@@ -44,15 +47,17 @@
     <script src="../js/script.js"></script>
     <script src="../js/game.js"></script>
 </head>
+
 <body onload="init()">
     <div class="contentPosition">
-        <div>    <h1 class="header_h1">El Pollo Loco</h1></div>
-        <div>    <canvas id="canvas" width="720" height="480"></canvas> </div>
-
-    
+        <div>
+            <h1 class="header_h1">El Pollo Loco</h1>
+        </div>
+        <div> <canvas id="canvas" width="720" height="480"></canvas> </div>
     </div>
     <div id="main-menu">
-        <img src="../assets/img/9_intro_outro_screens/start/startscreen_2.png" alt="El Pollo Loco" class="menu-background">
+        <img src="../assets/img/9_intro_outro_screens/start/startscreen_2.png" alt="El Pollo Loco"
+            class="menu-background">
         <div class="menu-settings-icon">
             <img src="../assets/img/ui_images/settings.svg" alt="Einstellungen" id="menu-settings-icon">
         </div>
@@ -67,7 +72,6 @@
         <div class="settings-container">
             <h2>Settings</h2>
             <button class="close-x" id="close-x">&times;</button>
-            
             <div class="settings-tabs">
                 <div class="tab active" id="game-tab" data-tab="game-content">Game</div>
                 <div class="tab" id="how-to-play-tab" data-tab="how-to-play-content">How to Play</div>
@@ -114,7 +118,7 @@
                     </div>
                     <div class="setting">
                         <label for="enemies-volume">Enemies: <span id="enemies-volume-value">1</span></label>
-                        <input type="range" id="enemies-volume" class="volume-slider" min="0" max="10" value="1"> 
+                        <input type="range" id="enemies-volume" class="volume-slider" min="0" max="10" value="1">
                     </div>
                     <div class="setting">
                         <label for="objects-volume">Objects: <span id="objects-volume-value">1</span></label>

@@ -12,15 +12,13 @@ class World {
     camera_x = 0;
     statusBar = new StatusBar();
     throwableObjects = [];
-    canThrow = true;
-    throwCooldown = 0;
-    maxThrowCooldown = 2250;
-    cooldownImage = new Image();
     isPaused = true;
     gameEnded = false;
     intervals = [];
     animationFrameId = null;
     collisionHandler;
+    cooldownManager;
+    cleanupManager;
     
     /**
      * Creates a new game world with the specified canvas and keyboard.
@@ -33,6 +31,8 @@ class World {
         this.keyboard = keyboard;
         this.userInterface = new UserInterface(canvas);
         this.collisionHandler = new CollisionHandler(this);
+        this.cooldownManager = new WorldCooldownManager(this);
+        this.cleanupManager = new WorldCleanupManager(this);
         this.initializeUI();
         this.draw();
         this.setWorld();
@@ -54,7 +54,6 @@ class World {
      * Transfers sound settings from the main menu if available.
      */
     initializeUI() {
-        this.cooldownImage.src = '../assets/img/6_salsa_bottle/salsa_bottle.png';
         if (window.mainMenu?.userInterface) {
             this.userInterface.isMuted = window.mainMenu.userInterface.isMuted;
             this.userInterface.updateSoundIcon();
@@ -86,7 +85,7 @@ class World {
                 this.collisionHandler.checkCollisions();
                 this.collisionHandler.checkCollisionsWithBottles();
                 this.collisionHandler.checkEnemyDistances();
-                this.updateCooldown();
+                this.cooldownManager.updateCooldown();
             }
         }, 1000 / 60);
         this.intervals.push(interval);
@@ -97,7 +96,7 @@ class World {
      * Handles bottle throwing when conditions are met.
      */
     checkThrowObjects() {
-        if (this.keyboard.D && this.character.bottles > 0 && this.canThrow) {
+        if (this.keyboard.D && this.character.bottles > 0 && this.cooldownManager.canThrow) {
             this.character.resetIdleState();
             this.throwBottle();
         }
@@ -112,7 +111,7 @@ class World {
         this.throwableObjects.push(bottle);
         this.decreaseBottlesAndUpdateUI();
         this.playThrowSound();
-        this.startThrowCooldown();
+        this.cooldownManager.startThrowCooldown();
     }
 
     /**
@@ -150,119 +149,6 @@ class World {
     }
 
     /**
-     * Starts the cooldown timer after throwing a bottle.
-     * Prevents rapid bottle throwing by enforcing a delay.
-     */
-    startThrowCooldown() {
-        this.canThrow = false;
-        this.throwCooldown = this.maxThrowCooldown;
-        setTimeout(() => {
-            this.canThrow = true;
-            this.throwCooldown = 0;
-        }, this.maxThrowCooldown);
-    }
-
-    /**
-     * Updates the bottle throw cooldown timer.
-     * Decreases the cooldown timer during each game loop iteration.
-     */
-    updateCooldown() {
-        if (this.throwCooldown > 0) {
-            this.throwCooldown -= (1000 / 60);
-            if (this.throwCooldown < 0) this.throwCooldown = 0;
-        }
-    }
-
-    /**
-     * Draws the cooldown circle indicator for bottle throws.
-     * Shows a circular progress indicator with remaining time.
-     */
-    drawCooldownCircle() {
-        if (this.throwCooldown <= 0) return;
-        const circleData = this.calculateCooldownCirclePosition();
-        this.drawBackgroundCircle(circleData);
-        this.drawProgressCircle(circleData);
-        this.drawBottleImage(circleData);
-        this.drawRemainingTime(circleData);
-    }
-
-    /**
-     * Calculates position and dimensions for the cooldown circle.
-     * @returns {Object} Circle position, radius, and progress data
-     */
-    calculateCooldownCirclePosition() {
-        const circleRadius = 25;
-        const padding = 28;
-        const bottleStatusBarY = this.statusBar.y_bottles;
-        const bottleStatusBarHeight = this.statusBar.height;
-        return {
-            x: circleRadius + padding,
-            y: bottleStatusBarY + bottleStatusBarHeight + padding,
-            radius: circleRadius,
-            progress: this.throwCooldown / this.maxThrowCooldown
-        };
-    }
-
-    /**
-     * Draws the background circle for the cooldown indicator.
-     * @param {Object} data - Circle position and dimension data
-     */
-    drawBackgroundCircle(data) {
-        this.ctx.beginPath();
-        this.ctx.arc(data.x, data.y, data.radius, 0, 2 * Math.PI);
-        this.ctx.fillStyle = 'rgba(80, 80, 80, 0.7)';
-        this.ctx.fill();
-    }
-
-    /**
-     * Draws the progress circle overlay for the cooldown indicator.
-     * Shows a diminishing segment as the cooldown progresses.
-     * @param {Object} data - Circle position and progress data
-     */
-    drawProgressCircle(data) {
-        this.ctx.beginPath();
-        this.ctx.moveTo(data.x, data.y);
-        this.ctx.arc(
-            data.x, data.y, data.radius,
-            -Math.PI / 2,
-            -Math.PI / 2 + (1 - data.progress) * 2 * Math.PI,
-            false
-        );
-        this.ctx.lineTo(data.x, data.y);
-        this.ctx.fillStyle = 'rgba(255, 140, 0, 0.7)';
-        this.ctx.fill();
-    }
-
-    /**
-     * Draws the bottle image in the center of the cooldown circle.
-     * @param {Object} data - Circle position and dimension data
-     */
-    drawBottleImage(data) {
-        if (this.cooldownImage.complete) {
-            const bottleSize = data.radius * 2.4;
-            this.ctx.drawImage(
-                this.cooldownImage,
-                data.x - bottleSize / 2,
-                data.y - bottleSize / 2,
-                bottleSize,
-                bottleSize
-            );
-        }
-    }
-
-    /**
-     * Draws the remaining time text below the cooldown circle.
-     * @param {Object} data - Circle position and countdown data
-     */
-    drawRemainingTime(data) {
-        const remainingTime = (this.throwCooldown / 1000).toFixed(1);
-        this.ctx.font = 'bold 16px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillStyle = 'white';
-        this.ctx.fillText(remainingTime + 's', data.x, data.y + data.radius + 15);
-    }
-
-    /**
      * Main drawing function that renders the game world in each animation frame.
      * Clears the canvas and draws all game elements in the correct order.
      */
@@ -284,8 +170,8 @@ class World {
         this.statusBar.draw(this.ctx);  
         this.userInterface.drawIcons();
         this.drawEndbossHealthBar();
-        if (this.throwCooldown > 0) {
-            this.drawCooldownCircle();
+        if (this.cooldownManager.throwCooldown > 0) {
+            this.cooldownManager.drawCooldownCircle(this.ctx);
         }
     }
 
@@ -420,106 +306,19 @@ class World {
 
     /**
      * Cleans up all resources registered in the world.
+     * Delegates to the cleanup manager.
      */
     cleanup() {
-        this.stopAnimations();
-        this.clearIntervals();
-        this.cleanupGameObjects();
-        this.stopAudio();
-        this.removeEventListeners();
+        this.cleanupManager.cleanup();
     }
     
     /**
-     * Stops the animation frame loop.
+     * Adds event listeners to the canvas for mouse/touch interactions.
+     * Allows user to control the UI during the game.
      */
-    stopAnimations() {
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = null;
+    addMouseListeners() {
+        if (this.userInterface) {
+            this.userInterface.addMouseListeners();
         }
-    }
-    
-    /**
-     * Clears all intervals registered in the world.
-     */
-    clearIntervals() {
-        if (this.intervals && this.intervals.length > 0) {
-            this.intervals.forEach(interval => clearInterval(interval));
-            this.intervals = [];
-        }
-    }
-    
-    /**
-     * Cleans up all game objects including character, enemies, clouds, and throwable objects.
-     */
-    cleanupGameObjects() {
-        this.cleanupCharacter();
-        this.cleanupEnemies();
-        this.cleanupClouds();
-        this.cleanupThrowableObjects();
-    }
-    
-    /**
-     * Cleans up the character's animations.
-     */
-    cleanupCharacter() {
-        if (this.character) {
-            this.character.cleanupAnimations();
-        }
-    }
-    
-    /**
-     * Cleans up all enemy animations.
-     */
-    cleanupEnemies() {
-        if (this.level && this.level.enemies) {
-            this.level.enemies.forEach(enemy => {
-                if (typeof enemy.cleanupAnimations === 'function') {
-                    enemy.cleanupAnimations();
-                }
-            });
-        }
-    }
-    
-    /**
-     * Cleans up all cloud animations.
-     */
-    cleanupClouds() {
-        if (this.level && this.level.clouds) {
-            this.level.clouds.forEach(cloud => {
-                if (typeof cloud.cleanupAnimations === 'function') {
-                    cloud.cleanupAnimations();
-                }
-            });
-        }
-    }
-    
-    /**
-     * Cleans up all animations of throwable objects.
-     */
-    cleanupThrowableObjects() {
-        if (this.throwableObjects) {
-            this.throwableObjects.forEach(obj => {
-                if (typeof obj.cleanupAnimations === 'function') {
-                    obj.cleanupAnimations();
-                }
-            });
-        }
-    }
-    
-    /**
-     * Stops the background music.
-     */
-    stopAudio() {
-        if (this.userInterface?.audioManager) {
-            this.userInterface.audioManager.pauseBackgroundMusic();
-        }
-    }
-    
-    /**
-     * Removes all event listeners.
-     */
-    removeEventListeners() {
-        window.removeEventListener('resize', this.handleResize);
     }
 }

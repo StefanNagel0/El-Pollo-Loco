@@ -18,6 +18,7 @@ class UserInterface extends DrawableObject {
             isMuted: this.isMuted,
             isFullscreen: false
         });
+        this.interactionHandler = new UIInteractionHandler(canvas, this);
         this.setupInitialState();
     }
 
@@ -29,19 +30,16 @@ class UserInterface extends DrawableObject {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.isMuted = localStorage.getItem('elPolloLoco_isMuted') === 'true';
-        this.isFullscreen = false;
     }
 
     /**
      * Sets up the initial state of the UI, including event listeners and settings.
      */
     setupInitialState() {
-        this.addMouseListeners();
         setTimeout(() => this.initSettingsAndOverlay(), 100);
         if (this.isMuted) this.audioManager.muteAllSounds();
-        this.setupFullscreenHandler();
         this.audioManager.initBackgroundMusic();
-        window.addEventListener('resize', () => this.scheduleIconPositionUpdate());
+        window.addEventListener('resize', () => this.interactionHandler.scheduleIconPositionUpdate());
     }
 
     /**
@@ -105,187 +103,6 @@ class UserInterface extends DrawableObject {
             const content = document.getElementById(id);
             if (content) content.classList.add('d-none');
         });
-    }
-
-    /**
-     * Sets up the fullscreen change event handler.
-     */
-    setupFullscreenHandler() {
-        document.addEventListener('fullscreenchange', () => {
-            this.isFullscreen = !!document.fullscreenElement;
-            document.body.classList.toggle('fullscreen', this.isFullscreen);
-            this.iconManager.updateFullscreenIcon(this.isFullscreen);
-        });
-    }
-
-    /**
-     * Adds mouse event listeners to the canvas.
-     */
-    addMouseListeners() {
-        if (this._handleMouseMove) {
-            this.canvas.removeEventListener('mousemove', this._handleMouseMove);
-            this.canvas.removeEventListener('click', this._handleMouseClick);
-            this.canvas.removeEventListener('mouseout', this._handleMouseOut);
-        }
-        this._handleMouseMove = (event) => this.handleMouseMove(event);
-        this._handleMouseClick = (event) => this.handleMouseClick(event);
-        this._handleMouseOut = () => this.handleMouseOut();
-        this.canvas.addEventListener('mousemove', this._handleMouseMove);
-        this.canvas.addEventListener('click', this._handleMouseClick);
-        this.canvas.addEventListener('mouseout', this._handleMouseOut);
-    }
-
-    /**
-     * Handles mouse movement over the canvas.
-     * @param {MouseEvent} event - The mouse event
-     */
-    handleMouseMove(event) {
-        const relativePos = this.calculateRelativeCoordinates(event);
-        this.iconManager.checkIconHoverStates(relativePos.x, relativePos.y);
-        this.updateCursor();
-    }
-
-    /**
-     * Handles mouse clicks on the canvas.
-     * @param {MouseEvent} event - The mouse event
-     */
-    handleMouseClick(event) {
-        const relativePos = this.calculateRelativeCoordinates(event);
-        const clickedIcon = this.iconManager.getClickedIcon(relativePos.x, relativePos.y);
-        
-        if (clickedIcon === 'sound') {
-            this.toggleSound();
-        } else if (clickedIcon === 'settings') {
-            this.openSettings();
-        } else if (clickedIcon === 'fullscreen') {
-            this.toggleFullscreen();
-        }
-    }
-
-    /**
-     * Handles mouse out events for the canvas.
-     */
-    handleMouseOut() {
-        this.iconManager.resetHoverStates();
-        this.canvas.style.cursor = 'default';
-    }
-
-    /**
-     * Updates the cursor style based on icon hover states.
-     */
-    updateCursor() {
-        const isHovering = 
-            this.iconManager.soundIconHovered || 
-            this.iconManager.settingsIconHovered || 
-            this.iconManager.fullscreenIconHovered;
-            
-        this.canvas.style.cursor = isHovering ? 'pointer' : 'default';
-    }
-
-    /**
-     * Calculates coordinates relative to the canvas based on mouse position.
-     * @param {MouseEvent} event - The mouse event
-     * @returns {Object} The calculated x and y coordinates relative to the canvas
-     */
-    calculateRelativeCoordinates(event) {
-        const rect = this.canvas.getBoundingClientRect();
-        const canvasAspectRatio = this.canvas.width / this.canvas.height;
-        const rectAspectRatio = rect.width / rect.height;
-        return this.isFullscreen
-            ? this.getFullscreenCoordinates(event, rect, canvasAspectRatio, rectAspectRatio)
-            : this.getNormalCoordinates(event, rect);
-    }
-
-    /**
-     * Calculates mouse coordinates when in fullscreen mode.
-     * @param {MouseEvent} event - The mouse event
-     * @param {DOMRect} rect - The canvas bounding rectangle
-     * @param {number} canvasAspectRatio - The canvas aspect ratio
-     * @param {number} rectAspectRatio - The canvas element's aspect ratio
-     * @returns {Object} The calculated x and y coordinates
-     */
-    getFullscreenCoordinates(event, rect, canvasAspectRatio, rectAspectRatio) {
-        let visibleWidth, visibleHeight, offsetX = 0, offsetY = 0;
-        if (rectAspectRatio > canvasAspectRatio) {
-            visibleHeight = rect.height;
-            visibleWidth = visibleHeight * canvasAspectRatio;
-            offsetX = (rect.width - visibleWidth) / 2;
-        } else {
-            visibleWidth = rect.width;
-            visibleHeight = visibleWidth / canvasAspectRatio;
-            offsetY = (rect.height - visibleHeight) / 2;
-        }
-        return {
-            x: ((event.clientX - rect.left - offsetX) / visibleWidth) * this.canvas.width,
-            y: ((event.clientY - rect.top - offsetY) / visibleHeight) * this.canvas.height
-        };
-    }
-
-    /**
-     * Calculates mouse coordinates in normal (non-fullscreen) mode.
-     * @param {MouseEvent} event - The mouse event
-     * @param {DOMRect} rect - The canvas bounding rectangle
-     * @returns {Object} The calculated x and y coordinates
-     */
-    getNormalCoordinates(event, rect) {
-        return {
-            x: (event.clientX - rect.left) / rect.width * this.canvas.width,
-            y: (event.clientY - rect.top) / rect.height * this.canvas.height
-        };
-    }
-
-    /**
-     * Toggles between fullscreen and normal display mode.
-     */
-    toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            this.enterFullscreen();
-        } else {
-            this.exitFullscreen();
-        }
-        this.iconManager.updateFullscreenIcon(this.isFullscreen);
-        this.scheduleIconPositionUpdate();
-    }
-
-    /**
-     * Enters fullscreen mode.
-     */
-    enterFullscreen() {
-        const element = document.documentElement;
-        if (element.requestFullscreen) element.requestFullscreen();
-        else if (element.mozRequestFullScreen) element.mozRequestFullScreen();
-        else if (element.webkitRequestFullscreen) element.webkitRequestFullscreen();
-        else if (element.msRequestFullscreen) element.msRequestFullscreen();
-        this.isFullscreen = true;
-        document.body.classList.add('fullscreen');
-    }
-
-    /**
-     * Exits fullscreen mode.
-     */
-    exitFullscreen() {
-        if (document.exitFullscreen) document.exitFullscreen();
-        else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
-        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        else if (document.msExitFullscreen) document.msExitFullscreen();
-        this.isFullscreen = false;
-        document.body.classList.remove('fullscreen');
-    }
-
-    /**
-     * Schedules multiple updates to icon positions to ensure proper rendering after DOM changes.
-     */
-    scheduleIconPositionUpdate() {
-        this.iconManager.updateIconPositions();
-        this.iconManager.updateIconHitboxes();
-        setTimeout(() => {
-            this.iconManager.updateIconPositions();
-            this.iconManager.updateIconHitboxes();
-        }, 100);
-        setTimeout(() => {
-            this.iconManager.updateIconPositions();
-            this.iconManager.updateIconHitboxes();
-        }, 300);
     }
 
     /**
@@ -509,23 +326,8 @@ class UserInterface extends DrawableObject {
      */
     reinitializeUI() {
         this.iconManager.reloadIcons();
-        this.reregisterEventListeners();
+        this.interactionHandler.reregisterEventListeners();
         this.updateUIElements();
-    }
-    
-    /**
-     * Reregisters the event listeners for the canvas.
-     */
-    reregisterEventListeners() {
-        this.canvas.removeEventListener('mousemove', this._handleMouseMove);
-        this.canvas.removeEventListener('click', this._handleMouseClick);
-        this.canvas.removeEventListener('mouseout', this._handleMouseOut);
-        this._handleMouseMove = (event) => this.handleMouseMove(event);
-        this._handleMouseClick = (event) => this.handleMouseClick(event);
-        this._handleMouseOut = () => this.handleMouseOut();
-        this.canvas.addEventListener('mousemove', this._handleMouseMove);
-        this.canvas.addEventListener('click', this._handleMouseClick);
-        this.canvas.addEventListener('mouseout', this._handleMouseOut);
     }
     
     /**
@@ -537,6 +339,24 @@ class UserInterface extends DrawableObject {
         this.initSettingsAndOverlay();
         if (this.audioManager) {
             this.audioManager.reinitializeAudioElements();
+        }
+    }
+
+    /**
+     * Gets the current fullscreen state from the interaction handler.
+     * @returns {boolean} Whether the interface is currently in fullscreen mode
+     */
+    get isFullscreen() {
+        return this.interactionHandler ? this.interactionHandler.getFullscreenState() : false;
+    }
+
+    /**
+     * Delegates mouse listeners setup to the interaction handler.
+     * Maintains backwards compatibility with existing code.
+     */
+    addMouseListeners() {
+        if (this.interactionHandler) {
+            this.interactionHandler.addMouseListeners();
         }
     }
 }

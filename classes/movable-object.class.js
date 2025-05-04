@@ -53,7 +53,6 @@ class MovableObject extends DrawableObject {
      * Sets up an interval that continuously updates vertical position.
      */
     applyGravity() {
-        // Wichtig: Intervall speichern statt einfach nur setInterval aufrufen
         const gravityInterval = setInterval(() => {
             if (!this.world || !this.world.isPaused) {
                 if (this.isAboveGround() || this.speedY > 0) {
@@ -62,8 +61,6 @@ class MovableObject extends DrawableObject {
                 }
             }
         }, 1000 / 60);
-        
-        // Zum Tracking hinzufügen
         this.animationIntervals.push(gravityInterval);
     }
 
